@@ -1,0 +1,103 @@
+/*
+ * Semantic theme tokens — see docs/frontend/adr/0002-semantic-theme-tokens.md.
+ *
+ * Components reference roles, never values. A theme is a set of values for
+ * these roles, applied at the document root at runtime, which is what lets a
+ * merchant restyle the shop without a build.
+ *
+ * The default set below is what Chalendia ships; merchant settings override it.
+ */
+
+:root {
+  color-scheme: light;
+
+  --colour-surface: #ffffff;
+  --colour-surface-raised: #f6f8f5;
+  --colour-text: #171d19;
+  --colour-text-muted: #5b665f;
+  --colour-border: #dde3dd;
+  --colour-accent: #1f6f4a;
+  --colour-accent-quiet: #eaf2ec;
+  --colour-on-accent: #ffffff;
+
+  /* Not used by any screen yet: the first interface that fails, warns or
+     confirms something uses them, and shows them in its own mockup. */
+  --colour-danger: #a3242b;
+  --colour-warning: #8a5a00;
+  --colour-success: #1f6f4a;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-1: 6px;
+  --radius-2: 10px;
+  --radius-pill: 999px;
+
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: Georgia, "Iowan Old Style", ui-serif, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-s: 0.82rem;
+  --text-m: 0.95rem;
+  --text-l: 1.15rem;
+  --text-xl: 1.6rem;
+}
+
+/* The viewer's system preference is the default signal. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --colour-surface: #10140f;
+    --colour-surface-raised: #171c18;
+    --colour-text: #e8ede9;
+    --colour-text-muted: #97a199;
+    --colour-border: #2a3129;
+    --colour-accent: #4fbf88;
+    --colour-accent-quiet: #16241c;
+    --colour-on-accent: #08120c;
+
+    --colour-danger: #e5737a;
+    --colour-warning: #d9a441;
+    --colour-success: #4fbf88;
+  }
+}
+
+/* An explicit choice wins over the system preference, in both directions. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --colour-surface: #ffffff;
+  --colour-surface-raised: #f6f8f5;
+  --colour-text: #171d19;
+  --colour-text-muted: #5b665f;
+  --colour-border: #dde3dd;
+  --colour-accent: #1f6f4a;
+  --colour-accent-quiet: #eaf2ec;
+  --colour-on-accent: #ffffff;
+
+  --colour-danger: #a3242b;
+  --colour-warning: #8a5a00;
+  --colour-success: #1f6f4a;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --colour-surface: #10140f;
+  --colour-surface-raised: #171c18;
+  --colour-text: #e8ede9;
+  --colour-text-muted: #97a199;
+  --colour-border: #2a3129;
+  --colour-accent: #4fbf88;
+  --colour-accent-quiet: #16241c;
+  --colour-on-accent: #08120c;
+
+  --colour-danger: #e5737a;
+  --colour-warning: #d9a441;
+  --colour-success: #4fbf88;
+}
