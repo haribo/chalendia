@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
+import PageTitle from '@/shared/ui/PageTitle.vue'
+
 const { t } = useI18n()
 </script>
 
 <template>
   <section class="home">
-    <h1>{{ t('storefront.welcome') }}</h1>
+    <PageTitle>{{ t('storefront.welcome') }}</PageTitle>
     <p>{{ t('storefront.noCatalogue') }}</p>
   </section>
 </template>
@@ -16,14 +18,6 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-}
-
-h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 600;
-  text-wrap: balance;
 }
 
 p {

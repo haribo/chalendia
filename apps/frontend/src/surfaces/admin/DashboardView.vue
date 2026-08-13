@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
+import PageTitle from '@/shared/ui/PageTitle.vue'
+
 const { t } = useI18n()
 </script>
 
 <template>
   <section class="dashboard">
-    <h1>{{ t('admin.dashboard.title') }}</h1>
+    <PageTitle>{{ t('admin.dashboard.title') }}</PageTitle>
     <p class="notice">
       {{ t('admin.dashboard.noPaymentMethod') }}
     </p>
@@ -18,14 +20,6 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 600;
-  text-wrap: balance;
 }
 
 .notice {
