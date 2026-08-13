@@ -16,6 +16,9 @@ pub const CORS_ORIGINS: &str = "CHALENDIA_CORS_ORIGINS";
 /// verifies our queries.
 pub const DATABASE_URL: &str = "DATABASE_URL";
 pub const DATABASE_MAX_CONNECTIONS: &str = "CHALENDIA_DATABASE_MAX_CONNECTIONS";
+/// Where the built frontend lives. Set in the container image, unset in
+/// development, where the dev server serves the application itself.
+pub const STATIC_DIR: &str = "CHALENDIA_STATIC_DIR";
 
 const DEFAULT_BIND: &str = "127.0.0.1:8080";
 /// Small on purpose: the target is one shop on a modest server, where each
@@ -32,6 +35,7 @@ pub struct Config {
     pub cors_origins: Vec<String>,
     pub database_url: String,
     pub database_max_connections: u32,
+    pub static_dir: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -104,6 +108,7 @@ impl Config {
             cors_origins,
             database_url,
             database_max_connections,
+            static_dir: read(&source, STATIC_DIR),
         })
     }
 }
