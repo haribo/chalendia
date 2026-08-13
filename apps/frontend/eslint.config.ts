@@ -44,6 +44,26 @@ export default defineConfigWithVueTs(
           element: 'textarea',
           message: 'Add a shared field to shared/ui rather than a local one — see frontend ADR 0003.',
         },
+        {
+          element: 'dialog',
+          message: 'Add a shared dialog to shared/ui rather than a local one — see frontend ADR 0003.',
+        },
+      ],
+
+      // A ban reading tag names alone waves through the hand-rolled equivalent:
+      // `<div role="button" tabindex="0" @click @keydown.enter>` satisfies every
+      // accessibility rule and still bypasses the design system.
+      'vue/no-restricted-static-attribute': [
+        'error',
+        ...['button', 'dialog', 'checkbox', 'radio', 'menu', 'menuitem', 'tab'].map((role) => ({
+          key: 'role',
+          value: role,
+          message: `Use the shared component for this affordance rather than role="${role}" — see frontend ADR 0003.`,
+        })),
+        {
+          key: 'contenteditable',
+          message: 'Add a shared editor to shared/ui rather than a local one — see frontend ADR 0003.',
+        },
       ],
     },
   },

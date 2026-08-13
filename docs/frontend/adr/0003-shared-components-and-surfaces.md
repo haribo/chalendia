@@ -39,9 +39,18 @@ A surface component uses shared components for every affordance one exists for.
 It may add layout, ordering, conditions and handlers around them. It may not
 rebuild an affordance with a different DOM and its own CSS.
 
-Raw `<select>`, `<button>` and `<input>` are therefore forbidden outside
-`src/shared/ui/`, and lint enforces it. The rule is not aesthetic: an affordance
-rebuilt by hand is an affordance whose accessible behavior was never reviewed.
+Raw affordance HTML is therefore forbidden outside `src/shared/ui/`, and lint
+enforces it. The rule is not aesthetic: an affordance rebuilt by hand is an
+affordance whose accessible behavior was never reviewed.
+
+The ban covers the elements and the hand-rolled equivalents that a ban reading
+tag names alone would wave through:
+
+| Forbidden outside `shared/ui/` | Because |
+|---|---|
+| `<button>`, `<input>`, `<select>`, `<textarea>`, `<dialog>` | A shared component exists, or should |
+| `role="button"`, `role="dialog"`, `role="checkbox"`, `role="radio"`, `role="menu"`, `role="menuitem"`, `role="tab"` | `<div role="button" tabindex="0" @click @keydown.enter>` satisfies every accessibility rule and still bypasses the design system |
+| `contenteditable` | Same, for text entry |
 
 ### 3. When a duplication becomes a shared component
 

@@ -64,6 +64,10 @@ Rules must be concise. One rule per line when possible.
 - A visual check after implementation verifies conformance to the validated mockup — it is never where the design gets discovered
 - When a non-obvious UI/UX decision is settled in conversation, propose adding it to the matching design document — interaction patterns, forms, terminology — rather than leaving it implicit in a component
 - Never modify backend code from frontend work — propose the backend change separately, so it is reviewed as a backend change against the API contract rather than as a detail of a UI branch
+- A component that renders a generic affordance and knows nothing of the domain lives in one shared place and is named after its contract; a component carrying domain knowledge lives with the feature or surface that owns it and is named after that concept. If a name reads as content, it is not shared
+- A domain component composes the shared affordances: it may add layout, ordering, conditions and handlers around them, never rebuild one with its own DOM and its own styling
+- Raw affordance HTML is forbidden outside the shared set — `<button>`, `<input>`, `<select>`, `<textarea>`, `<dialog>`, and the hand-rolled equivalents that bypass a ban reading tag names alone: `<div role="button">`, `role="dialog"`, `role="checkbox"`, `role="radio"`, `role="menu">`, `role="menuitem">`, `role="tab">`, `contenteditable`
+- The ban is enforced by lint rather than by review, and the lint message names the document stating the contract
 
 ## Shared ruleset
 
