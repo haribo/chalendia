@@ -69,6 +69,27 @@ export default defineConfigWithVueTs(
   },
 
   {
+    // Every call goes through the generated client, which is the only thing
+    // making a backend rename visible at build time. See backend ADR 0002.
+    name: 'chalendia/typed-api-only',
+    files: ['src/**/*.ts', 'src/**/*.vue'],
+    ignores: ['src/shared/api/**'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'fetch',
+          message: 'Use the typed client from shared/api — see backend ADR 0002.',
+        },
+        {
+          name: 'XMLHttpRequest',
+          message: 'Use the typed client from shared/api — see backend ADR 0002.',
+        },
+      ],
+    },
+  },
+
+  {
     name: 'chalendia/rules',
     rules: {
       // Every user-facing string goes through i18n; a literal in a template is

@@ -5,10 +5,11 @@ use axum::Json;
 use axum::http::{HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
+use utoipa::ToSchema;
 
 pub const PROBLEM_JSON: &str = "application/problem+json";
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ApiError {
     /// Machine-readable identifier of the problem kind. `about:blank` means the
     /// status code alone describes it.
@@ -19,6 +20,7 @@ pub struct ApiError {
     #[serde(skip_serializing_if = "Option::is_none")]
     detail: Option<String>,
     #[serde(skip)]
+    #[schema(ignore)]
     status_code: StatusCode,
 }
 

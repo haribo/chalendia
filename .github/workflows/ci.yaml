@@ -92,6 +92,9 @@ jobs:
       - name: Build
         run: just frontend-build
 
+      - name: Check the generated api types are current
+        run: just api-check
+
   image:
     name: Container image
     runs-on: ubuntu-latest

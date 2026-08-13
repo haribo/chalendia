@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 
 import PageTitle from '@/shared/ui/PageTitle.vue'
+import SystemStatusPanel from '@/surfaces/admin/SystemStatusPanel.vue'
 
 const { t } = useI18n()
 </script>
@@ -12,6 +13,7 @@ const { t } = useI18n()
     <p class="notice">
       {{ t('admin.dashboard.noPaymentMethod') }}
     </p>
+    <SystemStatusPanel />
   </section>
 </template>
 
@@ -20,6 +22,7 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  align-items: start;
 }
 
 .notice {

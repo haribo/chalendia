@@ -1,13 +1,16 @@
 pub mod error;
 pub mod health;
+pub mod shell;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use axum::extract::State;
 use axum::http::{HeaderValue, Method, header};
+use axum::response::IntoResponse;
 use axum::{Router, routing::get};
 use sqlx::postgres::PgPool;
 use tower_http::cors::CorsLayer;
-use tower_http::services::{ServeDir, ServeFile};
+use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 use crate::config::Config;
@@ -25,6 +28,9 @@ pub struct AppState {
 pub fn router(config: &Config, state: AppState) -> Router {
     let api = Router::new()
         .route("/health", get(health::health))
+        // The contract, served by the shop itself: a third party writing a
+        // client reads it from the running instance, not from the repository.
+        .route("/openapi.json", get(openapi_document))
         .with_state(state);
 
     let app = match &config.static_dir {
@@ -33,8 +39,13 @@ pub fn router(config: &Config, state: AppState) -> Router {
         // Container: unknown paths belong to the single-page application, which
         // owns its own routing and its own not-found page.
         Some(dir) => {
-            let index = Path::new(dir).join("index.html");
-            api.fallback_service(ServeDir::new(dir).fallback(ServeFile::new(index)))
+            let shell = ShellState {
+                index: Path::new(dir).join("index.html"),
+                config: config.clone(),
+            };
+            // Assets come from disk; everything else is an application route,
+            // answered with the shell carrying that URL's metadata.
+            api.fallback_service(ServeDir::new(dir).fallback(get(serve_shell).with_state(shell)))
         }
     };
 
@@ -44,6 +55,53 @@ pub fn router(config: &Config, state: AppState) -> Router {
         .method_not_allowed_fallback(async || ApiError::method_not_allowed())
         .layer(TraceLayer::new_for_http())
         .layer(cors_layer(config))
+}
+
+#[derive(Clone)]
+struct ShellState {
+    index: PathBuf,
+    config: Config,
+}
+
+async fn serve_shell(
+    State(state): State<ShellState>,
+    uri: axum::http::Uri,
+) -> axum::response::Response {
+    let Ok(index) = tokio::fs::read_to_string(&state.index).await else {
+        // The image ships the shell; its absence is a broken deployment, and
+        // saying so beats serving a blank page.
+        return ApiError::new(
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+        )
+        .with_detail("The application shell is missing from this installation.")
+        .into_response();
+    };
+
+    let metadata = shell::metadata_for(uri.path(), &state.config);
+
+    (
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        shell::render(&index, &metadata),
+    )
+        .into_response()
+}
+
+/// Serve this API's own contract.
+///
+/// A third party writing a client reads it from the running instance rather
+/// than from the repository, so it always describes the version answering.
+#[utoipa::path(
+    get,
+    path = "/openapi.json",
+    tag = "system",
+    responses((status = 200, description = "The OpenAPI document describing this API")),
+)]
+pub async fn openapi_document() -> impl axum::response::IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "application/json")],
+        crate::api::document(),
+    )
 }
 
 fn cors_layer(config: &Config) -> CorsLayer {

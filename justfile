@@ -253,8 +253,32 @@ frontend-test:
 frontend-build:
     cd {{frontend_dir}} && npm run build
 
+# =============================================================================
+# API CONTRACT — generated from the handlers, consumed by the frontend
+# =============================================================================
+
+# Regenerate the contract and the frontend types it feeds
+api-generate:
+    cd {{backend_dir}} && SQLX_OFFLINE=true cargo run --quiet --bin openapi > api/openapi.json
+    cd {{frontend_dir}} && npm run codegen:api
+
+# Fail when the committed frontend types no longer match the contract.
+# The contract's own freshness is checked by a backend test, so a stale
+# document fails `just backend-test` rather than needing node here.
+api-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd {{frontend_dir}} && npm run codegen:api >/dev/null
+    cd {{justfile_directory()}}
+    if ! git diff --quiet -- {{frontend_dir}}/src/shared/api/generated; then
+        echo "the generated api types are stale — run 'just api-generate' and commit the result"
+        git diff --stat -- {{frontend_dir}}/src/shared/api/generated
+        exit 1
+    fi
+    echo "api types: current"
+
 # Everything a pull request must pass, in one command
-check: backend-check backend-test frontend-check frontend-test frontend-build
+check: backend-check backend-test frontend-check frontend-test frontend-build api-check
 
 # =============================================================================
 # PACKAGING
