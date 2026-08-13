@@ -29,3 +29,26 @@ jobs:
             | sudo tar -xz -C /usr/local/bin gitleaks
       - name: Run gitleaks
         run: gitleaks detect --no-banner --redact
+
+  cargo-audit:
+    name: Cargo audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Audit Rust dependencies
+        working-directory: apps/backend
+        run: cargo audit
+
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+      - name: Audit npm dependencies
+        working-directory: apps/frontend
+        run: npm audit --audit-level=high

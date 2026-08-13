@@ -1,0 +1,43 @@
+# Reference installation, and the one docs/design/installation.md describes.
+#
+# Copy .env.example to .env, set CHALENDIA_PUBLIC_URL and the database
+# password, then `docker compose up`. HTTPS is the operator's reverse proxy,
+# not this file's business.
+
+services:
+  database:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-chalendia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chalendia}
+      POSTGRES_DB: ${POSTGRES_DB:-chalendia}
+    volumes:
+      # PostgreSQL 18 expects the mount one level above its data directory, so
+      # a later major upgrade can relink in place. Mounting .../data instead
+      # makes the container refuse to start.
+      - database:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chalendia}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  shop:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      CHALENDIA_PUBLIC_URL: ${CHALENDIA_PUBLIC_URL:-http://localhost:8080}
+      DATABASE_URL: postgres://${POSTGRES_USER:-chalendia}:${POSTGRES_PASSWORD:-chalendia}@database:5432/${POSTGRES_DB:-chalendia}
+      RUST_LOG: ${RUST_LOG:-info}
+    ports:
+      - "${CHALENDIA_PORT:-8080}:8080"
+    depends_on:
+      database:
+        # The shop applies its migrations at startup, so it needs a database
+        # that answers, not merely a container that exists.
+        condition: service_healthy
+
+volumes:
+  database:
