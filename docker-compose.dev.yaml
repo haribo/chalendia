@@ -1,0 +1,12 @@
+# Development override: adds what a developer needs and a shop must not have.
+#
+#   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d database
+#
+# `just dev-start` does this for you. The reference installation
+# (docker-compose.yaml alone) keeps the database unreachable from outside the
+# compose network, which is what a shop wants.
+
+services:
+  database:
+    ports:
+      - "${CHALENDIA_DEV_DB_PORT:-5442}:5432"

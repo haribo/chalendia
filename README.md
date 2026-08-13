@@ -20,8 +20,20 @@ Scope of the first release is fixed in
 ## Getting started (contributors)
 
 ```bash
-just hooks-install   # once per clone — the repository's git hooks are opt-in
-just --list          # available targets
+just dev-setup   # once per clone: prerequisites, git hooks, .env
+just dev-start   # database, migrations, API and dev server
+just dev-stop    # stops all three
+```
+
+`just dev-start` prints the URLs it made available. `just dev-status` says what
+is running, `just dev-logs` follows the output, and `just check` runs every gate
+CI runs. Development ports avoid the usual ones so several projects can run on
+one machine; change them in `.env`.
+
+## Running it as an operator would
+
+```bash
+docker compose up -d   # the shop and its database, from the built image
 ```
 
 ## Documentation
