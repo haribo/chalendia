@@ -30,7 +30,9 @@ Rules must be concise. One rule per line when possible.
 - ADR lifecycle: never delete an ADR; a reversal is a **new** ADR, and both sides carry the link — `Superseded by ADR-NNN` on the old, `Supersedes ADR-MMM` on the new. A one-sided link is how the chain rots
 - An ADR whose decision no longer applies, with no replacement, is marked `Deprecated` — never edited away or moved
 - In-place edits only for corrections of form and for clarifications that do not change the decision
-- Code is never source of truth — code/design disagreement means the code is the bug, or the design needs an explicit amendment, never both silently
+- Code is never source of truth — a code/design disagreement means the code is the bug, or the design needs an explicit amendment, never both silently
+- If the design is silent on a needed behavior, write the design first, then the code
+- Anchor a confirmed non-obvious decision — especially one where an alternative was rejected — in the design docs or an ADR before building on it
 
 ## Git
 
@@ -52,6 +54,16 @@ Rules must be concise. One rule per line when possible.
 - Bug fixes start with a failing test that reproduces the bug: write the test first and watch it fail, then fix, then re-run it green (red → green)
 - That test stays as the regression test for this bug — reference the issue number in it, so a later reader knows what it guards and does not delete it as noise
 - Bug fixes must reproduce the failure from observed evidence (logs, network capture, repro steps); never invent the failure scenario from a hypothesis
+- When you add or modify user-observable code, propose the corresponding test in the same response as the code change — a gate at push or review time is a backstop, not the discipline
+
+## Frontend
+
+- A change **modifies the UI** when it changes the rendered output for an end user — an element added, removed or moved, a styling change, an interaction behavior change. A refactor proven to render identically is exempt and says so explicitly
+- Before implementing a UI-modifying change, produce a mockup of the touched surfaces and states and obtain the user's explicit validation before writing code — realistic data including the edge cases (long free-form text, crowded lists), and every theme when theming applies. Debated variants are shown side by side
+- Validation is an explicit go on that specific mockup; absence of objection is not validation
+- A visual check after implementation verifies conformance to the validated mockup — it is never where the design gets discovered
+- When a non-obvious UI/UX decision is settled in conversation, propose adding it to the matching design document — interaction patterns, forms, terminology — rather than leaving it implicit in a component
+- Never modify backend code from frontend work — propose the backend change separately, so it is reviewed as a backend change against the API contract rather than as a detail of a UI branch
 
 ## Shared ruleset
 

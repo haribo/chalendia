@@ -22,6 +22,10 @@ hash = "9a65081d690c"
 adopted = "2026-08-04"
 hash = "6d93ba90db46"
 
+[rules.frontend-backend-boundary]
+adopted = "2026-08-13"
+hash = "eeae8543601f"
+
 [rules.measurable-defect]
 adopted = "2026-08-04"
 hash = "268cf19aeb9d"
@@ -41,3 +45,15 @@ hash = "fca725ad312a"
 [rules.testing-guard]
 adopted = "2026-08-04"
 hash = "a09e99c6385f"
+
+[rules.tests-with-the-change]
+adopted = "2026-08-13"
+hash = "f9b8b747acfb"
+
+[rules.ui-decisions-anchored]
+adopted = "2026-08-13"
+hash = "56d48b4abca5"
+
+[rules.ui-mockup-first]
+adopted = "2026-08-13"
+hash = "0cb36ea0db20"
