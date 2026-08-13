@@ -50,6 +50,10 @@ hash = "a09e99c6385f"
 adopted = "2026-08-13"
 hash = "f9b8b747acfb"
 
+[rules.ui-affordance-contract]
+adopted = "2026-08-13"
+hash = "d770bb95c077"
+
 [rules.ui-decisions-anchored]
 adopted = "2026-08-13"
 hash = "56d48b4abca5"
