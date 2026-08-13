@@ -3,15 +3,23 @@ pub mod health;
 
 use axum::http::{HeaderValue, Method, header};
 use axum::{Router, routing::get};
+use sqlx::postgres::PgPool;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
 use crate::config::Config;
 use error::ApiError;
 
+/// What every handler can reach. Cloned per request, so it holds handles, never
+/// owned resources.
+#[derive(Clone)]
+pub struct AppState {
+    pub db: PgPool,
+}
+
 /// The whole HTTP surface. Built from configuration so tests exercise the same
 /// router the binary serves, middleware included.
-pub fn router(config: &Config) -> Router {
+pub fn router(config: &Config, state: AppState) -> Router {
     Router::new()
         .route("/health", get(health::health))
         .fallback(async || ApiError::not_found())
@@ -20,6 +28,7 @@ pub fn router(config: &Config) -> Router {
         .method_not_allowed_fallback(async || ApiError::method_not_allowed())
         .layer(TraceLayer::new_for_http())
         .layer(cors_layer(config))
+        .with_state(state)
 }
 
 fn cors_layer(config: &Config) -> CorsLayer {

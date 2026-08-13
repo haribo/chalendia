@@ -11,8 +11,16 @@ use std::net::SocketAddr;
 pub const PUBLIC_URL: &str = "CHALENDIA_PUBLIC_URL";
 pub const BIND: &str = "CHALENDIA_BIND";
 pub const CORS_ORIGINS: &str = "CHALENDIA_CORS_ORIGINS";
+/// Unprefixed on purpose: it is the name the whole ecosystem uses, from
+/// container images to hosted database providers to the sqlx tooling that
+/// verifies our queries.
+pub const DATABASE_URL: &str = "DATABASE_URL";
+pub const DATABASE_MAX_CONNECTIONS: &str = "CHALENDIA_DATABASE_MAX_CONNECTIONS";
 
 const DEFAULT_BIND: &str = "127.0.0.1:8080";
+/// Small on purpose: the target is one shop on a modest server, where each
+/// connection costs the database more than it buys the shop.
+const DEFAULT_DATABASE_MAX_CONNECTIONS: u32 = 5;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
@@ -22,6 +30,8 @@ pub struct Config {
     pub bind: SocketAddr,
     /// Origins allowed to call the API from a browser. Never a wildcard.
     pub cors_origins: Vec<String>,
+    pub database_url: String,
+    pub database_max_connections: u32,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -68,10 +78,32 @@ impl Config {
                 .collect::<Result<Vec<_>, _>>()?,
         };
 
+        let database_url = read(&source, DATABASE_URL).ok_or(ConfigError::Missing(DATABASE_URL))?;
+        if !database_url.starts_with("postgres://") && !database_url.starts_with("postgresql://") {
+            return Err(ConfigError::Invalid {
+                name: DATABASE_URL,
+                reason: "expected a postgres:// connection url".to_owned(),
+            });
+        }
+
+        let database_max_connections = match read(&source, DATABASE_MAX_CONNECTIONS) {
+            None => DEFAULT_DATABASE_MAX_CONNECTIONS,
+            Some(raw) => raw
+                .parse::<u32>()
+                .ok()
+                .filter(|value| *value > 0)
+                .ok_or_else(|| ConfigError::Invalid {
+                    name: DATABASE_MAX_CONNECTIONS,
+                    reason: format!("expected a positive whole number, got {raw:?}"),
+                })?,
+        };
+
         Ok(Self {
             public_url,
             bind,
             cors_origins,
+            database_url,
+            database_max_connections,
         })
     }
 }
@@ -110,6 +142,8 @@ fn normalize_url(name: &'static str, raw: &str) -> Result<String, ConfigError> {
 mod tests {
     use super::*;
 
+    const A_DATABASE_URL: &str = "postgres://user:pass@localhost/chalendia";
+
     fn source(pairs: &[(&'static str, &'static str)]) -> impl Fn(&str) -> Option<String> + use<> {
         let pairs = pairs.to_vec();
         move |name| {
@@ -120,9 +154,21 @@ mod tests {
         }
     }
 
+    /// Every required variable set to a valid value. A test that is not about a
+    /// required variable starts from here and overrides only what it examines.
+    fn complete(pairs: &[(&'static str, &'static str)]) -> impl Fn(&str) -> Option<String> + use<> {
+        let mut all = vec![
+            (PUBLIC_URL, "https://shop.example"),
+            (DATABASE_URL, A_DATABASE_URL),
+        ];
+        all.retain(|(key, _)| !pairs.iter().any(|(given, _)| given == key));
+        all.extend_from_slice(pairs);
+        source(&all)
+    }
+
     #[test]
     fn public_url_is_required() {
-        let error = Config::from_source(source(&[])).unwrap_err();
+        let error = Config::from_source(source(&[(DATABASE_URL, A_DATABASE_URL)])).unwrap_err();
 
         assert_eq!(error, ConfigError::Missing(PUBLIC_URL));
         assert!(error.to_string().contains(PUBLIC_URL));
@@ -130,35 +176,73 @@ mod tests {
 
     #[test]
     fn an_empty_variable_is_treated_as_missing() {
-        let error = Config::from_source(source(&[(PUBLIC_URL, "   ")])).unwrap_err();
+        let error = Config::from_source(complete(&[(PUBLIC_URL, "   ")])).unwrap_err();
 
         assert_eq!(error, ConfigError::Missing(PUBLIC_URL));
     }
 
     #[test]
-    fn defaults_apply_when_only_the_required_variable_is_set() {
-        let config = Config::from_source(source(&[(PUBLIC_URL, "https://shop.example")])).unwrap();
+    fn defaults_apply_when_only_the_required_variables_are_set() {
+        let config = Config::from_source(complete(&[])).unwrap();
 
         assert_eq!(config.bind, DEFAULT_BIND.parse::<SocketAddr>().unwrap());
         assert_eq!(config.cors_origins, vec!["https://shop.example".to_owned()]);
+        assert_eq!(
+            config.database_max_connections,
+            DEFAULT_DATABASE_MAX_CONNECTIONS
+        );
+    }
+
+    #[test]
+    fn the_database_url_is_required() {
+        let error =
+            Config::from_source(source(&[(PUBLIC_URL, "https://shop.example")])).unwrap_err();
+
+        assert_eq!(error, ConfigError::Missing(DATABASE_URL));
+        assert!(error.to_string().contains(DATABASE_URL));
+    }
+
+    #[test]
+    fn a_database_url_of_another_engine_is_refused() {
+        let error = Config::from_source(complete(&[(DATABASE_URL, "mysql://user@localhost/shop")]))
+            .unwrap_err();
+
+        assert!(matches!(error, ConfigError::Invalid { name, .. } if name == DATABASE_URL));
+    }
+
+    #[test]
+    fn a_pool_size_of_zero_is_refused() {
+        let error = Config::from_source(complete(&[(DATABASE_MAX_CONNECTIONS, "0")])).unwrap_err();
+
+        assert!(
+            matches!(error, ConfigError::Invalid { name, .. } if name == DATABASE_MAX_CONNECTIONS)
+        );
+    }
+
+    #[test]
+    fn a_pool_size_that_is_not_a_number_is_refused() {
+        let error =
+            Config::from_source(complete(&[(DATABASE_MAX_CONNECTIONS, "many")])).unwrap_err();
+
+        assert!(
+            matches!(error, ConfigError::Invalid { name, .. } if name == DATABASE_MAX_CONNECTIONS)
+        );
     }
 
     #[test]
     fn a_trailing_slash_never_changes_the_public_url() {
-        let config = Config::from_source(source(&[(PUBLIC_URL, "https://shop.example/")])).unwrap();
+        let config =
+            Config::from_source(complete(&[(PUBLIC_URL, "https://shop.example/")])).unwrap();
 
         assert_eq!(config.public_url, "https://shop.example");
     }
 
     #[test]
     fn cors_origins_are_split_and_trimmed() {
-        let config = Config::from_source(source(&[
-            (PUBLIC_URL, "https://shop.example"),
-            (
-                CORS_ORIGINS,
-                "https://shop.example , http://localhost:5173/",
-            ),
-        ]))
+        let config = Config::from_source(complete(&[(
+            CORS_ORIGINS,
+            "https://shop.example , http://localhost:5173/",
+        )]))
         .unwrap();
 
         assert_eq!(
@@ -172,33 +256,21 @@ mod tests {
 
     #[test]
     fn a_wildcard_origin_is_refused() {
-        let error = Config::from_source(source(&[
-            (PUBLIC_URL, "https://shop.example"),
-            (CORS_ORIGINS, "*"),
-        ]))
-        .unwrap_err();
+        let error = Config::from_source(complete(&[(CORS_ORIGINS, "*")])).unwrap_err();
 
         assert!(matches!(error, ConfigError::Invalid { name, .. } if name == CORS_ORIGINS));
     }
 
     #[test]
     fn an_origin_without_a_scheme_is_refused() {
-        let error = Config::from_source(source(&[
-            (PUBLIC_URL, "https://shop.example"),
-            (CORS_ORIGINS, "shop.example"),
-        ]))
-        .unwrap_err();
+        let error = Config::from_source(complete(&[(CORS_ORIGINS, "shop.example")])).unwrap_err();
 
         assert!(matches!(error, ConfigError::Invalid { name, .. } if name == CORS_ORIGINS));
     }
 
     #[test]
     fn a_bind_address_that_is_not_host_port_is_refused() {
-        let error = Config::from_source(source(&[
-            (PUBLIC_URL, "https://shop.example"),
-            (BIND, "8080"),
-        ]))
-        .unwrap_err();
+        let error = Config::from_source(complete(&[(BIND, "8080")])).unwrap_err();
 
         assert!(matches!(error, ConfigError::Invalid { name, .. } if name == BIND));
         assert!(error.to_string().contains(BIND));

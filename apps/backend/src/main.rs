@@ -1,7 +1,8 @@
 use std::process::ExitCode;
 
 use chalendia_backend::config::Config;
-use chalendia_backend::http::router;
+use chalendia_backend::db;
+use chalendia_backend::http::{AppState, router};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -27,6 +28,23 @@ async fn main() -> ExitCode {
         }
     };
 
+    let pool = match db::pool(&config) {
+        Ok(pool) => pool,
+        Err(error) => {
+            tracing::error!("cannot use the configured database url: {error}");
+            eprintln!("cannot use the configured database url: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    // Before the listener exists: an instance that cannot bring its schema to
+    // the expected state must not serve a single request.
+    if let Err(error) = db::migrate(&pool).await {
+        tracing::error!("migration failed: {error}");
+        eprintln!("migration failed: {error}");
+        return ExitCode::FAILURE;
+    }
+
     let listener = match tokio::net::TcpListener::bind(config.bind).await {
         Ok(listener) => listener,
         Err(error) => {
@@ -42,7 +60,8 @@ async fn main() -> ExitCode {
         config.public_url
     );
 
-    let served = axum::serve(listener, router(&config))
+    let state = AppState { db: pool };
+    let served = axum::serve(listener, router(&config, state))
         .with_graceful_shutdown(shutdown_signal())
         .await;
 
