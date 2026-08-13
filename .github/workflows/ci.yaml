@@ -39,12 +39,12 @@ jobs:
       DATABASE_URL: postgres://chalendia:chalendia@localhost:5432/chalendia
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install the Rust toolchain
         run: rustup component add rustfmt clippy
 
-      - uses: extractions/setup-just@v3
+      - uses: extractions/setup-just@v4
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -70,15 +70,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 26
           cache: npm
           cache-dependency-path: apps/frontend/package-lock.json
 
-      - uses: extractions/setup-just@v3
+      - uses: extractions/setup-just@v4
 
       - name: Install dependencies
         run: just frontend-install
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build the image
         run: docker build -t chalendia:ci .
