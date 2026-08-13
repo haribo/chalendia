@@ -44,21 +44,19 @@ jobs:
       - name: Install the Rust toolchain
         run: rustup component add rustfmt clippy
 
+      - uses: extractions/setup-just@v3
+
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/backend
 
-      - name: Check formatting
-        working-directory: apps/backend
-        run: cargo fmt --check
-
-      - name: Lint
-        working-directory: apps/backend
-        run: cargo clippy --all-targets -- -D warnings
+      # Through `just` so CI and a developer's machine run the same definition
+      # of each gate — a divergence here is a gate nobody can reproduce.
+      - name: Format and lint
+        run: just backend-check
 
       - name: Test
-        working-directory: apps/backend
-        run: cargo test
+        run: just backend-test
 
       - name: Install sqlx-cli
         run: cargo install sqlx-cli --version ^0.9 --locked --no-default-features --features rustls,postgres
@@ -80,25 +78,19 @@ jobs:
           cache: npm
           cache-dependency-path: apps/frontend/package-lock.json
 
+      - uses: extractions/setup-just@v3
+
       - name: Install dependencies
-        working-directory: apps/frontend
-        run: npm ci
+        run: just frontend-install
 
-      - name: Type check
-        working-directory: apps/frontend
-        run: npm run typecheck
-
-      - name: Lint
-        working-directory: apps/frontend
-        run: npm run lint
+      - name: Type check and lint
+        run: just frontend-check
 
       - name: Test
-        working-directory: apps/frontend
-        run: npm run test
+        run: just frontend-test
 
       - name: Build
-        working-directory: apps/frontend
-        run: npm run build
+        run: just frontend-build
 
   image:
     name: Container image
