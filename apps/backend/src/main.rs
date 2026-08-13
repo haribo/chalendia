@@ -1,0 +1,87 @@
+use std::process::ExitCode;
+
+use chalendia_backend::config::Config;
+use chalendia_backend::http::router;
+use tracing_subscriber::EnvFilter;
+
+#[tokio::main]
+async fn main() -> ExitCode {
+    // Searches the current directory and its parents, so the repository-root
+    // `.env` is found whichever app directory the binary is started from.
+    dotenvy::dotenv().ok();
+
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
+        )
+        .init();
+
+    let config = match Config::from_env() {
+        Ok(config) => config,
+        Err(error) => {
+            // Configuration errors are reported before anything is served, and
+            // name the variable at fault: the operator is the one who fixes it.
+            tracing::error!("configuration error: {error}");
+            eprintln!("configuration error: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let listener = match tokio::net::TcpListener::bind(config.bind).await {
+        Ok(listener) => listener,
+        Err(error) => {
+            tracing::error!("cannot listen on {}: {error}", config.bind);
+            eprintln!("cannot listen on {}: {error}", config.bind);
+            return ExitCode::FAILURE;
+        }
+    };
+
+    tracing::info!(
+        "listening on http://{}, public url {}",
+        config.bind,
+        config.public_url
+    );
+
+    let served = axum::serve(listener, router(&config))
+        .with_graceful_shutdown(shutdown_signal())
+        .await;
+
+    match served {
+        Ok(()) => {
+            tracing::info!("stopped");
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            tracing::error!("server error: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+/// Stops accepting on interrupt or terminate, and lets in-flight requests end.
+async fn shutdown_signal() {
+    let interrupt = async {
+        if tokio::signal::ctrl_c().await.is_err() {
+            // Without a signal handler the future must never resolve, or the
+            // server would shut down the moment it starts.
+            std::future::pending::<()>().await;
+        }
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut signal) => {
+                signal.recv().await;
+            }
+            Err(_) => std::future::pending::<()>().await,
+        }
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        () = interrupt => tracing::info!("interrupt received, draining"),
+        () = terminate => tracing::info!("terminate received, draining"),
+    }
+}
