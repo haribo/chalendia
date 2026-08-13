@@ -42,9 +42,16 @@ gh pr checks                                 # 6. wait for CI
 | Target | Strategy | Command |
 |---|---|---|
 | Feature → `develop` | **Squash** | `/gh-merge-develop` |
-| `develop` → `main` | **Merge commit** | `gh pr merge --merge` |
+| `develop` → `main` | **Merge commit** | `gh pr merge <n> --merge --subject "chore(release): vX.Y.Z (#<n>)" --body ""` |
 
 Never merge a feature PR with `--merge`. Never target `main` with a feature PR.
+
+**Always set the merge subject explicitly.** Left to GitHub, the merge commit
+reads `Merge pull request #N from haribo/develop` — the one non-conventional
+subject in an otherwise clean history, landing on a permanent branch, tagged,
+and pointed at by release binaries. It cannot be rewritten afterwards. Any
+conventional subject carrying the `(#N)` suffix satisfies this; leaving it to
+GitHub does not.
 
 ## CI gating
 
