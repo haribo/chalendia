@@ -25,8 +25,18 @@ pub async fn migrate(pool: &PgPool) -> Result<(), MigrateError> {
     MIGRATIONS.run(pool).await
 }
 
+/// How long the health probe waits before calling the database unreachable.
+///
+/// Deliberately shorter than the pool's own acquire timeout: a probe that
+/// inherits it makes a supervisor wait five seconds for an answer it already
+/// knows, and leaves the dashboard spinning for the same duration. "Slow to
+/// answer" and "down" are the same thing to whoever is asking.
+const PROBE_TIMEOUT: Duration = Duration::from_secs(2);
+
 /// Whether the database answers right now. Used by the health endpoint, which
 /// must distinguish a process that is up from one that can actually work.
 pub async fn is_reachable(pool: &PgPool) -> bool {
-    sqlx::query!("select 1 as ok").fetch_one(pool).await.is_ok()
+    let probe = sqlx::query!("select 1 as ok").fetch_one(pool);
+
+    matches!(tokio::time::timeout(PROBE_TIMEOUT, probe).await, Ok(Ok(_)))
 }

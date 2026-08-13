@@ -58,7 +58,11 @@ async fn get(dir: &str, path: &str) -> (StatusCode, String) {
 
 fn built_frontend() -> tempfile::TempDir {
     let dir = tempfile::tempdir().expect("temporary directory");
-    fs::write(dir.path().join("index.html"), "<!doctype html>shell").expect("index is written");
+    fs::write(
+        dir.path().join("index.html"),
+        "<!doctype html><html><head></head><body>shell</body></html>",
+    )
+    .expect("index is written");
     fs::create_dir(dir.path().join("assets")).expect("assets directory");
     fs::write(dir.path().join("assets/app.css"), ":root{}").expect("asset is written");
     dir
@@ -84,6 +88,32 @@ async fn an_application_route_falls_back_to_the_shell() {
 
     assert_eq!(status, StatusCode::OK);
     assert!(body.contains("shell"));
+}
+
+#[tokio::test]
+async fn the_shell_carries_the_metadata_of_the_url_asked_for() {
+    let dir = built_frontend();
+
+    // What a crawler that runs no JavaScript sees: the page it was linked to,
+    // not an empty preview.
+    let (_, body) = get(dir.path().to_str().unwrap(), "/some/product/page").await;
+
+    assert!(body.contains("<title>Chalendia</title>"));
+    assert!(body.contains(r#"href="https://shop.example/some/product/page""#));
+    assert!(body.contains(r#"property="og:url" content="https://shop.example/some/product/page""#));
+}
+
+#[tokio::test]
+async fn a_crafted_url_cannot_inject_markup_into_the_shell() {
+    let dir = built_frontend();
+
+    let (_, body) = get(
+        dir.path().to_str().unwrap(),
+        "/x%22%3E%3Cscript%3Ealert(1)%3C/script%3E",
+    )
+    .await;
+
+    assert!(!body.contains("<script>alert(1)</script>"));
 }
 
 #[tokio::test]

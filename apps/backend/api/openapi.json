@@ -1,0 +1,132 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Chalendia",
+    "description": "HTTP API of a self-hosted shop. Published with each release so anyone can write another client.",
+    "license": {
+      "name": "AGPL-3.0-only",
+      "url": "https://www.gnu.org/licenses/agpl-3.0.html"
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Report whether the shop is serving and whether it can reach its database.",
+        "description": "A running shop that cannot reach its database is a distinct situation from a\nstopped one, and an operator's supervision has to tell them apart. The status\ncode follows the aggregate — a degraded instance answers 503 so a proxy stops\nrouting to it — while the body says which part failed.",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "The shop is serving and its database answers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The shop is serving but its database does not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Serve this API's own contract.",
+        "description": "A third party writing a client reads it from the running instance rather\nthan from the repository, so it always describes the version answering.",
+        "operationId": "openapi_document",
+        "responses": {
+          "200": {
+            "description": "The OpenAPI document describing this API"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
+        "properties": {
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "Machine-readable identifier of the problem kind. `about:blank` means the\nstatus code alone describes it."
+          }
+        }
+      },
+      "Dependency": {
+        "type": "string",
+        "enum": [
+          "up",
+          "unreachable"
+        ]
+      },
+      "Health": {
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "database"
+        ],
+        "properties": {
+          "database": {
+            "$ref": "#/components/schemas/Dependency"
+          },
+          "service": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          }
+        }
+      },
+      "Status": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "degraded"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "system",
+      "description": "Liveness and diagnosis"
+    }
+  ]
+}
