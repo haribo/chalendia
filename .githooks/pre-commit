@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Two guards, both cheap, both about things that are expensive to undo.
+#
+# 1. Direct commits on a permanent branch (docs/git-workflow.md). Recovering
+#    from one is never a one-liner: the history is already shared, the change
+#    bypassed review, and the PR's CI gate never ran.
+# 2. Secrets. A committed secret is not undone by a later commit — it stays in
+#    history and has to be rotated. CI scans too (.github/workflows/security.yaml),
+#    which is the real guarantee; this one just catches it before it leaves the
+#    machine, which is cheaper.
+
+set -euo pipefail
+
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "develop" ]; then
+  echo ""
+  echo "ERROR: direct commits on '$BRANCH' are not allowed."
+  echo "  Create a feature branch and open a pull request:"
+  echo "    git checkout -b feat/<issue>-<description> $BRANCH"
+  echo "  See docs/git-workflow.md."
+  echo ""
+  exit 1
+fi
+
+if command -v gitleaks >/dev/null 2>&1; then
+  if ! gitleaks protect --staged --redact --no-banner; then
+    echo ""
+    echo "ERROR: gitleaks found a secret in the staged changes."
+    echo "  Remove it from the staged diff — committing then reverting is not"
+    echo "  enough, the value stays in history and must be rotated."
+    echo ""
+    exit 1
+  fi
+else
+  echo "note: gitleaks not installed, staged changes not scanned locally."
+  echo "      CI still scans on push. Install it: https://github.com/gitleaks/gitleaks"
+fi
+
+exit 0
