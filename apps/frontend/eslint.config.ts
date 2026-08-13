@@ -21,6 +21,34 @@ export default defineConfigWithVueTs(
   },
 
   {
+    // Surfaces compose shared components; they do not rebuild affordances.
+    // See docs/frontend/adr/0003-shared-components-and-surfaces.md.
+    name: 'chalendia/surfaces-compose',
+    files: ['src/surfaces/**/*.vue'],
+    rules: {
+      'vue/no-restricted-html-elements': [
+        'error',
+        {
+          element: 'select',
+          message: 'Use SelectField from shared/ui — see frontend ADR 0003.',
+        },
+        {
+          element: 'button',
+          message: 'Add a shared Button to shared/ui rather than a local one — see frontend ADR 0003.',
+        },
+        {
+          element: 'input',
+          message: 'Add a shared field to shared/ui rather than a local one — see frontend ADR 0003.',
+        },
+        {
+          element: 'textarea',
+          message: 'Add a shared field to shared/ui rather than a local one — see frontend ADR 0003.',
+        },
+      ],
+    },
+  },
+
+  {
     name: 'chalendia/rules',
     rules: {
       // Every user-facing string goes through i18n; a literal in a template is

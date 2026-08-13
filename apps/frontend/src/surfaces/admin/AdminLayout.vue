@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
+import AppBar from '@/shared/ui/AppBar.vue'
+import AppShell from '@/shared/ui/AppShell.vue'
 import LanguagePicker from '@/shared/ui/LanguagePicker.vue'
+import NavLink from '@/shared/ui/NavLink.vue'
 import ThemePicker from '@/shared/ui/ThemePicker.vue'
 
 const { t } = useI18n()
@@ -17,24 +20,20 @@ const sections = [
 </script>
 
 <template>
-  <div class="shell">
-    <header class="bar">
-      <p class="brand">
-        {{ t('admin.title') }}
-      </p>
-      <div class="actions">
-        <LanguagePicker />
-        <ThemePicker />
-        <RouterLink
-          class="link"
-          to="/"
-        >
-          {{ t('admin.toShop') }}
-        </RouterLink>
-      </div>
-    </header>
+  <AppShell>
+    <template #bar>
+      <AppBar :title="t('admin.title')">
+        <template #actions>
+          <LanguagePicker />
+          <ThemePicker />
+          <NavLink to="/">
+            {{ t('admin.toShop') }}
+          </NavLink>
+        </template>
+      </AppBar>
+    </template>
 
-    <div class="body">
+    <div class="workspace">
       <nav
         class="side"
         :aria-label="t('admin.title')"
@@ -53,57 +52,11 @@ const sections = [
         <RouterView />
       </main>
     </div>
-  </div>
+  </AppShell>
 </template>
 
 <style scoped>
-.shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--colour-border);
-  background: var(--colour-surface-raised);
-}
-
-.brand {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  font-family: var(--font-display);
-  font-size: var(--text-l);
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.actions {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.link {
-  color: var(--colour-accent);
-  font-size: var(--text-s);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.link:hover,
-.link:focus-visible {
-  text-decoration: underline;
-}
-
-.body {
+.workspace {
   display: grid;
   flex: 1;
   grid-template-columns: 11rem 1fr;
