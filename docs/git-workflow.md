@@ -48,23 +48,29 @@ Never merge a feature PR with `--merge`. Never target `main` with a feature PR.
 
 ## CI gating
 
-GitHub Actions gate every PR. Today only `security.yaml` (secret scanning) runs,
-because there is no application code yet. As the backend and the frontend land,
-add their jobs here and describe them in this section — a gate that exists but is
-not written down is a gate nobody knows they can rely on.
+GitHub Actions gate every PR. Every gate is also a `just` target, so it is
+reproducible locally with the same command — a gate that only exists in CI is a
+gate nobody can reproduce.
 
-Planned, in the order they become possible:
+| Workflow | Job | Covers | Locally |
+|---|---|---|---|
+| `ci.yaml` | Backend | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` against a real PostgreSQL, and the committed SQL query cache being current | `just backend-check`, `just backend-test`, `just backend-sqlx-check` |
+| `ci.yaml` | Frontend | type check, lint (including accessibility and the theme-token rule), unit tests, production build | `just frontend-check`, `just frontend-test`, `just frontend-build` |
+| `ci.yaml` | Container image | the image builds, and refuses to run as root | `just image` |
+| `security.yaml` | Gitleaks | secrets in the history | pre-commit hook |
+| `security.yaml` | Cargo audit, npm audit | dependency advisories | — |
 
-| Job | Covers |
+`just check` runs every code gate in one command.
+
+Not yet gated, and deliberately listed so nobody assumes otherwise:
+
+| Job | Blocked on |
 |---|---|
-| `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` | Rust backend |
-| `cargo audit`, `npm audit` | Dependency advisories |
-| lint, type-check, unit tests | Vue / TypeScript frontend |
-| generated-code parity (OpenAPI types, SQL queries) | Contract drift |
-| End-to-end suite | Critical shopper and staff paths |
-| PR validation | commit messages, PR title, issue reference |
+| Generated API contract and frontend types parity | the contract chain landing |
+| End-to-end suite | the first real user path |
+| Commit message and PR title validation | — |
 
-All must be green before merge; there is no manual skip.
+All existing gates must be green before merge; there is no manual skip.
 
 ## Rules
 
