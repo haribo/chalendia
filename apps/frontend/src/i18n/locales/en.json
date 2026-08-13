@@ -33,6 +33,19 @@
     "dashboard": {
       "title": "Dashboard",
       "noPaymentMethod": "No payment method is configured: the shop cannot take an order yet."
+    },
+    "status": {
+      "title": "System status",
+      "application": "Application",
+      "database": "Database",
+      "serving": "Serving",
+      "reachable": "Reachable",
+      "unreachable": "Unreachable",
+      "noAnswer": "Not answering",
+      "loading": "Reading the system status",
+      "databaseDown": "The shop can neither record an order nor show its catalogue. Check that the database service is running.",
+      "apiDown": "The dashboard could not reach the API. It may be stopped, or restarting.",
+      "retry": "Retry"
     }
   }
 }

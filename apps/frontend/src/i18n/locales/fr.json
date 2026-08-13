@@ -33,6 +33,19 @@
     "dashboard": {
       "title": "Tableau de bord",
       "noPaymentMethod": "Aucun moyen de paiement n’est configuré : la boutique ne peut pas encore encaisser de commande."
+    },
+    "status": {
+      "title": "État du système",
+      "application": "Application",
+      "database": "Base de données",
+      "serving": "En service",
+      "reachable": "Joignable",
+      "unreachable": "Injoignable",
+      "noAnswer": "Sans réponse",
+      "loading": "Lecture de l’état du système",
+      "databaseDown": "La boutique ne peut ni enregistrer de commande ni afficher son catalogue. Vérifiez que le service de base de données est démarré.",
+      "apiDown": "Le tableau de bord n’a pas pu joindre l’API. Elle est peut-être arrêtée, ou le redémarrage est en cours.",
+      "retry": "Réessayer"
     }
   }
 }
