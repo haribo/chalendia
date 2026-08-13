@@ -1,0 +1,38 @@
+{
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "fr": "French"
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "storefront": {
+    "welcome": "Welcome",
+    "noCatalogue": "The catalogue is not online yet. Please come back soon.",
+    "toAdmin": "Administration",
+    "legal": {
+      "terms": "Terms of sale",
+      "notice": "Legal notice",
+      "privacy": "Privacy"
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "toShop": "Back to the shop",
+    "nav": {
+      "dashboard": "Dashboard",
+      "catalogue": "Catalogue",
+      "orders": "Orders",
+      "content": "Content",
+      "settings": "Settings"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "noPaymentMethod": "No payment method is configured: the shop cannot take an order yet."
+    }
+  }
+}

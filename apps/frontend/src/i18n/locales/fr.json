@@ -1,0 +1,38 @@
+{
+  "language": {
+    "label": "Langue",
+    "en": "Anglais",
+    "fr": "Français"
+  },
+  "theme": {
+    "label": "Thème",
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "storefront": {
+    "welcome": "Bienvenue",
+    "noCatalogue": "Le catalogue n’est pas encore en ligne. Revenez bientôt.",
+    "toAdmin": "Administration",
+    "legal": {
+      "terms": "Conditions de vente",
+      "notice": "Mentions légales",
+      "privacy": "Confidentialité"
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "toShop": "Retour à la boutique",
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "catalogue": "Catalogue",
+      "orders": "Commandes",
+      "content": "Contenu",
+      "settings": "Réglages"
+    },
+    "dashboard": {
+      "title": "Tableau de bord",
+      "noPaymentMethod": "Aucun moyen de paiement n’est configuré : la boutique ne peut pas encore encaisser de commande."
+    }
+  }
+}

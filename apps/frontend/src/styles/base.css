@@ -1,0 +1,27 @@
+html {
+  background: var(--colour-surface);
+}
+
+body {
+  margin: 0;
+  background: var(--colour-surface);
+  color: var(--colour-text);
+  font-family: var(--font-body);
+  font-size: var(--text-m);
+  line-height: 1.6;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--colour-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
