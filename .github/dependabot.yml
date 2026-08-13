@@ -1,0 +1,42 @@
+# One entry per packaging ecosystem the repository actually contains. An
+# ecosystem with a manifest and no entry here is a dependency nobody is
+# watching — the file existing is not the guarantee, the coverage is.
+#
+# This drives version updates only. Security alerts are a repository setting,
+# invisible from the tree, and not covered here.
+
+version: 2
+
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/apps/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      # One pull request per week rather than one per crate: a shop this size
+      # has no reviewer for fifteen.
+      rust-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directory: "/apps/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      frontend-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]
