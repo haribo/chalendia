@@ -15,6 +15,10 @@ dev_web_port := env("CHALENDIA_DEV_WEB_PORT", "5183")
 dev_db_url := "postgres://chalendia:chalendia@127.0.0.1:" + dev_db_port + "/chalendia"
 compose_dev := "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml"
 
+# The journeys are replayed once per variant, so the report shows the theme and
+# the phone layout the design claims. Narrow it with E2E_VARIANTS to iterate.
+e2e_variants := "desktop-light desktop-dark mobile-light"
+
 default:
     @just --list
 
@@ -289,40 +293,60 @@ api-check:
 # END TO END — the journeys, and the report the user reviews them in
 # =============================================================================
 
-# Run the journeys against a shop created from scratch
+# Run the journeys against a shop created from scratch, once per variant
 e2e:
     #!/usr/bin/env bash
     set -euo pipefail
-    # Setup happens once, so the suite starts from an empty database — that is
-    # the behaviour under test, not an inconvenience to work around.
-    just dev-stop
-    {{compose_dev}} down -v
-    # Not silenced: a stack that failed to start must fail here, not later as
-    # a connection refused in every case.
-    just dev-start
     trap 'just dev-stop >/dev/null 2>&1 || true' EXIT
-    for _ in $(seq 1 60); do
-        curl -sf "http://localhost:{{dev_web_port}}" >/dev/null 2>&1 \
-          && curl -sf "http://localhost:{{dev_api_port}}/api/shop" >/dev/null 2>&1 && break
-        sleep 1
+    # Stale reports would be merged into this run's, so the previous ones go.
+    rm -rf {{frontend_dir}}/tmp/e2e-report
+    # A failing variant is the most interesting thing to look at, so the run
+    # goes on and the report is built either way — the exit code carries the
+    # verdict, not a missing report.
+    failed=0
+    for variant in ${E2E_VARIANTS:-{{e2e_variants}}}; do
+        echo "── ${variant} ───────────────────────────────────────────────"
+        # Setup happens once, so each variant starts from an empty database —
+        # that is the behaviour under test, not an inconvenience to work around.
+        just dev-stop
+        {{compose_dev}} down -v
+        # Not silenced: a stack that failed to start must fail here, not later
+        # as a connection refused in every case.
+        just dev-start
+        for _ in $(seq 1 60); do
+            curl -sf "http://localhost:{{dev_web_port}}" >/dev/null 2>&1 \
+              && curl -sf "http://localhost:{{dev_api_port}}/api/shop" >/dev/null 2>&1 && break
+            sleep 1
+        done
+        cd {{frontend_dir}}
+        E2E_BASE_URL="http://localhost:{{dev_web_port}}" E2E_VARIANT="${variant}" npx playwright test || failed=1
+        cd {{justfile_directory()}}
     done
-    cd {{frontend_dir}} && E2E_BASE_URL="http://localhost:{{dev_web_port}}" npx playwright test
-    cd {{justfile_directory()}} && just e2e-report
+    just e2e-report || failed=1
+    exit "${failed}"
 
 # Run the journeys against the container image, the way CI does and the way an
 # operator actually installs the shop — one origin, no dev server.
 e2e-image:
     #!/usr/bin/env bash
     set -euo pipefail
-    docker compose down -v >/dev/null 2>&1 || true
-    CHALENDIA_PORT={{dev_api_port}} docker compose up -d --build
     trap 'docker compose down -v >/dev/null 2>&1 || true' EXIT
-    for _ in $(seq 1 90); do
-        curl -sf "http://localhost:{{dev_api_port}}/api/shop" >/dev/null 2>&1 && break
-        sleep 2
+    rm -rf {{frontend_dir}}/tmp/e2e-report
+    failed=0
+    for variant in ${E2E_VARIANTS:-{{e2e_variants}}}; do
+        echo "── ${variant} ───────────────────────────────────────────────"
+        docker compose down -v >/dev/null 2>&1 || true
+        CHALENDIA_PORT={{dev_api_port}} docker compose up -d --build
+        for _ in $(seq 1 90); do
+            curl -sf "http://localhost:{{dev_api_port}}/api/shop" >/dev/null 2>&1 && break
+            sleep 2
+        done
+        cd {{frontend_dir}}
+        E2E_BASE_URL="http://localhost:{{dev_api_port}}" E2E_VARIANT="${variant}" npx playwright test || failed=1
+        cd {{justfile_directory()}}
     done
-    cd {{frontend_dir}} && E2E_BASE_URL="http://localhost:{{dev_api_port}}" npx playwright test
-    cd {{justfile_directory()}} && just e2e-report
+    just e2e-report || failed=1
+    exit "${failed}"
 
 # Build the review site from the last run
 e2e-report:
