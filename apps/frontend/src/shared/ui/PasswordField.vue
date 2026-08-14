@@ -33,7 +33,11 @@ const revealed = ref(false)
 const submitting = useFormSubmitting()
 const locked = computed(() => props.disabled || submitting.value)
 const invalid = computed(() => props.error !== undefined)
-const describedBy = computed(() => (props.hint ? `${id}-hint` : undefined))
+const describedBy = computed(() =>
+  [props.error ? `${id}-error` : undefined, props.hint ? `${id}-hint` : undefined]
+    .filter(Boolean)
+    .join(' ') || undefined,
+)
 
 /** Four steps, reached at a quarter of the minimum each. */
 const strength = computed(() => {

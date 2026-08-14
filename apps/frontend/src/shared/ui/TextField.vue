@@ -29,7 +29,11 @@ const props = withDefaults(
 const model = defineModel<string>({ default: '' })
 const id = useId()
 const focused = ref(false)
-const describedBy = computed(() => (props.hint ? `${id}-hint` : undefined))
+const describedBy = computed(() =>
+  [props.error ? `${id}-error` : undefined, props.hint ? `${id}-hint` : undefined]
+    .filter(Boolean)
+    .join(' ') || undefined,
+)
 
 const submitting = useFormSubmitting()
 const locked = computed(() => props.disabled || submitting.value)

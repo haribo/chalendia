@@ -76,20 +76,25 @@ const notched = computed(() => props.floating || Boolean(props.error))
       </legend>
     </fieldset>
 
-    <label
-      :for="controlId"
-      class="label"
-    >
-      <span>{{ label }}</span>
+    <!-- Label and message share a row but stay separate elements: folding the
+         message into the label would change the control's accessible name every
+         time it is refused, and a voice command asking for the field by name
+         would stop finding it. -->
+    <div class="row">
+      <label
+        :for="controlId"
+        class="label"
+      >{{ label }}</label>
       <span
         v-if="error"
-        class="error"
+        :id="`${controlId}-error`"
+        class="message"
       >— {{ error }}</span>
       <span
         v-else-if="optional && notched"
         class="optional"
       >{{ t('forms.optional') }}</span>
-    </label>
+    </div>
 
     <div class="control">
       <slot />
@@ -182,7 +187,8 @@ const notched = computed(() => props.floating || Boolean(props.error))
   visibility: hidden;
 }
 
-.label {
+/* The row carries the movement; its children only sit side by side. */
+.row {
   position: absolute;
   top: 50%;
   left: 0.75rem;
@@ -190,10 +196,8 @@ const notched = computed(() => props.floating || Boolean(props.error))
   gap: 0.3rem;
   max-width: calc(100% - 3.5rem);
   overflow: hidden;
-  color: var(--colour-text-muted);
   font-size: var(--text-m);
   white-space: nowrap;
-  text-overflow: ellipsis;
   transform: translateY(-50%);
   transition:
     top 120ms ease,
@@ -201,10 +205,20 @@ const notched = computed(() => props.floating || Boolean(props.error))
   pointer-events: none;
 }
 
-.notched .label {
+.notched .row {
   top: -0.55rem;
   left: 0.85rem;
   font-size: var(--text-s);
+}
+
+.label,
+.message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.label {
+  color: var(--colour-text-muted);
 }
 
 .control {
@@ -246,6 +260,7 @@ const notched = computed(() => props.floating || Boolean(props.error))
 }
 
 .invalid .label,
+.invalid .message,
 .invalid .invalid-icon {
   color: var(--colour-danger);
 }
@@ -276,10 +291,6 @@ const notched = computed(() => props.floating || Boolean(props.error))
   color: var(--colour-text-muted);
 }
 
-.error {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .icon {
   flex: none;
