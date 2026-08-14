@@ -1,6 +1,10 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { reportStep } from '../report-step'
+
+/** Present only below 768 px, where it opens the drawer holding the account. */
+const menuButton = (page: Page) =>
+  page.getByRole('button', { name: /sections and account|sections et compte/i })
 
 /**
  * Reaching the back office without a session, and leaving it.
@@ -39,10 +43,23 @@ test.describe('Signing in', () => {
 
       await expect(page).toHaveURL(/\/admin$/)
       await expect(page.getByRole('heading', { name: /dashboard|tableau de bord/i })).toBeVisible()
-      await expect(page.getByText('owner@fabrique-savons.fr')).toBeVisible()
+
+      // Who is signed in shows in the bar on a wide screen and in the drawer
+      // on a narrow one (#41). Either way the interface names who it let in.
+      if (await menuButton(page).isVisible()) {
+        await menuButton(page).click()
+        await expect(page.getByRole('dialog').getByText('owner@fabrique-savons.fr')).toBeVisible()
+        await page.keyboard.press('Escape')
+      } else {
+        await expect(page.getByText('owner@fabrique-savons.fr')).toBeVisible()
+      }
     })
 
     await reportStep(page, 'Signing out returns to the shop', async () => {
+      // Below 768 px the account actions live in the drawer (#41); above it
+      // they are in the bar. The journey is the same either way.
+      if (await menuButton(page).isVisible()) await menuButton(page).click()
+
       await page.getByRole('button', { name: /sign out|se déconnecter/i }).click()
 
       await expect(page).toHaveURL(/\/$/)
