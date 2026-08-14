@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import AppBar from '@/shared/ui/AppBar.vue'
@@ -7,17 +8,22 @@ import AppShell from '@/shared/ui/AppShell.vue'
 import LanguagePicker from '@/shared/ui/LanguagePicker.vue'
 import NavLink from '@/shared/ui/NavLink.vue'
 import ThemePicker from '@/shared/ui/ThemePicker.vue'
-import { SHOP_NAME } from '@/shared/shop'
+import { PRODUCT_NAME } from '@/shared/shop'
 import { useSessionStore } from '@/stores/session'
+import { useShopStore } from '@/stores/shop'
 
 const { t } = useI18n()
 const { hasStaffRole } = storeToRefs(useSessionStore())
+const shop = useShopStore()
+
+// The merchant's own name once the shop is configured; the product's until then.
+const title = computed(() => shop.name ?? PRODUCT_NAME)
 </script>
 
 <template>
   <AppShell>
     <template #bar>
-      <AppBar :title="SHOP_NAME">
+      <AppBar :title="title">
         <template #actions>
           <LanguagePicker />
           <ThemePicker />

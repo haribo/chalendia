@@ -35,7 +35,9 @@ provideFormSubmitting(toRef(props, 'submitting'))
 }
 
 .actions {
+  /* At the end of the form, where the eye lands after the last field. */
   display: flex;
+  justify-content: flex-end;
   gap: var(--space-2);
   align-items: center;
   margin-top: var(--space-6);

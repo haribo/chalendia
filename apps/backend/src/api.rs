@@ -31,6 +31,7 @@ use crate::http::health::{Dependency, Health, Status};
         Status,
         Dependency,
         ApiError,
+        crate::http::error::InvalidParam,
         crate::shop::ShopState,
         crate::shop::SetupRequest,
         crate::http::setup::Credentials,

@@ -232,6 +232,16 @@
               "null"
             ]
           },
+          "invalid-params": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/InvalidParam"
+            },
+            "description": "Every field refused, not merely the first one met: a caller correcting\none field at a time is a caller submitting five times."
+          },
           "status": {
             "type": "integer",
             "format": "int32",
@@ -284,6 +294,24 @@
           },
           "status": {
             "$ref": "#/components/schemas/Status"
+          }
+        }
+      },
+      "InvalidParam": {
+        "type": "object",
+        "description": "One refused field, in the shape RFC 9457 reserves for exactly this.\n\n`reason` is present only when it says something the submitted value does not\nalready show: \"already taken\" yes, \"this address is malformed\" no — the\nclient can see that.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },

@@ -25,17 +25,24 @@ What the person installing Chalendia does, sees, and is responsible for.
 - With no shop configured, every request leads to the **setup screen**, which is the only
   thing the installation serves until it completes.
 
-The setup screen collects, in one pass:
+The setup screen collects, in one pass — one page, not a sequence of steps: eight
+fields are read faster than they are walked through.
 
-| Step | Collected |
+| Group | Collected |
 |---|---|
-| 1 | Administrator account: email and password |
-| 2 | Shop identity: name, contact and legal identity |
-| 3 | Locale: currency, content language, timezone |
-| 4 | Tax: enabled or not, and the initial rates |
+| The shop | Name, legal identity |
+| Locale | Currency, timezone, content language |
+| Tax | Whether the shop charges VAT — **rates are set afterwards**, with the rest of the settings |
+| The account | Administrator email and password |
 
+- Timezone and content language are proposed from the browser. The currency is not
+  guessed: it is the one choice that stops being reversible.
+- The screen carries the language and theme controls and nothing else — no navigation,
+  no footer, and no welcome text. An operator must be able to read the screen in their
+  language before answering it.
 - Completing setup creates the first administrator, marks the shop configured, and closes
-  the setup screen permanently.
+  the setup screen permanently. Reaching its address afterwards says so, and offers to
+  sign in.
 - No password is generated into logs, and no default credentials exist. An installation
   that is reachable before setup completes can be claimed by whoever reaches it first —
   which the documentation states plainly, because it is the operator's window of risk.

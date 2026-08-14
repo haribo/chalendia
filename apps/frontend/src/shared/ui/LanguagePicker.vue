@@ -22,6 +22,7 @@ const selected = computed({
 <template>
   <SelectField
     v-model="selected"
+    bare
     :label="t('language.label')"
     :options="options"
   />

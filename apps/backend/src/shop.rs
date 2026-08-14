@@ -35,11 +35,20 @@ pub struct SetupRequest {
     pub administrator_password: String,
 }
 
+/// A refused field, and the words that go with it — or none, when the value
+/// already shows the problem.
+#[derive(Debug, PartialEq, Eq)]
+pub struct FieldProblem {
+    pub field: &'static str,
+    pub reason: Option<String>,
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum SetupError {
     AlreadyConfigured,
-    PasswordTooShort { minimum: usize },
-    MissingField { field: &'static str },
+    /// Every field refused, collected in one pass: correcting one at a time is
+    /// what makes an operator submit five times.
+    Invalid(Vec<FieldProblem>),
 }
 
 /// A real hash, computed once, for candidates that match no account.
@@ -73,12 +82,33 @@ pub fn normalize_email(email: &str) -> String {
     email.trim().to_lowercase()
 }
 
-fn required(value: &str, field: &'static str) -> Result<String, SetupError> {
+/// Deliberately shallow: the only real proof an address exists is a message
+/// arriving at it, which the design already relies on for customers. This
+/// catches what a person can see is wrong — a missing half, a domain with no
+/// dot — and refuses to pretend it does more.
+pub fn looks_like_an_email(value: &str) -> bool {
+    let Some((local, domain)) = value.split_once('@') else {
+        return false;
+    };
+
+    !local.is_empty()
+        && !domain.is_empty()
+        && domain.contains('.')
+        && !domain.starts_with('.')
+        && !domain.ends_with('.')
+        && !value.contains(char::is_whitespace)
+}
+
+/// A blank required field needs no words: whoever left it empty can see that.
+fn required(value: &str, field: &'static str, problems: &mut Vec<FieldProblem>) -> String {
     let value = value.trim();
     if value.is_empty() {
-        return Err(SetupError::MissingField { field });
+        problems.push(FieldProblem {
+            field,
+            reason: None,
+        });
     }
-    Ok(value.to_owned())
+    value.to_owned()
 }
 
 /// Creates the shop and its first administrator, or nothing at all.
@@ -86,17 +116,37 @@ fn required(value: &str, field: &'static str) -> Result<String, SetupError> {
 /// One transaction: a shop with no administrator would be unreachable, and an
 /// administrator with no shop would be an account on nothing.
 pub async fn setup(pool: &PgPool, request: SetupRequest) -> Result<i64, SetupError> {
-    let name = required(&request.name, "name")?;
-    let legal_identity = required(&request.legal_identity, "legalIdentity")?;
-    let currency = required(&request.currency, "currency")?;
-    let content_language = required(&request.content_language, "contentLanguage")?;
-    let timezone = required(&request.timezone, "timezone")?;
-    let email = normalize_email(&request.administrator_email);
-    let email = required(&email, "administratorEmail")?;
+    let mut problems = Vec::new();
 
-    password::check(&request.administrator_password).map_err(|error| match error {
-        password::PasswordError::TooShort { minimum } => SetupError::PasswordTooShort { minimum },
-    })?;
+    let name = required(&request.name, "name", &mut problems);
+    let legal_identity = required(&request.legal_identity, "legalIdentity", &mut problems);
+    let currency = required(&request.currency, "currency", &mut problems);
+    let content_language = required(&request.content_language, "contentLanguage", &mut problems);
+    let timezone = required(&request.timezone, "timezone", &mut problems);
+    let email = normalize_email(&request.administrator_email);
+    let email = required(&email, "administratorEmail", &mut problems);
+    if !email.is_empty() && !looks_like_an_email(&email) {
+        // No words: whoever typed it can see what is missing.
+        problems.push(FieldProblem {
+            field: "administratorEmail",
+            reason: None,
+        });
+    }
+
+    if let Err(password::PasswordError::TooShort { minimum }) =
+        password::check(&request.administrator_password)
+    {
+        let missing = minimum.saturating_sub(request.administrator_password.chars().count());
+        problems.push(FieldProblem {
+            field: "administratorPassword",
+            // The count of what is missing is what the value does not show.
+            reason: Some(format!("{missing} characters missing")),
+        });
+    }
+
+    if !problems.is_empty() {
+        return Err(SetupError::Invalid(problems));
+    }
 
     let hash = password::hash(&request.administrator_password);
 
@@ -180,15 +230,55 @@ mod tests {
     use super::*;
 
     #[test]
+    fn an_address_a_person_can_see_is_broken_is_refused() {
+        for candidate in [
+            "owner@",
+            "@example.com",
+            "owner",
+            "owner@example",
+            "own er@example.com",
+        ] {
+            assert!(
+                !looks_like_an_email(candidate),
+                "{candidate} should be refused"
+            );
+        }
+    }
+
+    #[test]
+    fn an_ordinary_address_passes() {
+        for candidate in ["owner@example.com", "o.wner+shop@sub.example.co.uk"] {
+            assert!(looks_like_an_email(candidate), "{candidate} should pass");
+        }
+    }
+
+    #[test]
     fn an_email_is_normalized_for_comparison() {
         assert_eq!(normalize_email("  Owner@Example.COM "), "owner@example.com");
     }
 
     #[test]
-    fn a_blank_field_is_reported_by_name() {
+    fn a_blank_field_is_reported_by_name_and_without_words() {
+        let mut problems = Vec::new();
+
+        required("   ", "name", &mut problems);
+
         assert_eq!(
-            required("   ", "name").unwrap_err(),
-            SetupError::MissingField { field: "name" }
+            problems,
+            vec![FieldProblem {
+                field: "name",
+                reason: None
+            }]
         );
+    }
+
+    #[test]
+    fn a_filled_field_reports_nothing() {
+        let mut problems = Vec::new();
+
+        let value = required("  La Fabrique  ", "name", &mut problems);
+
+        assert_eq!(value, "La Fabrique");
+        assert!(problems.is_empty());
     }
 }
