@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, ref, useId, type Component } from 'vue'
 
 import FieldFrame from '@/shared/ui/FieldFrame.vue'
 import { useFormSubmitting } from '@/shared/ui/form-state'
@@ -14,6 +14,7 @@ const props = withDefaults(
     /** Only when it says something the value does not already show. */
     error?: string
     disabled?: boolean
+    icon?: Component
     autocomplete?: string
   }>(),
   {
@@ -22,6 +23,7 @@ const props = withDefaults(
     hint: undefined,
     error: undefined,
     disabled: false,
+    icon: undefined,
     autocomplete: undefined,
   },
 )
@@ -48,6 +50,7 @@ const invalid = computed(() => props.error !== undefined)
     <FieldFrame
       :label="label"
       :control-id="id"
+      :icon="icon"
       :floating="focused || model.length > 0"
       :optional="optional"
       :invalid="invalid"

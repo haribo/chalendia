@@ -46,7 +46,8 @@
       "databaseDown": "The shop can neither record an order nor show its catalogue. Check that the database service is running.",
       "apiDown": "The dashboard could not reach the API. It may be stopped, or restarting.",
       "retry": "Retry"
-    }
+    },
+    "signOut": "Sign out"
   },
   "forms": {
     "optional": "optional",
@@ -81,5 +82,14 @@
       "signIn": "Sign in to administer it.",
       "action": "Sign in"
     }
+  },
+  "signIn": {
+    "title": "Administration",
+    "email": "Email address",
+    "password": "Password",
+    "action": "Sign in",
+    "signingIn": "Signing in…",
+    "refused": "The address and password do not match.",
+    "backToShop": "← Back to the shop"
   }
 }

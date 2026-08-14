@@ -9,7 +9,7 @@
  * The visible label is a single element that moves — never two labels swapped,
  * which would announce twice.
  */
-import { computed } from 'vue'
+import { computed, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(
@@ -31,6 +31,8 @@ const props = withDefaults(
      * no words, "already taken" does.
      */
     error?: string
+    /** Drawn beside the label. It accompanies the word, never replaces it. */
+    icon?: Component
   }>(),
   {
     floating: false,
@@ -40,6 +42,7 @@ const props = withDefaults(
     disabled: false,
     busy: false,
     error: undefined,
+    icon: undefined,
   },
 )
 
@@ -64,6 +67,12 @@ const notched = computed(() => props.floating || Boolean(props.error))
       aria-hidden="true"
     >
       <legend class="notch">
+        <!-- The icon takes room in the notch too, or the border cuts through
+             it. Width, not a character: nothing here is text. -->
+        <span
+          v-if="icon"
+          class="reserve icon-reserve"
+        />
         <span class="reserve">{{ label }}</span>
         <span
           v-if="error"
@@ -81,6 +90,12 @@ const notched = computed(() => props.floating || Boolean(props.error))
          time it is refused, and a voice command asking for the field by name
          would stop finding it. -->
     <div class="row">
+      <component
+        :is="icon"
+        v-if="icon"
+        class="icon-slot"
+        :size="notched ? 'xs' : 'sm'"
+      />
       <label
         :for="controlId"
         class="label"
@@ -209,6 +224,17 @@ const notched = computed(() => props.floating || Boolean(props.error))
   top: -0.55rem;
   left: 0.85rem;
   font-size: var(--text-s);
+}
+
+.icon-reserve {
+  display: inline-block;
+  width: 1.1em;
+}
+
+.icon-slot {
+  flex: none;
+  align-self: center;
+  opacity: 0.8;
 }
 
 .label,

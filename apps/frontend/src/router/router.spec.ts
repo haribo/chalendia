@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { resolveGuard, resolveSetupGuard, routes } from '@/router'
 import type { RouteLocationNormalized } from 'vue-router'
 
-function location(requiresStaff: boolean): RouteLocationNormalized {
+function location(requiresStaff: boolean, fullPath = '/admin'): RouteLocationNormalized {
   return {
+    fullPath,
     matched: [{ meta: requiresStaff ? { requiresStaff: true } : {} }],
   } as unknown as RouteLocationNormalized
 }
@@ -31,8 +32,26 @@ describe('the setup guard', () => {
 })
 
 describe('the back-office guard', () => {
-  it('sends a visitor without a staff role back to the shop', () => {
-    expect(resolveGuard(location(true), false)).toEqual({ name: 'home' })
+  it('sends a visitor without a session to sign in', () => {
+    expect(resolveGuard(location(true), false)).toEqual({
+      name: 'sign-in',
+      query: { next: '/admin' },
+    })
+  })
+
+  it('remembers the page that was asked for', () => {
+    // Signing in must land where the visitor was going, not on a default page.
+    expect(resolveGuard(location(true, '/admin/orders/12'), false)).toEqual({
+      name: 'sign-in',
+      query: { next: '/admin/orders/12' },
+    })
+  })
+
+  it('does not ask someone already signed in to sign in again', () => {
+    const signInPage = { name: 'sign-in', matched: [] } as unknown as RouteLocationNormalized
+
+    expect(resolveGuard(signInPage, true)).toEqual({ name: 'admin-dashboard' })
+    expect(resolveGuard(signInPage, false)).toBe(true)
   })
 
   it('lets a staff member through', () => {

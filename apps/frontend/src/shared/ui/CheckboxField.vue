@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, useId, type Component } from 'vue'
 
 import { useFormSubmitting } from '@/shared/ui/form-state'
 
-const props = withDefaults(defineProps<{ label: string; disabled?: boolean }>(), {
-  disabled: false,
-})
+const props = withDefaults(
+  defineProps<{
+    label: string
+    disabled?: boolean
+    icon?: Component
+  }>(),
+  { disabled: false, icon: undefined },
+)
 
 const model = defineModel<boolean>({ default: false })
 const id = useId()
@@ -23,7 +28,15 @@ const locked = computed(() => props.disabled || submitting.value)
       type="checkbox"
       :disabled="locked"
     >
-    <label :for="id">{{ label }}</label>
+    <label :for="id">
+      <component
+        :is="icon"
+        v-if="icon"
+        size="sm"
+        class="icon"
+      />
+      {{ label }}
+    </label>
   </div>
 </template>
 
@@ -48,7 +61,15 @@ input:disabled + label {
 }
 
 label {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
   font-size: var(--text-m);
   cursor: pointer;
+}
+
+.icon {
+  flex: none;
+  opacity: 0.8;
 }
 </style>

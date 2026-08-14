@@ -46,6 +46,24 @@ describe('PasswordField', () => {
     expect(wrapper.findAll('.strength span.reached')).toHaveLength(4)
   })
 
+  it('drops the strength bar when asked, whatever is typed', async () => {
+    // Signing in uses an existing password: measuring it teaches nobody
+    // anything. The bar must go even once the field is full.
+    const wrapper = field({ strength: false })
+
+    await wrapper.get('input').setValue('correct horse battery staple')
+
+    expect(wrapper.find('.strength').exists()).toBe(false)
+  })
+
+  it('keeps the bar by default', async () => {
+    const wrapper = field()
+
+    await wrapper.get('input').setValue('correct horse')
+
+    expect(wrapper.find('.strength').exists()).toBe(true)
+  })
+
   it('reports a refusal with its message', () => {
     const wrapper = field({ error: '5 characters missing' })
 

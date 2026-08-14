@@ -4,6 +4,14 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import Button from '@/shared/ui/Button.vue'
+import IconBadge from '@/shared/ui/icons/IconBadge.vue'
+import IconGlobe from '@/shared/ui/icons/IconGlobe.vue'
+import IconLock from '@/shared/ui/icons/IconLock.vue'
+import IconMail from '@/shared/ui/icons/IconMail.vue'
+import IconPayments from '@/shared/ui/icons/IconPayments.vue'
+import IconReceipt from '@/shared/ui/icons/IconReceipt.vue'
+import IconSchedule from '@/shared/ui/icons/IconSchedule.vue'
+import IconStorefront from '@/shared/ui/icons/IconStorefront.vue'
 import CheckboxField from '@/shared/ui/CheckboxField.vue'
 import Form from '@/shared/ui/Form.vue'
 import LanguagePicker from '@/shared/ui/LanguagePicker.vue'
@@ -126,11 +134,13 @@ async function submit(): Promise<void> {
         <legend>{{ t('setup.groups.shop') }}</legend>
         <TextField
           v-model="name"
+          :icon="IconStorefront"
           :label="t('setup.fields.name')"
           :error="errors.name"
         />
         <TextField
           v-model="legalIdentity"
+          :icon="IconBadge"
           :label="t('setup.fields.legalIdentity')"
           :error="errors.legalIdentity"
         />
@@ -142,6 +152,7 @@ async function submit(): Promise<void> {
           <div>
             <SelectField
               v-model="currency"
+              :icon="IconPayments"
               :label="t('setup.fields.currency')"
               :options="currencies"
             />
@@ -151,12 +162,14 @@ async function submit(): Promise<void> {
           </div>
           <SelectField
             v-model="timezone"
+            :icon="IconSchedule"
             :label="t('setup.fields.timezone')"
             :options="timezones"
           />
         </div>
         <SelectField
           v-model="contentLanguage"
+          :icon="IconGlobe"
           :label="t('setup.fields.contentLanguage')"
           :options="languages"
         />
@@ -166,6 +179,7 @@ async function submit(): Promise<void> {
         <legend>{{ t('setup.groups.tax') }}</legend>
         <CheckboxField
           v-model="vatEnabled"
+          :icon="IconReceipt"
           :label="t('setup.fields.vatEnabled')"
         />
       </fieldset>
@@ -176,11 +190,13 @@ async function submit(): Promise<void> {
           v-model="administratorEmail"
           type="email"
           autocomplete="username"
+          :icon="IconMail"
           :label="t('setup.fields.administratorEmail')"
           :error="errors.administratorEmail"
         />
         <PasswordField
           v-model="administratorPassword"
+          :icon="IconLock"
           :label="t('setup.fields.administratorPassword')"
           :hint="t('setup.fields.passwordRule')"
           :error="errors.administratorPassword"

@@ -1,13 +1,27 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 import AppBar from '@/shared/ui/AppBar.vue'
+import Button from '@/shared/ui/Button.vue'
 import AppShell from '@/shared/ui/AppShell.vue'
 import LanguagePicker from '@/shared/ui/LanguagePicker.vue'
 import NavLink from '@/shared/ui/NavLink.vue'
 import ThemePicker from '@/shared/ui/ThemePicker.vue'
+import { signOut } from '@/shared/api/session'
+import { useSessionStore } from '@/stores/session'
 
 const { t } = useI18n()
+const router = useRouter()
+const session = useSessionStore()
+
+async function leave(): Promise<void> {
+  await signOut()
+  session.forget()
+  // Back to the shop, not to the sign-in form: one leaves the back office, one
+  // does not queue up to return to it.
+  await router.push('/')
+}
 
 // The v1 sections, as the design defines them. Not configurable.
 const sections = [
@@ -26,9 +40,19 @@ const sections = [
         <template #actions>
           <LanguagePicker />
           <ThemePicker />
+          <span
+            v-if="session.staff"
+            class="who"
+          >{{ session.staff.email }}</span>
           <NavLink to="/">
             {{ t('admin.toShop') }}
           </NavLink>
+          <Button
+            variant="link"
+            @click="leave"
+          >
+            {{ t('admin.signOut') }}
+          </Button>
         </template>
       </AppBar>
     </template>

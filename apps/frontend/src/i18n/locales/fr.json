@@ -46,7 +46,8 @@
       "databaseDown": "La boutique ne peut ni enregistrer de commande ni afficher son catalogue. Vérifiez que le service de base de données est démarré.",
       "apiDown": "Le tableau de bord n’a pas pu joindre l’API. Elle est peut-être arrêtée, ou le redémarrage est en cours.",
       "retry": "Réessayer"
-    }
+    },
+    "signOut": "Se déconnecter"
   },
   "forms": {
     "optional": "facultatif",
@@ -81,5 +82,14 @@
       "signIn": "Connectez-vous pour l’administrer.",
       "action": "Se connecter"
     }
+  },
+  "signIn": {
+    "title": "Administration",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "action": "Se connecter",
+    "signingIn": "Connexion…",
+    "refused": "L’adresse et le mot de passe ne correspondent pas.",
+    "backToShop": "← Retour à la boutique"
   }
 }

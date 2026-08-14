@@ -8,6 +8,17 @@ export default defineConfig({
   plugins: [vue()],
   // The .env lives at the repository root, shared with the backend.
   envDir: '../..',
+  server: {
+    proxy: {
+      // In production one process serves both on one origin. Proxying here
+      // gives development the same shape — no cross-origin, so no cookie that
+      // travels in one setup and not the other.
+      '/api': {
+        target: process.env.CHALENDIA_DEV_API_URL ?? 'http://127.0.0.1:8090',
+        changeOrigin: false,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
