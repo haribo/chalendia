@@ -22,6 +22,11 @@ Rules must be concise. One rule per line when possible.
 - Critique constructively: acknowledge what is sound first, cite established standards (RFC, WCAG, NN/G, language idioms) rather than personal preference, propose the correction — never mere opposition, never a strawman of the user's position
 - The user decides in the end: challenge until the decision, then execute it in full. If a debate cycles past 3 iterations on the same axis without converging, propose to decide rather than continue
 
+## Delivery
+
+- Delivering a user-facing change follows `docs/delivery-workflow.md` — design, mockup validated by the user, implementation with tests, PR with evidence, visual review. Read it before starting such a change; the rationale is `docs/adr/0006-design-validate-implement-review-loop.md`
+- Two steps need the user and cannot be self-granted: validating the mockup, and validating the visual result. Everything else, tests included, is yours
+
 ## Documentation
 
 - All documentation lives under `docs/` — never in a source directory (root `README.md` and tool config files are not documentation)
