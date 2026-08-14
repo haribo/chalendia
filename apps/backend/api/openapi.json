@@ -10,7 +10,7 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/health": {
+    "/api/health": {
       "get": {
         "tags": [
           "system"
@@ -42,7 +42,7 @@
         }
       }
     },
-    "/openapi.json": {
+    "/api/openapi.json": {
       "get": {
         "tags": [
           "system"
@@ -57,7 +57,7 @@
         }
       }
     },
-    "/sessions": {
+    "/api/sessions": {
       "post": {
         "tags": [
           "staff"
@@ -110,7 +110,7 @@
         }
       }
     },
-    "/setup": {
+    "/api/setup": {
       "post": {
         "tags": [
           "shop"
@@ -162,7 +162,7 @@
         }
       }
     },
-    "/shop": {
+    "/api/shop": {
       "get": {
         "tags": [
           "shop"
@@ -184,7 +184,7 @@
         }
       }
     },
-    "/staff/me": {
+    "/api/staff/me": {
       "get": {
         "tags": [
           "staff"

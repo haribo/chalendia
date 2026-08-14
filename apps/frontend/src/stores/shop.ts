@@ -18,7 +18,7 @@ export const useShopStore = defineStore('shop', () => {
   const unreachable = ref(false)
 
   async function load(): Promise<void> {
-    const { data, error } = await api.GET('/shop')
+    const { data, error } = await api.GET('/api/shop')
 
     if (data) {
       configured.value = data.configured

@@ -121,7 +121,7 @@ async fn a_crafted_url_cannot_inject_markup_into_the_shell() {
 async fn the_api_still_answers_as_an_api() {
     let dir = built_frontend();
 
-    let (status, body) = get(dir.path().to_str().unwrap(), "/health").await;
+    let (status, body) = get(dir.path().to_str().unwrap(), "/api/health").await;
 
     // Degraded because this test uses an unreachable database on purpose: what
     // matters is that the API answered instead of the shell.

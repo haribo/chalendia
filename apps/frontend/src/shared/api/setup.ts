@@ -18,7 +18,7 @@ export type SetupOutcome =
  */
 export async function runSetup(request: SetupRequest): Promise<SetupOutcome> {
   try {
-    const { data, error, response } = await api.POST('/setup', { body: request })
+    const { data, error, response } = await api.POST('/api/setup', { body: request })
 
     if (data) {
       return { kind: 'configured', name: data.name ?? undefined }

@@ -52,7 +52,7 @@ dev-start: dev-db
     just _dev-run-web
     echo ""
     echo "  shop        http://localhost:{{dev_web_port}}"
-    echo "  api         http://localhost:{{dev_api_port}}/health"
+    echo "  api         http://localhost:{{dev_api_port}}/api/health"
     echo "  database    localhost:{{dev_db_port}}"
     echo ""
     echo "  logs: just dev-logs   stop: just dev-stop"
@@ -137,7 +137,7 @@ _dev-run-api:
     # Migrations run before the listener opens, so a reachable /health proves
     # the schema is in place too.
     for _ in $(seq 1 60); do
-        curl -sf "http://127.0.0.1:{{dev_api_port}}/health" >/dev/null 2>&1 && break
+        curl -sf "http://127.0.0.1:{{dev_api_port}}/api/health" >/dev/null 2>&1 && break
         kill -0 "$(cat {{log_dir}}/api.pid)" 2>/dev/null || { echo "the api died on startup:"; tail -5 {{log_dir}}/api.log; exit 1; }
         sleep 0.5
     done
@@ -284,6 +284,53 @@ api-check:
         exit 1
     fi
     echo "api types: current"
+
+# =============================================================================
+# END TO END — the journeys, and the report the user reviews them in
+# =============================================================================
+
+# Run the journeys against a shop created from scratch
+e2e:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Setup happens once, so the suite starts from an empty database — that is
+    # the behaviour under test, not an inconvenience to work around.
+    just dev-stop
+    {{compose_dev}} down -v
+    # Not silenced: a stack that failed to start must fail here, not later as
+    # a connection refused in every case.
+    just dev-start
+    trap 'just dev-stop >/dev/null 2>&1 || true' EXIT
+    for _ in $(seq 1 60); do
+        curl -sf "http://localhost:{{dev_web_port}}" >/dev/null 2>&1 \
+          && curl -sf "http://localhost:{{dev_api_port}}/api/shop" >/dev/null 2>&1 && break
+        sleep 1
+    done
+    cd {{frontend_dir}} && E2E_BASE_URL="http://localhost:{{dev_web_port}}" npx playwright test
+    cd {{justfile_directory()}} && just e2e-report
+
+# Run the journeys against the container image, the way CI does and the way an
+# operator actually installs the shop — one origin, no dev server.
+e2e-image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    docker compose down -v >/dev/null 2>&1 || true
+    CHALENDIA_PORT={{dev_api_port}} docker compose up -d --build
+    trap 'docker compose down -v >/dev/null 2>&1 || true' EXIT
+    for _ in $(seq 1 90); do
+        curl -sf "http://localhost:{{dev_api_port}}/api/shop" >/dev/null 2>&1 && break
+        sleep 2
+    done
+    cd {{frontend_dir}} && E2E_BASE_URL="http://localhost:{{dev_api_port}}" npx playwright test
+    cd {{justfile_directory()}} && just e2e-report
+
+# Build the review site from the last run
+e2e-report:
+    node tools/e2e-report/generate.mjs
+
+# Open the review site
+e2e-open:
+    xdg-open reports/e2e/index.html
 
 # Everything a pull request must pass, in one command
 check: backend-check backend-test frontend-check frontend-test frontend-build api-check

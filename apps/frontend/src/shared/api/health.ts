@@ -20,7 +20,7 @@ export type SystemStatus =
  */
 export async function readHealth(): Promise<SystemStatus> {
   try {
-    const { data, error } = await api.GET('/health')
+    const { data, error } = await api.GET('/api/health')
 
     if (data) {
       return { kind: 'reachable', health: data }

@@ -71,7 +71,8 @@ variable is missing.
 ## 4. Health and diagnosis
 
 - A health endpoint reports whether the application is up and whether its database is
-  reachable, for use by the operator's own supervision.
+  reachable, for use by the operator's own supervision. It sits with the rest of the
+  API, under its prefix, not at the root of the shop.
 - The back office shows a diagnosis view: pending configuration (no payment method, no
   shipping method, untouched legal templates), failed emails, and failed carrier calls.
   A shop that cannot take an order says so before a customer discovers it.

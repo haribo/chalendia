@@ -37,7 +37,7 @@ pub enum Dependency {
 /// routing to it — while the body says which part failed.
 #[utoipa::path(
     get,
-    path = "/health",
+    path = "/api/health",
     tag = "system",
     responses(
         (status = 200, description = "The shop is serving and its database answers", body = Health),

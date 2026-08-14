@@ -63,11 +63,20 @@ describe('TextField', () => {
   })
 
   it('shows a message only when there is one to show', () => {
-    expect(field({ error: '' }).find('.error').exists()).toBe(false)
+    expect(field({ error: '' }).find('.message').exists()).toBe(false)
 
     const explained = field({ error: 'already used by another account' })
 
-    expect(explained.get('.error').text()).toContain('already used by another account')
+    expect(explained.get('.message').text()).toContain('already used by another account')
+  })
+
+  it('keeps its accessible name when it is refused', () => {
+    // Folding the message into the label would rename the control, and a voice
+    // command asking for the field by name would stop finding it.
+    const wrapper = field({ error: 'already used by another account' })
+
+    expect(wrapper.get('label').text()).toBe('Shop name')
+    expect(wrapper.get('input').attributes('aria-describedby')).toContain('-error')
   })
 
   it('leaves a healthy field unmarked', () => {
