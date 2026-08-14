@@ -12,6 +12,7 @@ import StorefrontLayout from '@/surfaces/storefront/StorefrontLayout.vue'
 
 export const ADMIN_PREFIX = '/admin'
 export const SETUP_PATH = '/setup'
+export const SIGN_IN_PATH = '/sign-in'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -29,6 +30,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/surfaces/storefront/HomeView.vue'),
       },
     ],
+  },
+  {
+    path: SIGN_IN_PATH,
+    name: 'sign-in',
+    component: () => import('@/surfaces/admin/SignInView.vue'),
   },
   {
     path: ADMIN_PREFIX,
@@ -70,9 +76,20 @@ export function resolveSetupGuard(
 export function resolveGuard(
   to: RouteLocationNormalized,
   hasStaffRole: boolean,
-): true | { name: string } {
+): true | { name: string; query?: Record<string, string> } {
+  // Already signed in, standing at the door: go in rather than fill a form.
+  if (to.name === 'sign-in' && hasStaffRole) {
+    return { name: 'admin-dashboard' }
+  }
+
   const needsStaff = to.matched.some((record) => record.meta.requiresStaff)
-  return needsStaff && !hasStaffRole ? { name: 'home' } : true
+  if (!needsStaff || hasStaffRole) {
+    return true
+  }
+
+  // Carried so signing in lands on the page that was asked for, not on a
+  // default dashboard.
+  return { name: 'sign-in', query: { next: to.fullPath } }
 }
 
 export function createAppRouter(): Router {
