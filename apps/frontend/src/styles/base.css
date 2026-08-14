@@ -11,6 +11,12 @@ body {
   line-height: 1.6;
 }
 
+/* Held by whatever is showing a modal surface: a page that keeps scrolling
+   under an open drawer reads as the drawer sliding away under the finger. */
+body.scroll-locked {
+  overflow: hidden;
+}
+
 *:focus-visible {
   outline: 2px solid var(--colour-accent);
   outline-offset: 2px;

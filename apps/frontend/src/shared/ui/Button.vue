@@ -6,8 +6,10 @@ withDefaults(
      * screen exists for. `quiet` is outlined, for everything beside it.
      * `link` looks like a link and stays a button: signing out is an action,
      * not a navigation, and a link would offer to open it in a new tab.
+     * `icon` is a square touch target for a button whose whole label is an
+     * icon — it needs an `aria-label`, since there is no text to read.
      */
-    variant?: 'primary' | 'quiet' | 'link'
+    variant?: 'primary' | 'quiet' | 'link' | 'icon'
     type?: 'button' | 'submit'
     disabled?: boolean
     /** Says what is happening rather than spinning in silence. */
@@ -76,6 +78,22 @@ button:disabled {
   background: transparent;
   color: var(--colour-accent);
   white-space: nowrap;
+}
+
+/* 44px square: the smallest target a finger hits reliably, and the reason this
+   is a variant rather than a padding tweak at each call site. */
+.icon {
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-color: var(--colour-border);
+  background: var(--colour-surface);
+  color: var(--colour-text);
+}
+
+.icon:hover:not(:disabled) {
+  background: var(--colour-accent-quiet);
 }
 
 .link:hover:not(:disabled),
