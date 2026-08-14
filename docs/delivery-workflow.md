@@ -117,6 +117,16 @@ steps, and a **review status** — to review, validated, to fix. A case whose sp
 changed after its validation returns to *to review*: a validation is anchored to
 the code it was given for.
 
+Every journey is **replayed** once per variant — desktop light, desktop dark,
+phone — and the case's page toggles between the three. Replayed, not
+re-rendered: a layout that breaks a tap target is invisible to a second
+screenshot of the same run. A design that claims a dark theme and a phone layout
+is validated when the three were looked at, so the report refuses to build when
+a case is missing one, rather than showing a hole that reads as reviewed. A
+journey that does not apply to a variant — a phone drawer has no meaning on a
+desktop viewport — skips itself and says so with its reason; that is coverage,
+not a hole. A journey skipped in *every* variant is a hole.
+
 The reviewer's verdict:
 
 | Verdict | What follows |

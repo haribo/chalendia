@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 /**
- * Builds the local review site from Playwright's JSON report.
+ * Builds the local review site from Playwright's JSON reports.
  *
  * The report is what the user looks at to decide whether a screen is right —
  * assertions prove behaviour, this shows the result. Per case: the video, the
  * screenshot of every step, and a review status.
+ *
+ * Each journey is replayed once per variant (desktop light, desktop dark, phone)
+ * and each run leaves its own report, so a case here is the same journey seen
+ * three ways: one page, one toggle. A case that is missing a variant is a hole
+ * in the review, so the generator says so and fails.
  *
  * The status lives in `reviews.json`, committed, keyed by `<spec>::<title>`,
  * and anchored to a hash of the spec file at review time: when the spec
  * changes, the case returns to "to review", because a validation is a statement
  * about the code it was given for.
  *
- * Input:  apps/frontend/tmp/e2e-report/report.json
+ * Input:  apps/frontend/tmp/e2e-report/report-<variant>.json
  * Output: reports/e2e/ (not committed)
  */
 import { createHash } from 'node:crypto'
@@ -21,22 +26,38 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
-const INPUT = path.join(ROOT, 'apps/frontend/tmp/e2e-report/report.json')
+const INPUT_DIR = path.join(ROOT, 'apps/frontend/tmp/e2e-report')
 const REVIEWS = path.join(HERE, 'reviews.json')
 const OUT = path.join(ROOT, 'reports/e2e')
 const E2E_DIR = path.join(ROOT, 'apps/frontend/e2e')
 
-if (!fs.existsSync(INPUT)) {
-  console.error(`No report at ${INPUT} — run the suite first (just e2e).`)
+/** Display order, and the label each variant carries in the report. */
+const VARIANTS = {
+  'desktop-light': 'desktop · light',
+  'desktop-dark': 'desktop · dark',
+  'mobile-light': 'mobile',
+}
+
+const reports = (fs.existsSync(INPUT_DIR) ? fs.readdirSync(INPUT_DIR) : [])
+  .map((file) => ({ file, variant: /^report-(.+)\.json$/.exec(file)?.[1] }))
+  .filter((entry) => entry.variant)
+  .sort((a, b) => order(a.variant) - order(b.variant))
+
+function order(variant) {
+  const index = Object.keys(VARIANTS).indexOf(variant)
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index
+}
+
+if (reports.length === 0) {
+  console.error(`No report in ${INPUT_DIR} — run the suite first (just e2e).`)
   process.exit(1)
 }
 
-const report = JSON.parse(fs.readFileSync(INPUT, 'utf8'))
 const reviews = fs.existsSync(REVIEWS) ? JSON.parse(fs.readFileSync(REVIEWS, 'utf8')) : {}
 
 // --- collect -----------------------------------------------------------------
 
-/** Every case in the run, flattened out of Playwright's nested suites. */
+/** Every case in a run, flattened out of Playwright's nested suites. */
 function* cases(suite, file = suite.file) {
   for (const spec of suite.specs ?? []) {
     yield { spec, file: spec.file ?? file }
@@ -56,30 +77,46 @@ function hashOf(file) {
   return specHashes.get(file)
 }
 
-const collected = []
-for (const suite of report.suites ?? []) {
-  for (const { spec, file } of cases(suite)) {
-    const test = spec.tests?.[0]
-    const result = test?.results?.[0]
-    const key = `${file}::${spec.title}`
-    const review = reviews[key]
-    const hash = hashOf(file)
+/** One entry per journey, holding what each variant saw of it. */
+const collected = new Map()
 
-    collected.push({
-      key,
-      file,
-      // The directory under e2e/ is the category — the layout is the taxonomy.
-      category: path.dirname(file) === '.' ? 'general' : path.dirname(file),
-      title: spec.title,
-      ok: spec.ok === true,
-      status: statusOf(review, hash),
-      note: review?.note,
-      reviewedAt: review?.reviewedAt,
-      steps: (result?.attachments ?? []).filter((a) => a.name?.startsWith('step: ')),
-      video: (result?.attachments ?? []).find((a) => a.contentType === 'video/webm'),
-      duration: result?.duration ?? 0,
-      error: result?.error?.message,
-    })
+for (const { file, variant } of reports) {
+  const report = JSON.parse(fs.readFileSync(path.join(INPUT_DIR, file), 'utf8'))
+
+  for (const suite of report.suites ?? []) {
+    for (const { spec, file: specFile } of cases(suite)) {
+      const result = spec.tests?.[0]?.results?.[0]
+      const key = `${specFile}::${spec.title}`
+
+      if (!collected.has(key)) {
+        const review = reviews[key]
+        const hash = hashOf(specFile)
+        collected.set(key, {
+          key,
+          file: specFile,
+          // The directory under e2e/ is the category — the layout is the taxonomy.
+          category: path.dirname(specFile) === '.' ? 'general' : path.dirname(specFile),
+          title: spec.title,
+          status: statusOf(review, hash),
+          note: review?.note,
+          reviewedAt: review?.reviewedAt,
+          runs: new Map(),
+        })
+      }
+
+      collected.get(key).runs.set(variant, {
+        variant,
+        ok: spec.ok === true,
+        // A journey that qualifies itself — the phone drawer has no meaning on
+        // a desktop viewport — is absent from that variant on purpose.
+        skipped: result?.status === 'skipped',
+        reason: spec.tests?.[0]?.annotations?.find((a) => a.type === 'skip')?.description,
+        steps: (result?.attachments ?? []).filter((a) => a.name?.startsWith('step: ')),
+        video: (result?.attachments ?? []).find((a) => a.contentType === 'video/webm'),
+        duration: result?.duration ?? 0,
+        error: result?.error?.message,
+      })
+    }
   }
 }
 
@@ -87,6 +124,14 @@ function statusOf(review, hash) {
   if (!review) return 'to-review'
   if (review.specHash && review.specHash !== hash) return 'stale'
   return review.status
+}
+
+const items = [...collected.values()]
+const variants = reports.map((entry) => entry.variant)
+
+for (const item of items) {
+  item.ok = [...item.runs.values()].every((run) => run.ok)
+  item.failing = [...item.runs.values()].filter((run) => !run.ok).map((run) => run.variant)
 }
 
 // --- copy artefacts ----------------------------------------------------------
@@ -120,12 +165,54 @@ function copy(attachment) {
   return `assets/${name}`
 }
 
-for (const item of collected) {
-  item.videoSrc = copy(item.video)
-  item.stepShots = item.steps.map((step) => ({
-    name: step.name.replace(/^step: /, ''),
-    src: copy(step),
-  }))
+for (const item of items) {
+  for (const run of item.runs.values()) {
+    run.videoSrc = copy(run.video)
+    run.stepShots = run.steps
+      .map((step) => ({ name: step.name.replace(/^step: /, ''), src: copy(step) }))
+      .filter((step) => step.src)
+  }
+}
+
+// --- the invariant the report exists for -------------------------------------
+
+/**
+ * Every step of every case carries one capture per variant. A silent hole reads
+ * as "reviewed" once the reviewer clicks through, which is the one outcome this
+ * report must never produce.
+ *
+ * A journey that skipped itself in a variant is not a hole — it says so, with
+ * its reason. A journey that skipped itself everywhere is one: nobody ever
+ * sees it.
+ */
+const holes = []
+
+for (const item of items) {
+  const played = [...item.runs.values()].filter((run) => !run.skipped)
+
+  if (played.length === 0) {
+    holes.push(`${item.key} — skipped in every variant, so nothing to review`)
+    continue
+  }
+
+  const reference = played[0]
+
+  for (const variant of variants) {
+    const run = item.runs.get(variant)
+    if (!run) {
+      holes.push(`${item.key} — no ${variant} run`)
+      continue
+    }
+    if (run.skipped) continue
+    if (run.stepShots.length === 0 && run.ok) {
+      holes.push(`${item.key} (${variant}) — no captured step, wrap its actions in reportStep`)
+    }
+    if (run !== reference && run.ok && reference.ok && run.stepShots.length !== reference.stepShots.length) {
+      holes.push(
+        `${item.key} (${variant}) — ${run.stepShots.length} steps, ${reference.variant} has ${reference.stepShots.length}`,
+      )
+    }
+  }
 }
 
 // --- render ------------------------------------------------------------------
@@ -142,7 +229,7 @@ const escape = (value) =>
 
 const slug = (key) => createHash('sha256').update(key).digest('hex').slice(0, 10)
 
-const page = (title, body) => `<!doctype html>
+const page = (title, body, script = '') => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escape(title)}</title><style>
 :root{color-scheme:light dark;--ink:#171d19;--muted:#5b665f;--bg:#f6f8f5;--card:#fff;--rule:#dde3dd;--accent:#1f6f4a;--danger:#a3242b;--warn:#8a5a00}
@@ -161,17 +248,76 @@ figure{margin:0 0 1.5rem}figcaption{font-size:.85rem;color:var(--muted);margin-t
 img,video{width:100%;border:1px solid var(--rule);border-radius:8px;background:var(--card)}
 .note{border-left:3px solid var(--warn);padding:.5rem .8rem;background:var(--card);border-radius:6px;font-size:.9rem}
 code{font-family:ui-monospace,monospace;font-size:.85rem}
-</style></head><body><main>${body}</main></body></html>`
+.switch{display:flex;gap:.4rem;flex-wrap:wrap;margin:1.5rem 0 0}
+.switch button{font:inherit;font-size:.85rem;color:var(--muted);background:var(--card);border:1px solid var(--rule);border-radius:999px;padding:.25rem .9rem;cursor:pointer}
+.switch button[aria-pressed=true]{color:var(--bg);background:var(--accent);border-color:var(--accent)}
+.switch button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.variant[hidden]{display:none}
+.variant[data-variant^=mobile] figure{max-width:24rem}
+</style></head><body><main>${body}</main>${script}</body></html>`
+
+/** Keeps the chosen variant while the reviewer walks from case to case. */
+const SWITCH_SCRIPT = `<script>
+(() => {
+  const KEY = 'chalendia-e2e-variant'
+  const buttons = [...document.querySelectorAll('.switch button')]
+  if (!buttons.length) return
+  const show = (variant) => {
+    for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.variant === variant))
+    for (const section of document.querySelectorAll('.variant')) section.hidden = section.dataset.variant !== variant
+  }
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      localStorage.setItem(KEY, button.dataset.variant)
+      show(button.dataset.variant)
+    })
+  }
+  const remembered = localStorage.getItem(KEY)
+  show(buttons.some((button) => button.dataset.variant === remembered) ? remembered : buttons[0].dataset.variant)
+})()
+</script>`
 
 fs.mkdirSync(path.join(OUT, 'cases'), { recursive: true })
 
-for (const item of collected) {
-  const steps = item.stepShots
-    .filter((step) => step.src)
-    .map(
-      (step, index) => `<figure><img src="../${step.src}" alt="${escape(step.name)}">
+for (const item of items) {
+  const runs = variants.map((variant) => item.runs.get(variant)).filter(Boolean)
+
+  const toggle = `<div class="switch" role="group" aria-label="Variant">
+${runs
+  .map(
+    (run) => `<button type="button" data-variant="${escape(run.variant)}" aria-pressed="false">${escape(
+      VARIANTS[run.variant] ?? run.variant,
+    )}${run.skipped ? ' —' : run.ok ? '' : ' ✗'}</button>`,
+  )
+  .join('\n')}
+</div>`
+
+  const sections = runs
+    .map((run) => {
+      const steps = run.stepShots
+        .map(
+          (step, index) => `<figure><img src="../${step.src}" alt="${escape(step.name)}">
 <figcaption>${index + 1}. ${escape(step.name)}</figcaption></figure>`,
-    )
+        )
+        .join('\n')
+
+      if (run.skipped) {
+        return `<section class="variant" data-variant="${escape(run.variant)}" hidden>
+<p class="note">This journey does not apply to this variant, and skipped itself${
+          run.reason ? `: ${escape(run.reason)}` : '.'
+        }</p>
+</section>`
+      }
+
+      return `<section class="variant" data-variant="${escape(run.variant)}" hidden>
+<p class="muted">${(run.duration / 1000).toFixed(1)}s ·
+<span class="tag ${run.ok ? 'pass' : 'fail'}">${run.ok ? 'passing' : 'failing'}</span></p>
+${run.error ? `<pre class="note">${escape(run.error)}</pre>` : ''}
+${run.videoSrc ? `<h2>The journey</h2><video src="../${run.videoSrc}" controls muted playsinline></video>` : ''}
+<h2>Step by step</h2>
+${steps || '<p class="muted">This case reports no steps. Wrap its actions in reportStep to see them here.</p>'}
+</section>`
+    })
     .join('\n')
 
   fs.writeFileSync(
@@ -180,33 +326,32 @@ for (const item of collected) {
       item.title,
       `<p><a href="../index.html">← every case</a></p>
 <h1>${escape(item.title)}</h1>
-<p class="muted"><code>${escape(item.file)}</code> · ${(item.duration / 1000).toFixed(1)}s ·
+<p class="muted"><code>${escape(item.file)}</code> ·
 <span class="tag ${item.ok ? 'pass' : 'fail'}">${item.ok ? 'passing' : 'failing'}</span>
 <span class="tag ${item.status}">${LABEL[item.status]}</span></p>
 ${item.note ? `<p class="note">${escape(item.note)}</p>` : ''}
-${item.error ? `<pre class="note">${escape(item.error)}</pre>` : ''}
-${item.videoSrc ? `<h2>The journey</h2><video src="../${item.videoSrc}" controls muted playsinline></video>` : ''}
-<h2>Step by step</h2>
-${steps || '<p class="muted">This case reports no steps. Wrap its actions in reportStep to see them here.</p>'}`,
+${toggle}
+${sections}`,
+      SWITCH_SCRIPT,
     ),
   )
 }
 
 const byCategory = new Map()
-for (const item of collected) {
+for (const item of items) {
   byCategory.set(item.category, [...(byCategory.get(item.category) ?? []), item])
 }
 
-const count = (status) => collected.filter((item) => item.status === status).length
+const count = (status) => items.filter((item) => item.status === status).length
 const toReview = count('to-review') + count('stale')
 
 const index = [...byCategory.entries()]
   .map(
-    ([category, items]) => `<h2>${escape(category)}</h2>` +
-      items
+    ([category, cases]) => `<h2>${escape(category)}</h2>` +
+      cases
         .map(
           (item) => `<div class="case">
-<span class="tag ${item.ok ? 'pass' : 'fail'}">${item.ok ? 'passing' : 'failing'}</span>
+<span class="tag ${item.ok ? 'pass' : 'fail'}">${item.ok ? 'passing' : `failing: ${escape(item.failing.join(', '))}`}</span>
 <span class="title"><a href="cases/${slug(item.key)}.html">${escape(item.title)}</a></span>
 <span class="tag ${item.status}">${LABEL[item.status]}</span></div>`,
         )
@@ -219,10 +364,13 @@ fs.writeFileSync(
   page(
     'End-to-end journeys',
     `<h1>End-to-end journeys</h1>
-<p class="muted">Generated from the last run. Statuses live in <code>tools/e2e-report/reviews.json</code>.</p>
+<p class="muted">Generated from the last run, ${variants
+      .map((variant) => escape(VARIANTS[variant] ?? variant))
+      .join(' · ')}. Statuses live in <code>tools/e2e-report/reviews.json</code>.</p>
 <div class="summary">
-<span><strong>${collected.length}</strong> cases</span>
-<span><strong>${collected.filter((item) => item.ok).length}</strong> passing</span>
+<span><strong>${items.length}</strong> cases</span>
+<span><strong>${variants.length}</strong> variants each</span>
+<span><strong>${items.filter((item) => item.ok).length}</strong> passing</span>
 <span><strong>${toReview}</strong> waiting for review</span>
 <span><strong>${count('to-fix')}</strong> to fix</span>
 </div>
@@ -230,4 +378,12 @@ ${index}`,
   ),
 )
 
-console.log(`report: ${collected.length} cases, ${toReview} waiting for review → reports/e2e/index.html`)
+console.log(
+  `report: ${items.length} cases × ${variants.length} variants, ${toReview} waiting for review → reports/e2e/index.html`,
+)
+
+if (holes.length > 0) {
+  console.error(`\nThe report has holes — a case nobody can see is a case nobody reviewed:`)
+  for (const hole of holes) console.error(`  ${hole}`)
+  process.exit(1)
+}
