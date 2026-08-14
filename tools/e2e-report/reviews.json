@@ -1,7 +1,3 @@
 {
-  "setup/first-run.spec.ts::an operator configures the shop and lands in the back office": {
-    "status": "reviewed",
-    "reviewedAt": "2026-08-14",
-    "specHash": "868fcf5f528d"
-  }
+  "_comment": "Review statuses, keyed by <spec>::<case title>. status: reviewed | to-fix (note required). A case with no entry is implicitly to review — which is the honest default, because only the user validates. specHash anchors a review to the spec file at review time: when it changes, the case returns to to-review."
 }

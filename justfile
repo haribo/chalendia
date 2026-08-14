@@ -150,7 +150,7 @@ _dev-run-web:
     mkdir -p {{log_dir}}
     [ -d {{frontend_dir}}/node_modules ] || (cd {{frontend_dir}} && npm ci)
     cd {{frontend_dir}}
-    VITE_API_BASE_URL="http://localhost:{{dev_api_port}}" \
+    CHALENDIA_DEV_API_URL="http://127.0.0.1:{{dev_api_port}}" \
         npm run dev -- --port {{dev_web_port}} --strictPort > {{log_dir}}/web.log 2>&1 &
     echo $! > {{log_dir}}/web.pid
     for _ in $(seq 1 60); do

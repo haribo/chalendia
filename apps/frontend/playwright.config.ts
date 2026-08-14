@@ -26,5 +26,20 @@ export default defineConfig({
     screenshot: 'on',
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // The order is the product's, not a convenience: nobody signs in to a shop
+  // that does not exist yet, and the first-run journey needs an untouched
+  // installation to be about anything.
+  projects: [
+    {
+      name: 'first run',
+      testMatch: /setup\/.*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'the shop once it exists',
+      testIgnore: /setup\/.*\.spec\.ts/,
+      dependencies: ['first run'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
 })
