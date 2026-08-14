@@ -157,7 +157,17 @@ async fn a_short_password_is_refused_and_creates_nothing(pool: PgPool) {
     let answer = call(&pool, post("/setup", body)).await;
 
     assert_eq!(answer.status, StatusCode::UNPROCESSABLE_ENTITY);
-    assert!(answer.body["detail"].as_str().unwrap().contains("12"));
+    let params = answer.body["invalid-params"]
+        .as_array()
+        .expect("refused fields");
+    assert_eq!(params[0]["name"], "administratorPassword");
+    // The count of what is missing is what the dots on screen do not show.
+    assert!(
+        params[0]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("7 characters missing")
+    );
 
     let shops: i64 = sqlx::query_scalar("select count(*) from shops")
         .fetch_one(&pool)
@@ -174,7 +184,34 @@ async fn a_missing_field_is_named(pool: PgPool) {
     let answer = call(&pool, post("/setup", body)).await;
 
     assert_eq!(answer.status, StatusCode::UNPROCESSABLE_ENTITY);
-    assert!(answer.body["detail"].as_str().unwrap().contains("currency"));
+    let params = answer.body["invalid-params"]
+        .as_array()
+        .expect("refused fields");
+    assert_eq!(params[0]["name"], "currency");
+    // A blank field needs no words: whoever left it empty can see that.
+    assert!(params[0]["reason"].is_null());
+}
+
+#[sqlx::test]
+async fn every_refused_field_is_reported_at_once(pool: PgPool) {
+    let mut body = setup_body();
+    body["currency"] = json!("");
+    body["name"] = json!("  ");
+    body["administratorPassword"] = json!("short");
+
+    let answer = call(&pool, post("/setup", body)).await;
+
+    // Correcting one field per submission is how an operator submits five times.
+    let names: Vec<String> = answer.body["invalid-params"]
+        .as_array()
+        .expect("refused fields")
+        .iter()
+        .map(|param| param["name"].as_str().unwrap().to_owned())
+        .collect();
+
+    assert!(names.contains(&"name".to_owned()));
+    assert!(names.contains(&"currency".to_owned()));
+    assert!(names.contains(&"administratorPassword".to_owned()));
 }
 
 #[sqlx::test]

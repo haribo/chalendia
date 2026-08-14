@@ -123,6 +123,9 @@ fn cors_layer(config: &Config) -> CorsLayer {
 
     CorsLayer::new()
         .allow_origin(origins)
+        // Safe only because the origins above are an explicit list: credentials
+        // with a wildcard origin is exactly the combination browsers refuse.
+        .allow_credentials(true)
         .allow_methods([
             Method::GET,
             Method::POST,

@@ -10,7 +10,7 @@ use utoipa::ToSchema;
 
 use crate::auth::session;
 use crate::http::AppState;
-use crate::http::error::ApiError;
+use crate::http::error::{ApiError, InvalidParam};
 use crate::http::staff::{expired_cookie, session_cookie};
 use crate::shop::{self, SetupError, SetupRequest, ShopState};
 
@@ -63,16 +63,18 @@ pub async fn run_setup(
                 .with_detail("This shop is already configured.")
                 .into_response();
         }
-        Err(SetupError::PasswordTooShort { minimum }) => {
+        Err(SetupError::Invalid(problems)) => {
             return ApiError::new(StatusCode::UNPROCESSABLE_ENTITY, "Unprocessable Entity")
-                .with_detail(format!(
-                    "The password must be at least {minimum} characters."
-                ))
-                .into_response();
-        }
-        Err(SetupError::MissingField { field }) => {
-            return ApiError::new(StatusCode::UNPROCESSABLE_ENTITY, "Unprocessable Entity")
-                .with_detail(format!("{field} is required."))
+                .with_detail("Some fields were refused.")
+                .with_invalid_params(
+                    problems
+                        .into_iter()
+                        .map(|problem| InvalidParam {
+                            name: problem.field.to_owned(),
+                            reason: problem.reason,
+                        })
+                        .collect(),
+                )
                 .into_response();
         }
     };
