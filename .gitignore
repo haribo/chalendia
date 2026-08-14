@@ -24,3 +24,6 @@ coverage/
 # Scratch
 tmp/
 logs/
+
+# Generated review site and its inputs — the statuses are committed, not this
+reports/
