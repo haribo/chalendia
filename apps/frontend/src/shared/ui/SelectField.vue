@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, ref, useId, type Component } from 'vue'
 
 import FieldFrame from '@/shared/ui/FieldFrame.vue'
 import { useFormSubmitting } from '@/shared/ui/form-state'
@@ -16,13 +16,14 @@ const props = withDefaults(
     /** Only when it says something the chosen value does not already show. */
     error?: string
     disabled?: boolean
+    icon?: Component
     /**
      * A picker in a bar carries no frame: it sits among other controls, not in
      * a form, and a notched border there is chrome for nothing.
      */
     bare?: boolean
   }>(),
-  { error: undefined, disabled: false, bare: false },
+  { error: undefined, disabled: false, bare: false, icon: undefined },
 )
 
 const model = defineModel<string>({ required: true })

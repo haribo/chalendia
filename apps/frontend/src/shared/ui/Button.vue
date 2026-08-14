@@ -4,8 +4,10 @@ withDefaults(
     /**
      * `primary` is the filled variant — one per screen, on the action the
      * screen exists for. `quiet` is outlined, for everything beside it.
+     * `link` looks like a link and stays a button: signing out is an action,
+     * not a navigation, and a link would offer to open it in a new tab.
      */
-    variant?: 'primary' | 'quiet'
+    variant?: 'primary' | 'quiet' | 'link'
     type?: 'button' | 'submit'
     disabled?: boolean
     /** Says what is happening rather than spinning in silence. */
@@ -67,6 +69,18 @@ button:disabled {
 
 .quiet:hover:not(:disabled) {
   background: var(--colour-accent-quiet);
+}
+
+.link {
+  padding: 0;
+  background: transparent;
+  color: var(--colour-accent);
+  white-space: nowrap;
+}
+
+.link:hover:not(:disabled),
+.link:focus-visible {
+  text-decoration: underline;
 }
 
 .spinner {

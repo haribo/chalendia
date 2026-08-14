@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, ref, useId, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import FieldFrame from '@/shared/ui/FieldFrame.vue'
@@ -11,16 +11,21 @@ const props = withDefaults(
     hint?: string
     error?: string
     disabled?: boolean
+    icon?: Component
     autocomplete?: string
     /** Drawn as a strength bar; the field never blocks on it. */
     minimumLength?: number
+    /** Off when signing in: one types an existing password, does not choose one. */
+    strength?: boolean
   }>(),
   {
     hint: undefined,
     error: undefined,
     disabled: false,
+    icon: undefined,
     autocomplete: 'new-password',
     minimumLength: 12,
+    strength: true,
   },
 )
 
@@ -40,7 +45,7 @@ const describedBy = computed(() =>
 )
 
 /** Four steps, reached at a quarter of the minimum each. */
-const strength = computed(() => {
+const filledSteps = computed(() => {
   const step = props.minimumLength / 4
   return Math.min(4, Math.floor(model.value.length / step))
 })
@@ -51,6 +56,7 @@ const strength = computed(() => {
     <FieldFrame
       :label="label"
       :control-id="id"
+      :icon="icon"
       :floating="focused || model.length > 0"
       :invalid="invalid"
       :disabled="locked"
@@ -84,13 +90,14 @@ const strength = computed(() => {
     </FieldFrame>
 
     <div
+      v-if="strength"
       class="strength"
       role="presentation"
     >
       <span
         v-for="step in 4"
         :key="step"
-        :class="{ reached: step <= strength }"
+        :class="{ reached: step <= filledSteps }"
       />
     </div>
 
