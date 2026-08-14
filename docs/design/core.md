@@ -168,6 +168,22 @@ Three kinds of text, three mechanisms.
 
 ## 8. Cross-cutting conventions
 
+### Narrow screens
+
+Every surface is usable on a phone. On a 400 px viewport:
+
+- the page never scrolls sideways — content reflows inside the width it is given;
+- no control is covered by another, and every action stays reachable;
+- what is hidden to save room is hidden behind a control that says so, never behind a
+  scroll the visitor has to discover.
+
+The back office **adapts** below 768 px rather than shrinking. The section navigation
+and the account actions — who is signed in, back to the shop, sign out — move into a
+drawer opened from a single button in the bar; the bar keeps the surface title, the
+language and the theme. The drawer closes on Escape, on a press outside it, and on
+choosing a section. While it is open, it holds the focus, and the page behind it does
+not scroll. Above 768 px the sections stay permanently visible and no drawer exists.
+
 ### Lists
 
 Every list that can grow is paginated server-side with a bounded page size and a stable
