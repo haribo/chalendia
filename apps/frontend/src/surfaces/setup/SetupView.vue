@@ -1,0 +1,291 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
+import Button from '@/shared/ui/Button.vue'
+import CheckboxField from '@/shared/ui/CheckboxField.vue'
+import Form from '@/shared/ui/Form.vue'
+import LanguagePicker from '@/shared/ui/LanguagePicker.vue'
+import PasswordField from '@/shared/ui/PasswordField.vue'
+import SelectField from '@/shared/ui/SelectField.vue'
+import TextField from '@/shared/ui/TextField.vue'
+import ThemePicker from '@/shared/ui/ThemePicker.vue'
+import { runSetup } from '@/shared/api/setup'
+import { PRODUCT_NAME } from '@/shared/shop'
+import { useSessionStore } from '@/stores/session'
+import { useShopStore } from '@/stores/shop'
+import { fieldErrorsFrom, type FieldErrors } from './setup-errors'
+
+const { t } = useI18n()
+const router = useRouter()
+const shop = useShopStore()
+const session = useSessionStore()
+
+const name = ref('')
+const legalIdentity = ref('')
+const currency = ref('EUR')
+// Proposed by the browser rather than by a default nobody chose.
+const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
+const contentLanguage = ref(navigator.language?.split('-')[0] ?? 'en')
+const vatEnabled = ref(true)
+const administratorEmail = ref('')
+const administratorPassword = ref('')
+
+const submitting = ref(false)
+const errors = ref<FieldErrors>({})
+
+const currencies = [
+  { value: 'EUR', label: 'EUR — Euro' },
+  { value: 'CHF', label: 'CHF — Franc suisse' },
+  { value: 'GBP', label: 'GBP — Pound sterling' },
+  { value: 'USD', label: 'USD — US dollar' },
+  { value: 'CAD', label: 'CAD — Dollar canadien' },
+]
+
+const timezones = computed(() => {
+  const supported = Intl.supportedValuesOf?.('timeZone') ?? [timezone.value]
+  return supported.map((zone) => ({ value: zone, label: zone }))
+})
+
+const languages = [
+  { value: 'fr', label: 'Français' },
+  { value: 'en', label: 'English' },
+]
+
+async function submit(): Promise<void> {
+  submitting.value = true
+  errors.value = {}
+
+  const outcome = await runSetup({
+    name: name.value,
+    legalIdentity: legalIdentity.value,
+    currency: currency.value,
+    contentLanguage: contentLanguage.value,
+    timezone: timezone.value,
+    vatEnabled: vatEnabled.value,
+    administratorEmail: administratorEmail.value,
+    administratorPassword: administratorPassword.value,
+  })
+
+  submitting.value = false
+
+  switch (outcome.kind) {
+    case 'configured':
+      shop.markConfigured(outcome.name)
+      // The response carried a session; the interface only learns of it by
+      // asking, and the guard would otherwise turn the administrator away.
+      await session.refresh()
+      await router.push('/admin')
+      break
+    case 'already-configured':
+      shop.markConfigured()
+      break
+    case 'refused':
+      errors.value = fieldErrorsFrom(outcome.params)
+      break
+    case 'unreachable':
+      errors.value = {}
+      break
+  }
+}
+</script>
+
+<template>
+  <main class="setup">
+    <header class="bar">
+      <p class="brand">
+        {{ PRODUCT_NAME }}
+      </p>
+      <div class="controls">
+        <LanguagePicker />
+        <ThemePicker />
+      </div>
+    </header>
+
+    <section
+      v-if="shop.configured"
+      class="closed"
+    >
+      <h1>{{ t('setup.closed.title') }}</h1>
+      <p>{{ t('setup.closed.signIn') }}</p>
+      <Button
+        variant="primary"
+        @click="router.push('/admin')"
+      >
+        {{ t('setup.closed.action') }}
+      </Button>
+    </section>
+
+    <Form
+      v-else
+      :submitting="submitting"
+      @submit="submit"
+    >
+      <fieldset class="group">
+        <legend>{{ t('setup.groups.shop') }}</legend>
+        <TextField
+          v-model="name"
+          :label="t('setup.fields.name')"
+          :error="errors.name"
+        />
+        <TextField
+          v-model="legalIdentity"
+          :label="t('setup.fields.legalIdentity')"
+          :error="errors.legalIdentity"
+        />
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>{{ t('setup.groups.locale') }}</legend>
+        <div class="two">
+          <div>
+            <SelectField
+              v-model="currency"
+              :label="t('setup.fields.currency')"
+              :options="currencies"
+            />
+            <p class="hint">
+              {{ t('setup.fields.currencyFinal') }}
+            </p>
+          </div>
+          <SelectField
+            v-model="timezone"
+            :label="t('setup.fields.timezone')"
+            :options="timezones"
+          />
+        </div>
+        <SelectField
+          v-model="contentLanguage"
+          :label="t('setup.fields.contentLanguage')"
+          :options="languages"
+        />
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>{{ t('setup.groups.tax') }}</legend>
+        <CheckboxField
+          v-model="vatEnabled"
+          :label="t('setup.fields.vatEnabled')"
+        />
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>{{ t('setup.groups.account') }}</legend>
+        <TextField
+          v-model="administratorEmail"
+          type="email"
+          autocomplete="username"
+          :label="t('setup.fields.administratorEmail')"
+          :error="errors.administratorEmail"
+        />
+        <PasswordField
+          v-model="administratorPassword"
+          :label="t('setup.fields.administratorPassword')"
+          :hint="t('setup.fields.passwordRule')"
+          :error="errors.administratorPassword"
+        />
+      </fieldset>
+
+      <template #actions>
+        <Button
+          type="submit"
+          variant="primary"
+          :busy="submitting"
+        >
+          {{ submitting ? t('setup.creating') : t('setup.create') }}
+        </Button>
+      </template>
+    </Form>
+  </main>
+</template>
+
+<style scoped>
+.setup {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4) var(--space-8);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.brand {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.controls {
+  display: flex;
+  flex: none;
+  gap: var(--space-2);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.group legend {
+  width: 100%;
+  padding: 0 0 var(--space-1);
+  border-bottom: 1px solid var(--colour-border);
+  color: var(--colour-text-muted);
+  font-size: var(--text-s);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  /* Aligned on the frames: a hint under one field must not push the other. */
+  align-items: start;
+}
+
+@media (max-width: 30rem) {
+  .two {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hint {
+  margin: var(--space-1) 0 0 var(--space-3);
+  color: var(--colour-text-muted);
+  font-size: var(--text-s);
+}
+
+.closed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-8) 0;
+}
+
+.closed h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-l);
+  font-weight: 600;
+}
+
+.closed p {
+  margin: 0;
+  color: var(--colour-text-muted);
+  font-size: var(--text-s);
+}
+</style>

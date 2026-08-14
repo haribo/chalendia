@@ -1,24 +1,38 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+
+import { readStaff, type StaffIdentity } from '@/shared/api/staff'
 
 /**
  * What the interface knows about the current visitor.
  *
- * Nothing here authenticates anyone: authentication arrives with the account
- * slice, and every restriction is enforced by the API regardless. The route
- * guard reads this state only to avoid offering a surface that would be
- * refused — a convenience, never a protection.
+ * It authenticates nobody: the session is a cookie the browser cannot read, and
+ * every restriction is enforced by the API. This state exists so the interface
+ * does not offer a surface that would be refused — a convenience, never a
+ * protection.
  */
 export const useSessionStore = defineStore('session', () => {
-  const hasStaffRole = ref(false)
+  const staff = ref<StaffIdentity | null>(null)
+  const loaded = ref(false)
 
-  function grantStaffRole(): void {
-    hasStaffRole.value = true
+  const hasStaffRole = computed(() => staff.value !== null)
+
+  /** Asks the shop who is signed in. Called once, before the first route. */
+  async function load(): Promise<void> {
+    staff.value = await readStaff()
+    loaded.value = true
   }
 
-  function revokeStaffRole(): void {
-    hasStaffRole.value = false
+  /** After setup or sign-in: the response carried a session, so re-ask. */
+  async function refresh(): Promise<void> {
+    staff.value = await readStaff()
+    loaded.value = true
   }
 
-  return { hasStaffRole, grantStaffRole, revokeStaffRole }
+  function forget(): void {
+    staff.value = null
+    loaded.value = true
+  }
+
+  return { staff, loaded, hasStaffRole, load, refresh, forget }
 })

@@ -132,6 +132,11 @@ export interface components {
     schemas: {
         ApiError: {
             detail?: string | null;
+            /**
+             * @description Every field refused, not merely the first one met: a caller correcting
+             *     one field at a time is a caller submitting five times.
+             */
+            "invalid-params"?: components["schemas"]["InvalidParam"][] | null;
             /** Format: int32 */
             status: number;
             title: string;
@@ -151,6 +156,17 @@ export interface components {
             database: components["schemas"]["Dependency"];
             service: string;
             status: components["schemas"]["Status"];
+        };
+        /**
+         * @description One refused field, in the shape RFC 9457 reserves for exactly this.
+         *
+         *     `reason` is present only when it says something the submitted value does not
+         *     already show: "already taken" yes, "this address is malformed" no — the
+         *     client can see that.
+         */
+        InvalidParam: {
+            name: string;
+            reason?: string | null;
         };
         SetupRequest: {
             administratorEmail: string;

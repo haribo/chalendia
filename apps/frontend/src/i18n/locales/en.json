@@ -54,5 +54,32 @@
       "show": "Show",
       "hide": "Hide"
     }
+  },
+  "setup": {
+    "create": "Create the shop",
+    "creating": "Creating the shop…",
+    "groups": {
+      "shop": "Your shop",
+      "locale": "Regional settings",
+      "tax": "VAT",
+      "account": "Your account"
+    },
+    "fields": {
+      "name": "Name",
+      "legalIdentity": "Legal name and registration number",
+      "currency": "Currency",
+      "currencyFinal": "Final once the first order is placed.",
+      "timezone": "Time zone",
+      "contentLanguage": "Language of your product pages",
+      "vatEnabled": "My shop charges VAT",
+      "administratorEmail": "Email address",
+      "administratorPassword": "Password",
+      "passwordRule": "At least 12 characters."
+    },
+    "closed": {
+      "title": "This shop is already set up",
+      "signIn": "Sign in to administer it.",
+      "action": "Sign in"
+    }
   }
 }

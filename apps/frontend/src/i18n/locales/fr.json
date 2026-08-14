@@ -54,5 +54,32 @@
       "show": "Afficher",
       "hide": "Masquer"
     }
+  },
+  "setup": {
+    "create": "Créer la boutique",
+    "creating": "Création de la boutique…",
+    "groups": {
+      "shop": "Votre boutique",
+      "locale": "Réglages régionaux",
+      "tax": "TVA",
+      "account": "Votre compte"
+    },
+    "fields": {
+      "name": "Nom",
+      "legalIdentity": "Raison sociale et immatriculation",
+      "currency": "Devise",
+      "currencyFinal": "Définitive dès la première commande.",
+      "timezone": "Fuseau horaire",
+      "contentLanguage": "Langue de vos fiches produits",
+      "vatEnabled": "Ma boutique facture la TVA",
+      "administratorEmail": "Adresse e-mail",
+      "administratorPassword": "Mot de passe",
+      "passwordRule": "Au moins 12 caractères."
+    },
+    "closed": {
+      "title": "Cette boutique est déjà configurée",
+      "signIn": "Connectez-vous pour l’administrer.",
+      "action": "Se connecter"
+    }
   }
 }
