@@ -27,7 +27,13 @@ async fn an_empty_database_is_brought_to_the_expected_schema(pool: PgPool) {
     db::migrate(&pool).await.expect("migrations apply");
 
     assert!(function_exists(&pool, "set_updated_at").await);
-    assert_eq!(applied_migrations(&pool).await, vec![(1, true)]);
+
+    // Every migration succeeded, and there is at least one. Asserting an exact
+    // list would make this test fail on the next migration, which is not what
+    // it is guarding.
+    let applied = applied_migrations(&pool).await;
+    assert!(!applied.is_empty());
+    assert!(applied.iter().all(|(_, success)| *success));
 }
 
 #[sqlx::test(migrations = false)]

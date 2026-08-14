@@ -30,10 +30,16 @@ fn unreachable_pool() -> PgPool {
 }
 
 async fn call(pool: PgPool, request: Request<Body>) -> (StatusCode, Option<String>, Value) {
-    let response = router(&config(), AppState { db: pool })
-        .oneshot(request)
-        .await
-        .expect("router responds");
+    let response = router(
+        &config(),
+        AppState {
+            db: pool,
+            config: config(),
+        },
+    )
+    .oneshot(request)
+    .await
+    .expect("router responds");
 
     let status = response.status();
     let content_type = response

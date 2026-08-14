@@ -17,10 +17,29 @@ use crate::http::health::{Dependency, Health, Status};
                        anyone can write another client.",
         license(name = "AGPL-3.0-only", url = "https://www.gnu.org/licenses/agpl-3.0.html"),
     ),
-    paths(crate::http::health::health, crate::http::openapi_document),
-    components(schemas(Health, Status, Dependency, ApiError)),
+    paths(
+        crate::http::health::health,
+        crate::http::openapi_document,
+        crate::http::setup::read_shop,
+        crate::http::setup::run_setup,
+        crate::http::setup::sign_in,
+        crate::http::setup::sign_out,
+        crate::http::staff::me,
+    ),
+    components(schemas(
+        Health,
+        Status,
+        Dependency,
+        ApiError,
+        crate::shop::ShopState,
+        crate::shop::SetupRequest,
+        crate::http::setup::Credentials,
+        crate::http::staff::StaffIdentity,
+    )),
     tags(
         (name = "system", description = "Liveness and diagnosis"),
+        (name = "shop", description = "The shop's own configuration"),
+        (name = "staff", description = "Signing in and who is signed in"),
     ),
 )]
 pub struct ApiDoc;

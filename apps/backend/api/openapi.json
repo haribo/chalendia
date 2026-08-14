@@ -56,6 +56,164 @@
           }
         }
       }
+    },
+    "/sessions": {
+      "post": {
+        "tags": [
+          "staff"
+        ],
+        "summary": "Sign in.",
+        "operationId": "sign_in",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The address and password do not match",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "staff"
+        ],
+        "summary": "Sign out, ending this session everywhere it was usable.",
+        "operationId": "sign_out",
+        "responses": {
+          "204": {
+            "description": "The session is over, whether or not there was one"
+          }
+        }
+      }
+    },
+    "/setup": {
+      "post": {
+        "tags": [
+          "shop"
+        ],
+        "summary": "Configure the shop and create its first administrator.",
+        "description": "Runs once. Once a shop is configured this is refused by the shop itself, not\nmerely hidden by the interface (`docs/design/core.md` § 3).",
+        "operationId": "run_setup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The shop is configured and the administrator is signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopState"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "This shop is already configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "A field is missing or the password is too short",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shop": {
+      "get": {
+        "tags": [
+          "shop"
+        ],
+        "summary": "Report whether this installation has been set up.",
+        "description": "Public and unauthenticated on purpose: the interface has to know whether to\nshow the setup screen before anyone can possibly be signed in. It exposes\nthe shop's public identity and nothing else.",
+        "operationId": "read_shop",
+        "responses": {
+          "200": {
+            "description": "The shop's public state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopState"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/staff/me": {
+      "get": {
+        "tags": [
+          "staff"
+        ],
+        "summary": "Report who the caller is signed in as.",
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "The signed-in staff member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffIdentity"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -88,6 +246,21 @@
           }
         }
       },
+      "Credentials": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
       "Dependency": {
         "type": "string",
         "enum": [
@@ -114,6 +287,90 @@
           }
         }
       },
+      "SetupRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "legalIdentity",
+          "currency",
+          "contentLanguage",
+          "timezone",
+          "vatEnabled",
+          "administratorEmail",
+          "administratorPassword"
+        ],
+        "properties": {
+          "administratorEmail": {
+            "type": "string"
+          },
+          "administratorPassword": {
+            "type": "string"
+          },
+          "contentLanguage": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "legalIdentity": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "vatEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ShopState": {
+        "type": "object",
+        "required": [
+          "configured"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "description": "Until this is true, setup is the only thing the shop will do."
+          },
+          "contentLanguage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "StaffIdentity": {
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
       "Status": {
         "type": "string",
         "enum": [
@@ -127,6 +384,14 @@
     {
       "name": "system",
       "description": "Liveness and diagnosis"
+    },
+    {
+      "name": "shop",
+      "description": "The shop's own configuration"
+    },
+    {
+      "name": "staff",
+      "description": "Signing in and who is signed in"
     }
   ]
 }
