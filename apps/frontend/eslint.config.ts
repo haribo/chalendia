@@ -92,6 +92,15 @@ export default defineConfigWithVueTs(
   {
     name: 'chalendia/rules',
     rules: {
+      // The plugin's default demands the control be *both* nested in its label
+      // and associated by id. A floating label is drawn over the field, so it
+      // cannot wrap the control — and `for`/`id` is a complete association on
+      // its own. Requiring one of the two keeps the guarantee without banning
+      // the pattern.
+      'vuejs-accessibility/label-has-for': [
+        'error',
+        { required: { some: ['nesting', 'id'] } },
+      ],
       // Every user-facing string goes through i18n; a literal in a template is
       // a string no translator will ever see.
       'vue/no-bare-strings-in-template': 'error',

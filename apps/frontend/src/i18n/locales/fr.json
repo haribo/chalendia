@@ -47,5 +47,12 @@
       "apiDown": "Le tableau de bord n’a pas pu joindre l’API. Elle est peut-être arrêtée, ou le redémarrage est en cours.",
       "retry": "Réessayer"
     }
+  },
+  "forms": {
+    "optional": "facultatif",
+    "password": {
+      "show": "Afficher",
+      "hide": "Masquer"
+    }
   }
 }
