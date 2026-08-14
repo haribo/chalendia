@@ -12,7 +12,7 @@ export type StaffIdentity = components['schemas']['StaffIdentity']
  */
 export async function readStaff(): Promise<StaffIdentity | null> {
   try {
-    const { data } = await api.GET('/staff/me')
+    const { data } = await api.GET('/api/staff/me')
 
     return data ?? null
   } catch {

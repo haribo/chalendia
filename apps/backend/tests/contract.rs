@@ -46,8 +46,8 @@ fn the_contract_describes_every_route_it_should() {
     let document: Value = serde_json::from_str(&api::document()).expect("valid json");
     let paths = document["paths"].as_object().expect("paths object");
 
-    assert!(paths.contains_key("/health"));
-    assert!(paths.contains_key("/openapi.json"));
+    assert!(paths.contains_key("/api/health"));
+    assert!(paths.contains_key("/api/openapi.json"));
 
     // The shapes the frontend generates its types from.
     let schemas = document["components"]["schemas"]
@@ -64,7 +64,7 @@ fn the_contract_describes_every_route_it_should() {
 #[test]
 fn health_declares_both_of_its_outcomes() {
     let document: Value = serde_json::from_str(&api::document()).expect("valid json");
-    let responses = &document["paths"]["/health"]["get"]["responses"];
+    let responses = &document["paths"]["/api/health"]["get"]["responses"];
 
     // A client must know that 503 is an answer, not a failure to answer.
     assert!(responses["200"].is_object());
@@ -82,7 +82,7 @@ async fn the_running_shop_serves_its_own_contract() {
     )
     .oneshot(
         Request::builder()
-            .uri("/openapi.json")
+            .uri("/api/openapi.json")
             .body(Body::empty())
             .expect("valid request"),
     )
@@ -107,5 +107,5 @@ async fn the_running_shop_serves_its_own_contract() {
     let served: Value = serde_json::from_slice(&body).expect("body is json");
 
     assert_eq!(served["info"]["title"], "Chalendia");
-    assert!(served["paths"]["/health"].is_object());
+    assert!(served["paths"]["/api/health"].is_object());
 }

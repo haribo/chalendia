@@ -96,7 +96,7 @@ fn session_cookie(answer: &Answer) -> String {
 
 #[sqlx::test]
 async fn an_empty_installation_reports_itself_unconfigured(pool: PgPool) {
-    let answer = call(&pool, get_with("/shop", None)).await;
+    let answer = call(&pool, get_with("/api/shop", None)).await;
 
     assert_eq!(answer.status, StatusCode::OK);
     assert_eq!(answer.body["configured"], false);
@@ -106,7 +106,7 @@ async fn an_empty_installation_reports_itself_unconfigured(pool: PgPool) {
 
 #[sqlx::test]
 async fn setup_configures_the_shop_and_signs_the_administrator_in(pool: PgPool) {
-    let answer = call(&pool, post("/setup", setup_body())).await;
+    let answer = call(&pool, post("/api/setup", setup_body())).await;
 
     assert_eq!(answer.status, StatusCode::CREATED);
     assert_eq!(answer.body["configured"], true);
@@ -124,9 +124,9 @@ async fn setup_configures_the_shop_and_signs_the_administrator_in(pool: PgPool) 
 
 #[sqlx::test]
 async fn the_shop_reports_itself_configured_afterwards(pool: PgPool) {
-    call(&pool, post("/setup", setup_body())).await;
+    call(&pool, post("/api/setup", setup_body())).await;
 
-    let answer = call(&pool, get_with("/shop", None)).await;
+    let answer = call(&pool, get_with("/api/shop", None)).await;
 
     assert_eq!(answer.body["configured"], true);
     assert_eq!(answer.body["currency"], "EUR");
@@ -134,9 +134,9 @@ async fn the_shop_reports_itself_configured_afterwards(pool: PgPool) {
 
 #[sqlx::test]
 async fn setup_runs_once_and_is_refused_afterwards(pool: PgPool) {
-    call(&pool, post("/setup", setup_body())).await;
+    call(&pool, post("/api/setup", setup_body())).await;
 
-    let second = call(&pool, post("/setup", setup_body())).await;
+    let second = call(&pool, post("/api/setup", setup_body())).await;
 
     // Refused by the shop itself, not merely hidden by the interface: the
     // window where an installation can be claimed closes for good.
@@ -154,7 +154,7 @@ async fn a_short_password_is_refused_and_creates_nothing(pool: PgPool) {
     let mut body = setup_body();
     body["administratorPassword"] = json!("short");
 
-    let answer = call(&pool, post("/setup", body)).await;
+    let answer = call(&pool, post("/api/setup", body)).await;
 
     assert_eq!(answer.status, StatusCode::UNPROCESSABLE_ENTITY);
     let params = answer.body["invalid-params"]
@@ -181,7 +181,7 @@ async fn a_missing_field_is_named(pool: PgPool) {
     let mut body = setup_body();
     body["currency"] = json!("   ");
 
-    let answer = call(&pool, post("/setup", body)).await;
+    let answer = call(&pool, post("/api/setup", body)).await;
 
     assert_eq!(answer.status, StatusCode::UNPROCESSABLE_ENTITY);
     let params = answer.body["invalid-params"]
@@ -199,7 +199,7 @@ async fn every_refused_field_is_reported_at_once(pool: PgPool) {
     body["name"] = json!("  ");
     body["administratorPassword"] = json!("short");
 
-    let answer = call(&pool, post("/setup", body)).await;
+    let answer = call(&pool, post("/api/setup", body)).await;
 
     // Correcting one field per submission is how an operator submits five times.
     let names: Vec<String> = answer.body["invalid-params"]
@@ -216,12 +216,12 @@ async fn every_refused_field_is_reported_at_once(pool: PgPool) {
 
 #[sqlx::test]
 async fn signing_in_works_with_the_address_in_any_case(pool: PgPool) {
-    call(&pool, post("/setup", setup_body())).await;
+    call(&pool, post("/api/setup", setup_body())).await;
 
     let answer = call(
         &pool,
         post(
-            "/sessions",
+            "/api/sessions",
             json!({ "email": "OWNER@example.com", "password": "correct horse battery staple" }),
         ),
     )
@@ -233,12 +233,12 @@ async fn signing_in_works_with_the_address_in_any_case(pool: PgPool) {
 
 #[sqlx::test]
 async fn a_wrong_password_does_not_say_which_half_is_wrong(pool: PgPool) {
-    call(&pool, post("/setup", setup_body())).await;
+    call(&pool, post("/api/setup", setup_body())).await;
 
     let wrong_password = call(
         &pool,
         post(
-            "/sessions",
+            "/api/sessions",
             json!({ "email": "owner@example.com", "password": "not the right one at all" }),
         ),
     )
@@ -246,7 +246,7 @@ async fn a_wrong_password_does_not_say_which_half_is_wrong(pool: PgPool) {
     let unknown_address = call(
         &pool,
         post(
-            "/sessions",
+            "/api/sessions",
             json!({ "email": "nobody@example.com", "password": "correct horse battery staple" }),
         ),
     )
@@ -264,20 +264,20 @@ async fn a_wrong_password_does_not_say_which_half_is_wrong(pool: PgPool) {
 
 #[sqlx::test]
 async fn a_staff_route_refuses_a_caller_without_a_session(pool: PgPool) {
-    call(&pool, post("/setup", setup_body())).await;
+    call(&pool, post("/api/setup", setup_body())).await;
 
-    let answer = call(&pool, get_with("/staff/me", None)).await;
+    let answer = call(&pool, get_with("/api/staff/me", None)).await;
 
     assert_eq!(answer.status, StatusCode::UNAUTHORIZED);
 }
 
 #[sqlx::test]
 async fn a_staff_route_refuses_an_invented_token(pool: PgPool) {
-    call(&pool, post("/setup", setup_body())).await;
+    call(&pool, post("/api/setup", setup_body())).await;
 
     let answer = call(
         &pool,
-        get_with("/staff/me", Some("chalendia_session=not-a-real-token")),
+        get_with("/api/staff/me", Some("chalendia_session=not-a-real-token")),
     )
     .await;
 
@@ -286,11 +286,11 @@ async fn a_staff_route_refuses_an_invented_token(pool: PgPool) {
 
 #[sqlx::test]
 async fn a_staff_route_answers_the_signed_in_administrator(pool: PgPool) {
-    let created = call(&pool, post("/setup", setup_body())).await;
+    let created = call(&pool, post("/api/setup", setup_body())).await;
 
     let answer = call(
         &pool,
-        get_with("/staff/me", Some(&session_cookie(&created))),
+        get_with("/api/staff/me", Some(&session_cookie(&created))),
     )
     .await;
 
@@ -301,14 +301,14 @@ async fn a_staff_route_answers_the_signed_in_administrator(pool: PgPool) {
 
 #[sqlx::test]
 async fn signing_out_makes_the_session_unusable(pool: PgPool) {
-    let created = call(&pool, post("/setup", setup_body())).await;
+    let created = call(&pool, post("/api/setup", setup_body())).await;
     let cookie = session_cookie(&created);
 
     let signed_out = call(
         &pool,
         Request::builder()
             .method("DELETE")
-            .uri("/sessions")
+            .uri("/api/sessions")
             .header(header::COOKIE, &cookie)
             .body(Body::empty())
             .expect("valid request"),
@@ -318,7 +318,7 @@ async fn signing_out_makes_the_session_unusable(pool: PgPool) {
 
     // The design requires that signing out invalidates the session everywhere
     // it was usable — which is why sessions are rows, not self-contained tokens.
-    let after = call(&pool, get_with("/staff/me", Some(&cookie))).await;
+    let after = call(&pool, get_with("/api/staff/me", Some(&cookie))).await;
     assert_eq!(after.status, StatusCode::UNAUTHORIZED);
 }
 
@@ -328,7 +328,7 @@ async fn signing_out_without_a_session_says_the_same_thing(pool: PgPool) {
         &pool,
         Request::builder()
             .method("DELETE")
-            .uri("/sessions")
+            .uri("/api/sessions")
             .body(Body::empty())
             .expect("valid request"),
     )
@@ -340,7 +340,7 @@ async fn signing_out_without_a_session_says_the_same_thing(pool: PgPool) {
 
 #[sqlx::test]
 async fn the_stored_password_is_not_the_password(pool: PgPool) {
-    call(&pool, post("/setup", setup_body())).await;
+    call(&pool, post("/api/setup", setup_body())).await;
 
     let stored: String = sqlx::query_scalar("select password_hash from staff_accounts limit 1")
         .fetch_one(&pool)
@@ -353,7 +353,7 @@ async fn the_stored_password_is_not_the_password(pool: PgPool) {
 
 #[sqlx::test]
 async fn the_stored_session_is_not_the_token(pool: PgPool) {
-    let created = call(&pool, post("/setup", setup_body())).await;
+    let created = call(&pool, post("/api/setup", setup_body())).await;
     let token = session_cookie(&created)
         .split_once('=')
         .expect("name=value")

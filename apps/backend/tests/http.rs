@@ -67,7 +67,7 @@ fn get(path: &str) -> Request<Body> {
 
 #[sqlx::test]
 async fn health_reports_the_service_and_its_database_as_up(pool: PgPool) {
-    let (status, content_type, body) = call(pool, get("/health")).await;
+    let (status, content_type, body) = call(pool, get("/api/health")).await;
 
     assert_eq!(status, StatusCode::OK);
     assert_eq!(content_type.as_deref(), Some("application/json"));
@@ -78,7 +78,7 @@ async fn health_reports_the_service_and_its_database_as_up(pool: PgPool) {
 
 #[tokio::test]
 async fn health_reports_a_degraded_service_when_the_database_is_unreachable() {
-    let (status, _, body) = call(unreachable_pool(), get("/health")).await;
+    let (status, _, body) = call(unreachable_pool(), get("/api/health")).await;
 
     // 503 so a proxy stops routing to this instance, while the body still says
     // the process itself answered.
@@ -104,7 +104,7 @@ async fn an_unknown_route_answers_in_the_api_error_shape() {
 async fn an_unknown_method_on_a_known_path_answers_in_the_api_error_shape() {
     let request = Request::builder()
         .method("DELETE")
-        .uri("/health")
+        .uri("/api/health")
         .body(Body::empty())
         .expect("valid request");
 

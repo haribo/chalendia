@@ -21,7 +21,7 @@ use crate::shop::{self, SetupError, SetupRequest, ShopState};
 /// the shop's public identity and nothing else.
 #[utoipa::path(
     get,
-    path = "/shop",
+    path = "/api/shop",
     tag = "shop",
     responses((status = 200, description = "The shop's public state", body = ShopState)),
 )]
@@ -42,7 +42,7 @@ pub async fn read_shop(State(state): State<AppState>) -> Response {
 /// merely hidden by the interface (`docs/design/core.md` § 3).
 #[utoipa::path(
     post,
-    path = "/setup",
+    path = "/api/setup",
     tag = "shop",
     request_body = SetupRequest,
     responses(
@@ -91,7 +91,7 @@ pub struct Credentials {
 /// Sign in.
 #[utoipa::path(
     post,
-    path = "/sessions",
+    path = "/api/sessions",
     tag = "staff",
     request_body = Credentials,
     responses(
@@ -121,7 +121,7 @@ pub async fn sign_in(
 /// Sign out, ending this session everywhere it was usable.
 #[utoipa::path(
     delete,
-    path = "/sessions",
+    path = "/api/sessions",
     tag = "staff",
     responses((status = 204, description = "The session is over, whether or not there was one")),
 )]

@@ -85,7 +85,7 @@ pub struct StaffIdentity {
 /// Report who the caller is signed in as.
 #[utoipa::path(
     get,
-    path = "/staff/me",
+    path = "/api/staff/me",
     tag = "staff",
     responses(
         (status = 200, description = "The signed-in staff member", body = StaffIdentity),

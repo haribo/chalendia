@@ -29,18 +29,26 @@ pub struct AppState {
 /// The whole HTTP surface. Built from configuration so tests exercise the same
 /// router the binary serves, middleware included.
 pub fn router(config: &Config, state: AppState) -> Router {
+    // Everything the API answers lives under /api. Without that prefix an
+    // interface route and an API route collide the moment they share a name —
+    // `GET /setup` answered "method not allowed" instead of serving the page,
+    // and `/products` would have done the same. See backend ADR 0006.
     let api = Router::new()
-        .route("/health", get(health::health))
-        .route("/shop", get(setup::read_shop))
-        .route("/setup", axum::routing::post(setup::run_setup))
-        .route(
-            "/sessions",
-            axum::routing::post(setup::sign_in).delete(setup::sign_out),
+        .nest(
+            "/api",
+            Router::new()
+                .route("/health", get(health::health))
+                .route("/shop", get(setup::read_shop))
+                .route("/setup", axum::routing::post(setup::run_setup))
+                .route(
+                    "/sessions",
+                    axum::routing::post(setup::sign_in).delete(setup::sign_out),
+                )
+                .route("/staff/me", get(staff::me))
+                // The contract, served by the shop itself: a third party
+                // writing a client reads it from the running instance.
+                .route("/openapi.json", get(openapi_document)),
         )
-        .route("/staff/me", get(staff::me))
-        // The contract, served by the shop itself: a third party writing a
-        // client reads it from the running instance, not from the repository.
-        .route("/openapi.json", get(openapi_document))
         .with_state(state);
 
     let app = match &config.static_dir {
@@ -103,7 +111,7 @@ async fn serve_shell(
 /// than from the repository, so it always describes the version answering.
 #[utoipa::path(
     get,
-    path = "/openapi.json",
+    path = "/api/openapi.json",
     tag = "system",
     responses((status = 200, description = "The OpenAPI document describing this API")),
 )]
