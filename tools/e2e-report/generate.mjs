@@ -107,6 +107,10 @@ for (const { file, variant } of reports) {
       collected.get(key).runs.set(variant, {
         variant,
         ok: spec.ok === true,
+        // A journey that qualifies itself — the phone drawer has no meaning on
+        // a desktop viewport — is absent from that variant on purpose.
+        skipped: result?.status === 'skipped',
+        reason: spec.tests?.[0]?.annotations?.find((a) => a.type === 'skip')?.description,
         steps: (result?.attachments ?? []).filter((a) => a.name?.startsWith('step: ')),
         video: (result?.attachments ?? []).find((a) => a.contentType === 'video/webm'),
         duration: result?.duration ?? 0,
@@ -176,11 +180,22 @@ for (const item of items) {
  * Every step of every case carries one capture per variant. A silent hole reads
  * as "reviewed" once the reviewer clicks through, which is the one outcome this
  * report must never produce.
+ *
+ * A journey that skipped itself in a variant is not a hole — it says so, with
+ * its reason. A journey that skipped itself everywhere is one: nobody ever
+ * sees it.
  */
 const holes = []
 
 for (const item of items) {
-  const reference = item.runs.get(variants[0])
+  const played = [...item.runs.values()].filter((run) => !run.skipped)
+
+  if (played.length === 0) {
+    holes.push(`${item.key} — skipped in every variant, so nothing to review`)
+    continue
+  }
+
+  const reference = played[0]
 
   for (const variant of variants) {
     const run = item.runs.get(variant)
@@ -188,12 +203,13 @@ for (const item of items) {
       holes.push(`${item.key} — no ${variant} run`)
       continue
     }
+    if (run.skipped) continue
     if (run.stepShots.length === 0 && run.ok) {
       holes.push(`${item.key} (${variant}) — no captured step, wrap its actions in reportStep`)
     }
-    if (run !== reference && run.ok && reference?.ok && run.stepShots.length !== reference.stepShots.length) {
+    if (run !== reference && run.ok && reference.ok && run.stepShots.length !== reference.stepShots.length) {
       holes.push(
-        `${item.key} (${variant}) — ${run.stepShots.length} steps, ${variants[0]} has ${reference.stepShots.length}`,
+        `${item.key} (${variant}) — ${run.stepShots.length} steps, ${reference.variant} has ${reference.stepShots.length}`,
       )
     }
   }
@@ -271,7 +287,7 @@ ${runs
   .map(
     (run) => `<button type="button" data-variant="${escape(run.variant)}" aria-pressed="false">${escape(
       VARIANTS[run.variant] ?? run.variant,
-    )}${run.ok ? '' : ' ✗'}</button>`,
+    )}${run.skipped ? ' —' : run.ok ? '' : ' ✗'}</button>`,
   )
   .join('\n')}
 </div>`
@@ -284,6 +300,14 @@ ${runs
 <figcaption>${index + 1}. ${escape(step.name)}</figcaption></figure>`,
         )
         .join('\n')
+
+      if (run.skipped) {
+        return `<section class="variant" data-variant="${escape(run.variant)}" hidden>
+<p class="note">This journey does not apply to this variant, and skipped itself${
+          run.reason ? `: ${escape(run.reason)}` : '.'
+        }</p>
+</section>`
+      }
 
       return `<section class="variant" data-variant="${escape(run.variant)}" hidden>
 <p class="muted">${(run.duration / 1000).toFixed(1)}s ·
