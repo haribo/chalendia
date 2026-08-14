@@ -128,6 +128,20 @@ The reviewer's verdict:
 A case that is never reviewed stays visibly *to review*. The count of unreviewed
 cases is the backlog the user actually has.
 
+In practice:
+
+| Step | Command |
+|---|---|
+| Run the journeys and build the report | `just e2e` |
+| Open it | `just e2e-open` |
+| Record a verdict | edit `tools/e2e-report/reviews.json` |
+
+An entry is keyed by `<spec>::<case title>` and carries `status`
+(`reviewed` or `to-fix`, the latter with a mandatory `note`), `reviewedAt`, and
+`specHash` — the hash of the spec file at review time, which is what sends the
+case back to *to review* when the code it judged has changed. The file is
+committed; the report itself is not.
+
 ---
 
 ## What this is not

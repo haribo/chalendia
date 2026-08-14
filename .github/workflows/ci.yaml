@@ -110,3 +110,37 @@ jobs:
           test -n "$user" && test "$user" != "root" \
             || (echo "image runs as '${user:-root}'"; exit 1)
           echo "image runs as $user"
+
+  e2e:
+    name: End-to-end journeys
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+
+      - uses: extractions/setup-just@v3
+
+      - name: Install dependencies
+        run: just frontend-install
+
+      - name: Install the browser
+        working-directory: apps/frontend
+        run: npx playwright install --with-deps chromium
+
+      # Against the image, on one origin — the way an operator installs it.
+      - name: Run the journeys
+        run: just e2e-image
+
+      - name: Keep the artefacts of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: apps/frontend/tmp/e2e-artifacts
+          retention-days: 7

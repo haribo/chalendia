@@ -64,6 +64,7 @@ gate nobody can reproduce.
 | `ci.yaml` | Backend | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` against a real PostgreSQL, and the committed SQL query cache being current | `just backend-check`, `just backend-test`, `just backend-sqlx-check` |
 | `ci.yaml` | Frontend | type check, lint (including accessibility and the theme-token rule), unit tests, production build | `just frontend-check`, `just frontend-test`, `just frontend-build` |
 | `ci.yaml` | Container image | the image builds, and refuses to run as root | `just image` |
+| `ci.yaml` | End-to-end journeys | the user journeys, run against the container image | `just e2e-image` |
 | `security.yaml` | Gitleaks | secrets in the history | pre-commit hook |
 | `security.yaml` | Cargo audit, npm audit | dependency advisories | — |
 
@@ -73,9 +74,11 @@ Not yet gated, and deliberately listed so nobody assumes otherwise:
 
 | Job | Blocked on |
 |---|---|
-| Generated API contract and frontend types parity | the contract chain landing |
-| End-to-end suite | the first real user path |
 | Commit message and PR title validation | — |
+
+The journeys also produce the review report the user validates screens in — see
+[`delivery-workflow.md`](delivery-workflow.md) § 6. `just e2e` runs them against
+the development stack and builds the report; `just e2e-open` opens it.
 
 All existing gates must be green before merge; there is no manual skip.
 
