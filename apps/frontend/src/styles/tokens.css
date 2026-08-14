@@ -19,6 +19,7 @@
   --colour-accent: #1f6f4a;
   --colour-accent-quiet: #eaf2ec;
   --colour-on-accent: #ffffff;
+  --colour-scrim: rgb(23 29 25 / 0.45);
 
   /* Not used by any screen yet: the first interface that fails, warns or
      confirms something uses them, and shows them in its own mockup. */
@@ -60,6 +61,7 @@
     --colour-accent: #4fbf88;
     --colour-accent-quiet: #16241c;
     --colour-on-accent: #08120c;
+  --colour-scrim: rgb(0 0 0 / 0.6);
 
     --colour-danger: #e5737a;
     --colour-warning: #d9a441;
@@ -79,6 +81,7 @@
   --colour-accent: #1f6f4a;
   --colour-accent-quiet: #eaf2ec;
   --colour-on-accent: #ffffff;
+  --colour-scrim: rgb(23 29 25 / 0.45);
 
   --colour-danger: #a3242b;
   --colour-warning: #8a5a00;
@@ -96,6 +99,7 @@
   --colour-accent: #4fbf88;
   --colour-accent-quiet: #16241c;
   --colour-on-accent: #08120c;
+  --colour-scrim: rgb(0 0 0 / 0.6);
 
   --colour-danger: #e5737a;
   --colour-warning: #d9a441;
