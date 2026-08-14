@@ -60,7 +60,10 @@ async fn main() -> ExitCode {
         config.public_url
     );
 
-    let state = AppState { db: pool };
+    let state = AppState {
+        db: pool,
+        config: config.clone(),
+    };
     let served = axum::serve(listener, router(&config, state))
         .with_graceful_shutdown(shutdown_signal())
         .await;

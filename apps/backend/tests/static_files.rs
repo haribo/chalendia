@@ -34,6 +34,7 @@ async fn get(dir: &str, path: &str) -> (StatusCode, String) {
         &config_serving(dir),
         AppState {
             db: unreachable_pool(),
+            config: config_serving(dir),
         },
     )
     .oneshot(
@@ -136,6 +137,7 @@ async fn the_content_type_of_an_asset_is_not_the_shell_one() {
         &config_serving(dir.path().to_str().unwrap()),
         AppState {
             db: unreachable_pool(),
+            config: config_serving(dir.path().to_str().unwrap()),
         },
     )
     .oneshot(

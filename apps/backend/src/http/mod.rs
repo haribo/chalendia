@@ -1,6 +1,8 @@
 pub mod error;
 pub mod health;
+pub mod setup;
 pub mod shell;
+pub mod staff;
 
 use std::path::{Path, PathBuf};
 
@@ -21,6 +23,7 @@ use error::ApiError;
 #[derive(Clone)]
 pub struct AppState {
     pub db: PgPool,
+    pub config: Config,
 }
 
 /// The whole HTTP surface. Built from configuration so tests exercise the same
@@ -28,6 +31,13 @@ pub struct AppState {
 pub fn router(config: &Config, state: AppState) -> Router {
     let api = Router::new()
         .route("/health", get(health::health))
+        .route("/shop", get(setup::read_shop))
+        .route("/setup", axum::routing::post(setup::run_setup))
+        .route(
+            "/sessions",
+            axum::routing::post(setup::sign_in).delete(setup::sign_out),
+        )
+        .route("/staff/me", get(staff::me))
         // The contract, served by the shop itself: a third party writing a
         // client reads it from the running instance, not from the repository.
         .route("/openapi.json", get(openapi_document))

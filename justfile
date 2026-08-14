@@ -233,14 +233,20 @@ backend-test:
         echo "no database answering on ${host}:${port} — start one with 'just dev-db'"
         exit 1
     fi
-    cd {{backend_dir}} && cargo test
+    # Compiled against the committed query cache, run against a real database:
+    # the macros need a schema at compile time, and CI's service container has
+    # none until the suite itself migrates its temporary databases.
+    cd {{backend_dir}} && SQLX_OFFLINE=true cargo test
 
 # Regenerate the committed query cache — run after changing any SQL
 backend-sqlx-prepare:
     cd {{backend_dir}} && cargo sqlx prepare -- --all-targets
 
-# Fail when the committed query cache no longer matches the queries
+# Fail when the committed query cache no longer matches the queries.
+# Migrates first: the macros are verified against a schema, and a database that
+# has never been migrated has none — which is every fresh CI service container.
 backend-sqlx-check:
+    cd {{backend_dir}} && cargo sqlx migrate run
     cd {{backend_dir}} && cargo sqlx prepare --check -- --all-targets
 
 frontend-check:

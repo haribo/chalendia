@@ -73,15 +73,21 @@ fn health_declares_both_of_its_outcomes() {
 
 #[tokio::test]
 async fn the_running_shop_serves_its_own_contract() {
-    let response = router(&config(), AppState { db: pool() })
-        .oneshot(
-            Request::builder()
-                .uri("/openapi.json")
-                .body(Body::empty())
-                .expect("valid request"),
-        )
-        .await
-        .expect("router responds");
+    let response = router(
+        &config(),
+        AppState {
+            db: pool(),
+            config: config(),
+        },
+    )
+    .oneshot(
+        Request::builder()
+            .uri("/openapi.json")
+            .body(Body::empty())
+            .expect("valid request"),
+    )
+    .await
+    .expect("router responds");
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(

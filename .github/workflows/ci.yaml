@@ -62,8 +62,7 @@ jobs:
         run: cargo install sqlx-cli --version ^0.9 --locked --no-default-features --features rustls,postgres
 
       - name: Check the committed query cache is current
-        working-directory: apps/backend
-        run: cargo sqlx prepare --check -- --all-targets
+        run: just backend-sqlx-check
 
   frontend:
     name: Frontend
