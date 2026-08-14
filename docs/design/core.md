@@ -64,19 +64,31 @@ Custom permission matrices are out of v1.
 - Email is the login identifier, unique per shop, normalized to lowercase.
 - Until the address is verified, the account may browse and hold a cart but cannot
   place an order. Verification is re-sendable, with a bounded number of attempts.
-- Password rules follow current guidance: a minimum length, no composition rules, and
-  rejection of known-breached passwords (*TBD: breach check source, and whether it is
-  optional for offline installs*).
+- Password rules follow current guidance: **at least 12 characters**, no composition
+  rules, no forced rotation, and rejection of known-breached passwords (*TBD: breach
+  check source, and whether it is optional for offline installs*). Length is the only
+  requirement stated to the user, and it is stated before they submit.
+- **The first administrator is created at setup and is verified by construction**: the
+  shop cannot send mail before it is configured, so requiring a verification the
+  operator could not receive would lock them out of their own installation. Every
+  account created afterwards follows the normal rule.
 - Sessions expire; the exact lifetime and renewal behavior is *TBD* and belongs to a
-  backend decision, not to design, except for one user-observable rule: signing out
-  invalidates the session everywhere it was usable.
+  backend decision, not to design, except for two user-observable rules: signing out
+  invalidates the session everywhere it was usable, and an expired session sends the
+  user to sign in and then back to the page they were going to, with nothing they had
+  already entered silently lost.
 - Login, registration, password reset and payment attempts are rate-limited. A
   rate-limited user is told, in their language, that they must wait — never silently
   failed.
 
 Authentication failures never disclose whether an address exists. Registration with an
 existing address sends a message to that address rather than reporting the collision
-to the visitor.
+to the visitor. A failed sign-in says the address and password do not match — never
+which of the two is wrong.
+
+Setup runs **once**. Once a shop is configured, the setup route is refused by the shop
+itself, not merely hidden by the interface: an installation reachable before setup
+completes can be claimed by whoever gets there first, and that window closes for good.
 
 ---
 
