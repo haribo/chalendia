@@ -242,8 +242,11 @@ backend-test:
 backend-sqlx-prepare:
     cd {{backend_dir}} && cargo sqlx prepare -- --all-targets
 
-# Fail when the committed query cache no longer matches the queries
+# Fail when the committed query cache no longer matches the queries.
+# Migrates first: the macros are verified against a schema, and a database that
+# has never been migrated has none — which is every fresh CI service container.
 backend-sqlx-check:
+    cd {{backend_dir}} && cargo sqlx migrate run
     cd {{backend_dir}} && cargo sqlx prepare --check -- --all-targets
 
 frontend-check:
