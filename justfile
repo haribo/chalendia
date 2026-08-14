@@ -125,7 +125,9 @@ _dev-run-api:
     mkdir -p {{log_dir}}
     cd {{backend_dir}}
     echo "building the api..."
-    DATABASE_URL="{{dev_db_url}}" cargo build --quiet
+    # Offline: the macros need a schema at compile time, and a database that was
+    # just created has none — the binary being built is what migrates it.
+    SQLX_OFFLINE=true cargo build --quiet
     DATABASE_URL="{{dev_db_url}}" \
     CHALENDIA_PUBLIC_URL="http://localhost:{{dev_web_port}}" \
     CHALENDIA_BIND="127.0.0.1:{{dev_api_port}}" \
