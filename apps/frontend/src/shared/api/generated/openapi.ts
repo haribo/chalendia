@@ -48,6 +48,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the products, most recently created first.
+         * @description Staff only: this shows drafts and retired products, which is precisely what
+         *     the storefront must never do.
+         */
+        get: operations["list_products"];
+        put?: never;
+        /** Create a product and the single variant carrying its price. */
+        post: operations["create_product"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sessions": {
         parameters: {
             query?: never;
@@ -168,6 +190,44 @@ export interface components {
             name: string;
             reason?: string | null;
         };
+        NewProduct: {
+            description?: string | null;
+            merchantReference?: string | null;
+            /**
+             * Format: int64
+             * @description Inclusive of tax, in minor units of the shop currency
+             *     (`docs/design/core.md` § 5, § 6).
+             */
+            price: number;
+            state?: null | components["schemas"]["ProductState"];
+            title: string;
+        };
+        /** @description One page of a listing, and enough to say where it sits in the whole. */
+        ProductPage: {
+            items: components["schemas"]["ProductSummary"][];
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            pageSize: number;
+            /** Format: int64 */
+            total: number;
+        };
+        /**
+         * @description Where a product stands (`docs/design/catalog.md` § 1, Publication states).
+         * @enum {string}
+         */
+        ProductState: "draft" | "published" | "retired";
+        /** @description A row of the back-office listing (`docs/design/catalog.md` § 7). */
+        ProductSummary: {
+            /** Format: int64 */
+            id: number;
+            merchantReference?: string | null;
+            /** Format: int64 */
+            price: number;
+            slug: string;
+            state: components["schemas"]["ProductState"];
+            title: string;
+        };
         SetupRequest: {
             administratorEmail: string;
             administratorPassword: string;
@@ -244,6 +304,82 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_products: {
+        parameters: {
+            query?: {
+                /** @description One-based. Anything lower is read as the first page. */
+                page?: number | null;
+                /** @description Bounded by the shop, not by the caller. */
+                pageSize?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of the catalogue */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPage"];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    create_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewProduct"];
+            };
+        };
+        responses: {
+            /** @description The product was created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPage"];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description A field was refused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
             };
         };
     };

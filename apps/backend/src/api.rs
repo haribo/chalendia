@@ -25,6 +25,8 @@ use crate::http::health::{Dependency, Health, Status};
         crate::http::setup::sign_in,
         crate::http::setup::sign_out,
         crate::http::staff::me,
+        crate::http::catalogue::list_products,
+        crate::http::catalogue::create_product,
     ),
     components(schemas(
         Health,
@@ -36,11 +38,16 @@ use crate::http::health::{Dependency, Health, Status};
         crate::shop::SetupRequest,
         crate::http::setup::Credentials,
         crate::http::staff::StaffIdentity,
+        crate::catalogue::NewProduct,
+        crate::catalogue::ProductPage,
+        crate::catalogue::ProductSummary,
+        crate::catalogue::ProductState,
     )),
     tags(
         (name = "system", description = "Liveness and diagnosis"),
         (name = "shop", description = "The shop's own configuration"),
         (name = "staff", description = "Signing in and who is signed in"),
+        (name = "catalogue", description = "Products and what they are sold as"),
     ),
 )]
 pub struct ApiDoc;

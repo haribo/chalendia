@@ -8,6 +8,9 @@ use utoipa::ToSchema;
 
 use crate::auth::password;
 use crate::auth::session::Role;
+// The same shape every refusal takes, wherever it is refused.
+pub use crate::validation::FieldProblem;
+use crate::validation::required;
 
 #[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -33,14 +36,6 @@ pub struct SetupRequest {
     pub vat_enabled: bool,
     pub administrator_email: String,
     pub administrator_password: String,
-}
-
-/// A refused field, and the words that go with it — or none, when the value
-/// already shows the problem.
-#[derive(Debug, PartialEq, Eq)]
-pub struct FieldProblem {
-    pub field: &'static str,
-    pub reason: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -99,18 +94,6 @@ pub fn looks_like_an_email(value: &str) -> bool {
         && !value.contains(char::is_whitespace)
 }
 
-/// A blank required field needs no words: whoever left it empty can see that.
-fn required(value: &str, field: &'static str, problems: &mut Vec<FieldProblem>) -> String {
-    let value = value.trim();
-    if value.is_empty() {
-        problems.push(FieldProblem {
-            field,
-            reason: None,
-        });
-    }
-    value.to_owned()
-}
-
 /// Creates the shop and its first administrator, or nothing at all.
 ///
 /// One transaction: a shop with no administrator would be unreachable, and an
@@ -127,21 +110,18 @@ pub async fn setup(pool: &PgPool, request: SetupRequest) -> Result<i64, SetupErr
     let email = required(&email, "administratorEmail", &mut problems);
     if !email.is_empty() && !looks_like_an_email(&email) {
         // No words: whoever typed it can see what is missing.
-        problems.push(FieldProblem {
-            field: "administratorEmail",
-            reason: None,
-        });
+        problems.push(FieldProblem::blank("administratorEmail"));
     }
 
     if let Err(password::PasswordError::TooShort { minimum }) =
         password::check(&request.administrator_password)
     {
         let missing = minimum.saturating_sub(request.administrator_password.chars().count());
-        problems.push(FieldProblem {
-            field: "administratorPassword",
-            // The count of what is missing is what the value does not show.
-            reason: Some(format!("{missing} characters missing")),
-        });
+        // The count of what is missing is what the value does not show.
+        problems.push(FieldProblem::saying(
+            "administratorPassword",
+            format!("{missing} characters missing"),
+        ));
     }
 
     if !problems.is_empty() {
