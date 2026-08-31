@@ -1,3 +1,4 @@
+pub mod catalogue;
 pub mod error;
 pub mod health;
 pub mod setup;
@@ -45,6 +46,10 @@ pub fn router(config: &Config, state: AppState) -> Router {
                     axum::routing::post(setup::sign_in).delete(setup::sign_out),
                 )
                 .route("/staff/me", get(staff::me))
+                .route(
+                    "/products",
+                    get(catalogue::list_products).post(catalogue::create_product),
+                )
                 // The contract, served by the shop itself: a third party
                 // writing a client reads it from the running instance.
                 .route("/openapi.json", get(openapi_document)),

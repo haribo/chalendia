@@ -137,3 +137,40 @@ Typo tolerance and suggestions are *TBD*, and out of v1 unless free.
 
 Bulk import and export are out of v1. A merchant with a large catalog is not the v1
 target, and a half-designed importer is worse than none.
+
+---
+
+## 7. In the back office
+
+What staff see when they manage the catalogue, as opposed to what a customer sees.
+
+### The list
+
+- Columns: title, merchant reference when there is one, price, publication state. The
+  thumbnail joins them once products carry images.
+- Default order: **most recently created first**, with the identifier breaking ties. A
+  merchant who has just created a product finds it at the top, and the order of a page
+  does not change under an edit made while paging through it.
+- The empty state is not an empty table. A shop that was just installed has no products,
+  and that screen says what to do next rather than showing column headers over nothing.
+
+### Creating a product
+
+- Required: **title** and **price**. Nothing else stops a merchant from saving.
+- Optional: description, merchant reference.
+- A product is created as a **draft** unless staff publish it from the same form. Draft
+  is the safe default: a half-described product must not appear in the shop because
+  someone was interrupted.
+- Price is entered **inclusive of tax**, in the currency's major units, and held in
+  minor ones ([core.md](core.md) § 5, § 6).
+- The public address of a product derives from its title and is unique. Renaming a
+  product does not change an address already given out; that, and the redirect an old
+  address keeps serving, belong with the storefront
+  ([storefront.md](storefront.md)).
+
+### Before the shop has tax rates
+
+A shop is installed with VAT on or off, and with no list of rates in either case. Until
+that list exists, no back-office screen shows a tax amount: the price shown is the price
+entered. Assigning a rate to a product, and the shop default that applies without one,
+stay as [core.md](core.md) § 6 states them.
