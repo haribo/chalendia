@@ -54,3 +54,25 @@ export function parseAmount(typed: string, currency: string, locale: string): nu
   // floating point, and a cent lost here is a cent wrong in every order.
   return Math.round(major * 10 ** minorDigits(currency, locale))
 }
+
+/**
+ * What a tax-inclusive amount already contains, and what is left before tax.
+ *
+ * Prices are entered inclusive (`docs/design/core.md` § 6), so the tax is
+ * derived by dividing rather than added by multiplying — and the division is
+ * rounded once, half-up, exactly as the shop does it. Doing it any other way
+ * makes the interface disagree with the invoice by a cent.
+ */
+export function taxWithin(inclusive: number, basisPoints: number): { tax: number; net: number } {
+  const net = Math.round((inclusive * 10_000) / (10_000 + basisPoints))
+
+  return { tax: inclusive - net, net }
+}
+
+/** A rate as a person reads it: 2000 basis points is 20 %. */
+export function formatRate(basisPoints: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
+    maximumFractionDigits: 2,
+  }).format(basisPoints / 10_000)
+}

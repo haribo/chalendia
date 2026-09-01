@@ -148,11 +148,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vat-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the rates the shop charges.
+         * @description Readable by any staff member: the product form has to offer them.
+         */
+        get: operations["list_rates"];
+        put?: never;
+        /** Add a rate. */
+        post: operations["create_rate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vat-rates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a rate, unless products carry it. */
+        delete: operations["remove_rate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vat-rates/{id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Make a rate the shop default. */
+        put: operations["make_default"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ApiError: {
+            /**
+             * Format: int64
+             * @description How many rows depend on what the caller tried to remove.
+             *
+             *     A number rather than a sentence: the shop cannot know the reader's
+             *     language, and "1 products" is what happens when a server writes prose
+             *     (`docs/design/core.md` § 8, Errors — user-visible errors are localized).
+             */
+            dependents?: number | null;
             detail?: string | null;
             /**
              * @description Every field refused, not merely the first one met: a caller correcting
@@ -205,6 +269,18 @@ export interface components {
             price?: number | null;
             state?: null | components["schemas"]["ProductState"];
             title: string;
+            /**
+             * Format: int64
+             * @description Absent means the shop default applies (`docs/design/core.md` § 6).
+             */
+            vatRateId?: number | null;
+        };
+        NewVatRate: {
+            /** Format: int32 */
+            basisPoints?: number | null;
+            /** @description Absent means the first rate is the default and the others are not. */
+            isDefault?: boolean;
+            name: string;
         };
         /** @description One page of a listing, and enough to say where it sits in the whole. */
         ProductPage: {
@@ -231,6 +307,12 @@ export interface components {
             slug: string;
             state: components["schemas"]["ProductState"];
             title: string;
+            /**
+             * Format: int32
+             * @description The rate as it applies, the shop default included: the interface shows
+             *     what is charged, not whether a row happens to be filled in.
+             */
+            vatBasisPoints?: number | null;
         };
         SetupRequest: {
             administratorEmail: string;
@@ -255,6 +337,12 @@ export interface components {
             country?: string | null;
             currency?: string | null;
             name?: string | null;
+            timezone?: string | null;
+            /**
+             * @description Whether any screen has a tax amount to show at all
+             *     (`docs/design/core.md` § 6).
+             */
+            vatEnabled?: boolean | null;
         };
         StaffIdentity: {
             email: string;
@@ -262,6 +350,14 @@ export interface components {
         };
         /** @enum {string} */
         Status: "ok" | "degraded";
+        VatRate: {
+            /** Format: int32 */
+            basisPoints: number;
+            /** Format: int64 */
+            id: number;
+            isDefault: boolean;
+            name: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -527,6 +623,193 @@ export interface operations {
             };
             /** @description No live session */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_rates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The rates, highest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VatRate"][];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    create_rate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewVatRate"];
+            };
+        };
+        responses: {
+            /** @description The rates, the new one among them */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VatRate"][];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Reserved to an administrator */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description A field was refused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    remove_rate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The rate to remove */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description It is gone */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Reserved to an administrator */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description No such rate */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Products carry it */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    make_default: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The rate to make default */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The rates, with the default moved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VatRate"][];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Reserved to an administrator */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description No such rate */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

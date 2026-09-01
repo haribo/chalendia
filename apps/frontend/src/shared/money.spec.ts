@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatAmount, minorDigits, parseAmount } from '@/shared/money'
+import { formatAmount, formatRate, minorDigits, parseAmount, taxWithin } from '@/shared/money'
 
 describe('formatAmount', () => {
   it('shows minor units as the amount a person reads', () => {
@@ -43,5 +43,35 @@ describe('parseAmount', () => {
 
   it('reads a negative as a negative, and leaves the refusal to the shop', () => {
     expect(parseAmount('-3', 'EUR', 'fr')).toBe(-300)
+  })
+})
+
+describe('taxWithin', () => {
+  it('derives the tax a price already contains', () => {
+    // 6,90 € at 20 %: 5,75 € before tax, 1,15 € of VAT.
+    expect(taxWithin(690, 2000)).toEqual({ net: 575, tax: 115 })
+  })
+
+  it('handles a rate with a fraction', () => {
+    // 7,50 € at 5,5 %: 7,11 € before tax, 0,39 € of VAT.
+    expect(taxWithin(750, 550)).toEqual({ net: 711, tax: 39 })
+  })
+
+  it('adds nothing at a zero rate', () => {
+    expect(taxWithin(690, 0)).toEqual({ net: 690, tax: 0 })
+  })
+
+  /** The two parts must add back up, or a total is wrong by a cent. */
+  it.each([690, 750, 1999, 2400, 7, 100_000])('splits %i without losing a unit', (amount) => {
+    const { tax, net } = taxWithin(amount, 2000)
+
+    expect(net + tax).toBe(amount)
+  })
+})
+
+describe('formatRate', () => {
+  it('reads basis points as a percentage', () => {
+    expect(formatRate(2000, 'en')).toMatch(/20\s*%/)
+    expect(formatRate(550, 'fr')).toMatch(/5,5\s*%/)
   })
 })
