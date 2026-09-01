@@ -11,7 +11,7 @@ COPY apps/frontend/ ./
 RUN npm run build
 
 # --- backend ----------------------------------------------------------------
-FROM rust:1.97-slim-trixie AS backend
+FROM rust:1.98-slim-trixie AS backend
 
 WORKDIR /build
 COPY apps/backend/ ./
