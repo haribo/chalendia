@@ -1,13 +1,31 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import LanguagePicker from '@/shared/ui/LanguagePicker.vue'
 import PageTitle from '@/shared/ui/PageTitle.vue'
 import ThemePicker from '@/shared/ui/ThemePicker.vue'
+import VatRates from '@/surfaces/admin/VatRates.vue'
 import { useSessionStore } from '@/stores/session'
+import { useShopStore } from '@/stores/shop'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const session = useSessionStore()
+const shop = useShopStore()
+
+/** What the shop is, in one line: where, in what currency, on what clock. */
+const identity = computed(() =>
+  t('settings.shopAbout', {
+    country: shop.country
+      ? (new Intl.DisplayNames([locale.value], { type: 'region' }).of(shop.country) ?? shop.country)
+      : '—',
+    currency: shop.currency ?? '—',
+    timezone: shop.timezone ?? '—',
+  }),
+)
+
+/** Only an administrator changes what the shop charges. */
+const mayManageRates = computed(() => session.staff?.role === 'administrator')
 </script>
 
 <template>
@@ -30,6 +48,26 @@ const session = useSessionStore()
            here they are fields on a page, not controls beside a title. -->
       <LanguagePicker />
       <ThemePicker />
+    </section>
+
+    <section
+      v-if="mayManageRates"
+      class="group"
+    >
+      <h2>{{ t('settings.shop') }}</h2>
+      <p class="about">
+        {{ identity }}
+      </p>
+
+      <!-- Nothing to configure when the shop charges no VAT: the storefront
+           carries the legal mention instead (docs/design/core.md § 6). -->
+      <p
+        v-if="!shop.vatEnabled"
+        class="about"
+      >
+        {{ t('settings.rates.vatOff') }}
+      </p>
+      <VatRates v-else />
     </section>
   </section>
 </template>

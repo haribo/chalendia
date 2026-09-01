@@ -69,6 +69,7 @@
       "product": "Product",
       "reference": "Reference",
       "price": "Price",
+      "vat": "VAT",
       "state": "State"
     },
     "state": {
@@ -83,6 +84,8 @@
       "price": "Price",
       "priceSuffix": "incl. tax",
       "reference": "Reference",
+      "vatRate": "VAT rate",
+      "vatIncluded": "Includes {tax} of VAT — {net} before tax.",
       "publish": "Publish it now",
       "create": "Create the product",
       "creating": "Creating"
@@ -94,6 +97,19 @@
   },
   "settings": {
     "title": "Settings",
+    "shop": "The shop",
+    "shopAbout": "{country} · {currency} · {timezone}. Everyone who administers this shop sees the same.",
+    "rates": {
+      "name": "Name",
+      "rate": "Rate",
+      "add": "Add",
+      "default": "Default",
+      "makeDefault": "Make default",
+      "remove": "Remove {name}",
+      "inUse": "No product carries it. | One product carries this rate. Move it to another rate first. | {count} products carry this rate. Move them to another rate first.",
+      "empty": "No VAT rate yet.",
+      "vatOff": "This shop does not charge VAT."
+    },
     "preferences": "Your preferences",
     "about": "Signed in as {email}. These apply to you on this device, and change nothing for your customers or your colleagues."
   },
