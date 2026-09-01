@@ -26,6 +26,12 @@ pub struct ShopState {
     pub country: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content_language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timezone: Option<String>,
+    /// Whether any screen has a tax amount to show at all
+    /// (`docs/design/core.md` § 6).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vat_enabled: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -57,9 +63,11 @@ static DECOY_HASH: LazyLock<String> =
     LazyLock::new(|| password::hash("a password nobody signs in with"));
 
 pub async fn state(pool: &PgPool) -> Result<ShopState, sqlx::Error> {
-    let shop = sqlx::query!("select name, currency, country, content_language from shops limit 1")
-        .fetch_optional(pool)
-        .await?;
+    let shop = sqlx::query!(
+        "select name, currency, country, content_language, timezone, vat_enabled from shops limit 1"
+    )
+    .fetch_optional(pool)
+    .await?;
 
     Ok(match shop {
         None => ShopState {
@@ -68,6 +76,8 @@ pub async fn state(pool: &PgPool) -> Result<ShopState, sqlx::Error> {
             currency: None,
             country: None,
             content_language: None,
+            timezone: None,
+            vat_enabled: None,
         },
         Some(row) => ShopState {
             configured: true,
@@ -75,6 +85,8 @@ pub async fn state(pool: &PgPool) -> Result<ShopState, sqlx::Error> {
             currency: Some(row.currency),
             country: row.country,
             content_language: Some(row.content_language),
+            timezone: Some(row.timezone),
+            vat_enabled: Some(row.vat_enabled),
         },
     })
 }

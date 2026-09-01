@@ -50,12 +50,28 @@ test.describe('The catalogue', () => {
       await expect(page).toHaveURL(/\/admin\/catalogue$/)
     })
 
+    await reportStep(page, 'A rate the shop charges is defined once', async () => {
+      await page.goto('/admin/settings')
+      await page.getByLabel(/^name$|^nom$/i).fill('Standard')
+      await page.getByLabel(/^rate$|^taux$/i).fill('20')
+      await page.getByRole('button', { name: /^add$|^ajouter$/i }).click()
+
+      // The first rate is the default whatever was asked: a shop with rates and
+      // no default has products pointing at nothing.
+      await expect(page.getByText(/^default$|^par défaut$/i)).toBeVisible()
+    })
+
     await reportStep(page, 'And it is there, with its price and its state', async () => {
+      await page.goto('/admin/catalogue')
       await expect(page.getByText("Savon de Marseille à l'huile d'olive")).toBeVisible()
       // Read in the shop's currency, never in the minor units it is held in.
       await expect(page.getByText(/6[.,]90/)).toBeVisible()
       await expect(page.getByText(/published|publié/i)).toBeVisible()
       await expect(page.getByText('SAV-300')).toBeVisible()
+      // Which rate applies, read from the shop default the product inherited.
+      // A column on a wide screen, part of the card on a narrow one — the text
+      // is what both carry.
+      await expect(page.getByText(/20\s*%/).first()).toBeVisible()
     })
   })
 })

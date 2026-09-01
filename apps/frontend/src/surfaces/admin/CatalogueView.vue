@@ -6,7 +6,7 @@ import Button from '@/shared/ui/Button.vue'
 import PageTitle from '@/shared/ui/PageTitle.vue'
 import { listProducts, type ProductPage } from '@/shared/api/catalogue'
 import { useNarrowScreen } from '@/composables/useNarrowScreen'
-import { formatAmount } from '@/shared/money'
+import { formatAmount, formatRate } from '@/shared/money'
 import { useShopStore } from '@/stores/shop'
 
 const { t, locale } = useI18n()
@@ -89,6 +89,12 @@ onMounted(load)
             <th class="number">
               {{ t('catalogue.column.price') }}
             </th>
+            <th
+              v-if="shop.vatEnabled"
+              class="number"
+            >
+              {{ t('catalogue.column.vat') }}
+            </th>
             <th>{{ t('catalogue.column.state') }}</th>
           </tr>
         </thead>
@@ -105,6 +111,15 @@ onMounted(load)
             </td>
             <td class="number">
               {{ price(product.price) }}
+            </td>
+            <!-- Which rate, not how much tax: the amount follows from the
+                 price already in the row, the rate is what a merchant scans
+                 for when a law changes. -->
+            <td
+              v-if="shop.vatEnabled"
+              class="number"
+            >
+              {{ product.vatBasisPoints == null ? '—' : formatRate(product.vatBasisPoints, locale) }}
             </td>
             <td>
               <span :class="['state', product.state]">{{ t(`catalogue.state.${product.state}`) }}</span>
@@ -126,6 +141,10 @@ onMounted(load)
           <span class="name">{{ product.title }}</span>
           <span class="meta">
             <span class="number">{{ price(product.price) }}</span>
+            <span
+              v-if="shop.vatEnabled && product.vatBasisPoints != null"
+              class="vat"
+            >{{ t('catalogue.column.vat') }} {{ formatRate(product.vatBasisPoints, locale) }}</span>
             <span :class="['state', product.state]">{{ t(`catalogue.state.${product.state}`) }}</span>
             <span
               v-if="product.merchantReference"
@@ -271,5 +290,9 @@ td.name {
 
 .cards .number {
   text-align: left;
+}
+
+.cards .vat {
+  color: var(--colour-text-muted);
 }
 </style>

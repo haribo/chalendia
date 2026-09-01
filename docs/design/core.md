@@ -158,8 +158,10 @@ the bar of those screens: there is no Settings page to reach yet.
   needs an accountant and a declaration, not a setting — see the exclusions below.
 - A rate has a **name and a percentage**, because "20 %" is not what a merchant looks
   for in a list; one of them is the shop default.
-- A rate that is assigned to a product cannot be deleted. It is refused with the list of
-  products using it, the way a category in use is (§ 8, Deletion).
+- A rate that is assigned to a product cannot be deleted. It is refused with **how many**
+  products carry it: a shop can have two hundred on one rate, and a list of them where a
+  sentence is expected is a list nobody reads. The merchant moves them to another rate,
+  then removes it.
 - Each product carries one rate from that list. A product with no rate assigned uses
   the shop default rate.
 - Entered prices include tax. The tax amount is derived, not added.
@@ -167,7 +169,17 @@ the bar of those screens: there is no Settings page to reach yet.
   rounded. It is not computed per line and summed.
 - Shipping carries its own rate (*TBD: default is the shop default rate; confirm
   against merchant practice*).
+- **Changing a rate's percentage moves every product carrying it.** A product points at
+  a rate, not at a number: a merchant correcting a rate that changed by law expects the
+  catalogue to follow, and copying the number onto each product is how half of them stay
+  wrong. Orders and invoices already issued are the exception below.
 - Changing a rate never alters existing orders or issued invoices.
+
+When VAT is **off**, no screen shows a tax amount, and the storefront carries the legal
+mention that VAT is not applicable — on the product page, in the cart, and on the order
+documents, since that is where a customer looks for it. The exact wording is the
+merchant's, since it names the article of law they rely on (*TBD: a default text per
+country, or an empty field the merchant must fill*).
 
 Destination-based rates, OSS/IOSS thresholds, B2B reverse charge and per-country
 matrices are out of v1.

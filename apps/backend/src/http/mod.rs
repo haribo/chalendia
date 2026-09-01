@@ -4,6 +4,7 @@ pub mod health;
 pub mod setup;
 pub mod shell;
 pub mod staff;
+pub mod tax;
 
 use std::path::{Path, PathBuf};
 
@@ -49,6 +50,12 @@ pub fn router(config: &Config, state: AppState) -> Router {
                 .route(
                     "/products",
                     get(catalogue::list_products).post(catalogue::create_product),
+                )
+                .route("/vat-rates", get(tax::list_rates).post(tax::create_rate))
+                .route("/vat-rates/{id}", axum::routing::delete(tax::remove_rate))
+                .route(
+                    "/vat-rates/{id}/default",
+                    axum::routing::put(tax::make_default),
                 )
                 // The contract, served by the shop itself: a third party
                 // writing a client reads it from the running instance.

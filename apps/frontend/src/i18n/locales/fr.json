@@ -69,6 +69,7 @@
       "product": "Produit",
       "reference": "Référence",
       "price": "Prix",
+      "vat": "TVA",
       "state": "État"
     },
     "state": {
@@ -83,6 +84,8 @@
       "price": "Prix",
       "priceSuffix": "TTC",
       "reference": "Référence",
+      "vatRate": "Taux de TVA",
+      "vatIncluded": "Contient {tax} de TVA — {net} hors taxe.",
       "publish": "Le publier maintenant",
       "create": "Créer le produit",
       "creating": "Création"
@@ -94,6 +97,19 @@
   },
   "settings": {
     "title": "Réglages",
+    "shop": "La boutique",
+    "shopAbout": "{country} · {currency} · {timezone}. Tous ceux qui administrent cette boutique voient la même chose.",
+    "rates": {
+      "name": "Nom",
+      "rate": "Taux",
+      "add": "Ajouter",
+      "default": "Par défaut",
+      "makeDefault": "Définir par défaut",
+      "remove": "Supprimer {name}",
+      "inUse": "Aucun produit ne l'utilise. | Un produit utilise ce taux. Déplacez-le vers un autre taux d'abord. | {count} produits utilisent ce taux. Déplacez-les vers un autre taux d'abord.",
+      "empty": "Aucun taux de TVA pour l'instant.",
+      "vatOff": "Cette boutique ne facture pas la TVA."
+    },
     "preferences": "Vos préférences",
     "about": "Connecté avec {email}. Elles s'appliquent à vous sur cet appareil, et ne changent rien pour vos clients ni pour vos collègues."
   },

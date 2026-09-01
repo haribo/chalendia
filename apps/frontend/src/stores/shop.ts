@@ -15,6 +15,10 @@ export const useShopStore = defineStore('shop', () => {
   const name = ref<string | undefined>(undefined)
   /** Needed to display any price: one currency per shop, no switcher. */
   const currency = ref<string | undefined>(undefined)
+  const country = ref<string | undefined>(undefined)
+  const timezone = ref<string | undefined>(undefined)
+  /** Whether any screen has a tax amount to show at all. */
+  const vatEnabled = ref(false)
   const loaded = ref(false)
   /** True when the shop could not be asked at all — the API is down. */
   const unreachable = ref(false)
@@ -26,6 +30,9 @@ export const useShopStore = defineStore('shop', () => {
       configured.value = data.configured
       name.value = data.name ?? undefined
       currency.value = data.currency ?? undefined
+      country.value = data.country ?? undefined
+      timezone.value = data.timezone ?? undefined
+      vatEnabled.value = data.vatEnabled ?? false
       unreachable.value = false
     } else {
       unreachable.value = Boolean(error) || true
@@ -41,5 +48,16 @@ export const useShopStore = defineStore('shop', () => {
     loaded.value = true
   }
 
-  return { configured, name, currency, loaded, unreachable, load, markConfigured }
+  return {
+    configured,
+    name,
+    currency,
+    country,
+    timezone,
+    vatEnabled,
+    loaded,
+    unreachable,
+    load,
+    markConfigured,
+  }
 })

@@ -52,6 +52,9 @@ pub struct NewProduct {
     /// Draft unless staff publish from the same form. Absent means draft.
     #[serde(default)]
     pub state: Option<ProductState>,
+    /// Absent means the shop default applies (`docs/design/core.md` § 6).
+    #[serde(default)]
+    pub vat_rate_id: Option<i64>,
 }
 
 /// A row of the back-office listing (`docs/design/catalog.md` § 7).
@@ -65,6 +68,10 @@ pub struct ProductSummary {
     pub price: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub merchant_reference: Option<String>,
+    /// The rate as it applies, the shop default included: the interface shows
+    /// what is charged, not whether a row happens to be filled in.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vat_basis_points: Option<i32>,
 }
 
 /// One page of a listing, and enough to say where it sits in the whole.
@@ -207,14 +214,15 @@ pub async fn create(pool: &PgPool, request: NewProduct) -> Result<i64, Catalogue
         };
 
         let inserted = sqlx::query!(
-            "insert into products (title, description, slug, state)
-             values ($1, $2, $3, $4)
+            "insert into products (title, description, slug, state, vat_rate_id)
+             values ($1, $2, $3, $4, $5)
              on conflict (slug) do nothing
              returning id",
             title,
             description,
             slug,
             state.as_str(),
+            request.vat_rate_id,
         )
         .fetch_optional(&mut *transaction)
         .await
@@ -252,8 +260,11 @@ pub async fn list(pool: &PgPool, page: i64, page_size: i64) -> Result<ProductPag
     let page_size = page_size.clamp(1, MAX_PAGE_SIZE);
     let offset = (page - 1) * page_size;
 
+    // The rate as it applies: the product's own, or the shop default when it
+    // carries none (docs/design/core.md § 6).
     let rows = sqlx::query!(
-        "select p.id, p.title, p.slug, p.state, v.price, v.merchant_reference
+        "select p.id, p.title, p.slug, p.state, v.price, v.merchant_reference,
+                coalesce(own.basis_points, fallback.basis_points) as vat_basis_points
          from products p
          join lateral (
              select price, merchant_reference
@@ -262,6 +273,8 @@ pub async fn list(pool: &PgPool, page: i64, page_size: i64) -> Result<ProductPag
              order by id
              limit 1
          ) v on true
+         left join vat_rates own on own.id = p.vat_rate_id
+         left join vat_rates fallback on fallback.is_default
          order by p.created_at desc, p.id desc
          limit $1 offset $2",
         page_size,
@@ -285,6 +298,7 @@ pub async fn list(pool: &PgPool, page: i64, page_size: i64) -> Result<ProductPag
                 state: ProductState::from_str(&row.state),
                 price: row.price,
                 merchant_reference: row.merchant_reference,
+                vat_basis_points: row.vat_basis_points,
             })
             .collect(),
         page,

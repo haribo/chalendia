@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -10,10 +10,13 @@ import IconBadge from '@/shared/ui/icons/IconBadge.vue'
 import IconCatalogue from '@/shared/ui/icons/IconCatalogue.vue'
 import IconContent from '@/shared/ui/icons/IconContent.vue'
 import IconPayments from '@/shared/ui/icons/IconPayments.vue'
+import IconReceipt from '@/shared/ui/icons/IconReceipt.vue'
 import PageTitle from '@/shared/ui/PageTitle.vue'
+import SelectField from '@/shared/ui/SelectField.vue'
 import TextField from '@/shared/ui/TextField.vue'
 import { createProduct } from '@/shared/api/catalogue'
-import { parseAmount } from '@/shared/money'
+import { listRates, type VatRate } from '@/shared/api/tax'
+import { formatAmount, formatRate, parseAmount, taxWithin } from '@/shared/money'
 import { productErrorsFrom, type ProductErrors } from '@/surfaces/admin/catalogue-errors'
 import { useShopStore } from '@/stores/shop'
 
@@ -26,6 +29,43 @@ const description = ref('')
 const price = ref('')
 const merchantReference = ref('')
 const publish = ref(false)
+const rates = ref<VatRate[]>([])
+const vatRateId = ref('')
+
+const rateOptions = computed(() =>
+  rates.value.map((rate) => ({
+    value: String(rate.id),
+    label: `${rate.name} — ${formatRate(rate.basisPoints, locale.value)}`,
+  })),
+)
+
+/**
+ * The tax the typed price already contains. Derived, never asked: prices are
+ * entered inclusive (`docs/design/core.md` § 6), and a merchant setting 6,90 €
+ * wants to see what is left without opening a calculator.
+ */
+const included = computed(() => {
+  const rate = rates.value.find((candidate) => String(candidate.id) === vatRateId.value)
+  const minor = parseAmount(price.value, shop.currency ?? 'EUR', locale.value)
+  if (!rate || minor === undefined || minor < 0 || !shop.currency) return undefined
+
+  const { tax, net } = taxWithin(minor, rate.basisPoints)
+  return t('catalogue.new.vatIncluded', {
+    tax: formatAmount(tax, shop.currency, locale.value),
+    net: formatAmount(net, shop.currency, locale.value),
+  })
+})
+
+onMounted(async () => {
+  if (!shop.vatEnabled) return
+
+  const outcome = await listRates()
+  if (outcome.kind !== 'listed') return
+
+  rates.value = outcome.rates
+  // The shop default, so a merchant with one rate never touches this field.
+  vatRateId.value = String(outcome.rates.find((rate) => rate.isDefault)?.id ?? '')
+})
 
 const submitting = ref(false)
 const unreachable = ref(false)
@@ -47,6 +87,7 @@ async function submit(): Promise<void> {
     price: minor,
     merchantReference: merchantReference.value || undefined,
     state: publish.value ? 'published' : 'draft',
+    vatRateId: vatRateId.value ? Number(vatRateId.value) : undefined,
   })
 
   if (outcome.kind === 'listed') {
@@ -101,6 +142,19 @@ async function submit(): Promise<void> {
         :suffix="t('catalogue.new.priceSuffix')"
         :error="errors.price"
       />
+      <p
+        v-if="included"
+        class="included"
+      >
+        {{ included }}
+      </p>
+      <SelectField
+        v-if="rateOptions.length > 0"
+        v-model="vatRateId"
+        :icon="IconReceipt"
+        :label="t('catalogue.new.vatRate')"
+        :options="rateOptions"
+      />
       <TextField
         v-model="merchantReference"
         optional
@@ -132,6 +186,14 @@ async function submit(): Promise<void> {
   flex-direction: column;
   gap: var(--space-4);
   max-width: 34rem;
+}
+
+.included {
+  /* No negative margin: pulling this line up pulls the next field with it, and
+     its notched legend lands outside its own frame. */
+  margin: 0 0 0 var(--space-3);
+  color: var(--colour-text-muted);
+  font-size: var(--text-s);
 }
 
 .unreachable {
