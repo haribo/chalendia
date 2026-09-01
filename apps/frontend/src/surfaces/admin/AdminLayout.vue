@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import AdminSections from '@/surfaces/admin/AdminSections.vue'
 import AppBar from '@/shared/ui/AppBar.vue'
@@ -9,15 +9,21 @@ import Button from '@/shared/ui/Button.vue'
 import AppShell from '@/shared/ui/AppShell.vue'
 import Drawer from '@/shared/ui/Drawer.vue'
 import IconMenu from '@/shared/ui/icons/IconMenu.vue'
-import LanguagePicker from '@/shared/ui/LanguagePicker.vue'
 import NavLink from '@/shared/ui/NavLink.vue'
-import ThemePicker from '@/shared/ui/ThemePicker.vue'
 import { signOut } from '@/shared/api/session'
+import { PRODUCT_NAME } from '@/shared/shop'
 import { useSessionStore } from '@/stores/session'
+import { useShopStore } from '@/stores/shop'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
+const shop = useShopStore()
+
+// The shop's own name: one administers a shop, and its name is the one thing
+// worth reading permanently in the bar (docs/design/core.md § 4).
+const title = computed(() => shop.name ?? PRODUCT_NAME)
 
 const menuOpen = ref(false)
 
@@ -52,29 +58,11 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
 <template>
   <AppShell>
     <template #bar>
-      <AppBar :title="t('admin.title')">
+      <AppBar :title="title">
         <template #actions>
-          <LanguagePicker />
-          <ThemePicker />
-          <span
-            v-if="session.staff"
-            class="who wide-only"
-          >{{ session.staff.email }}</span>
-          <NavLink
-            class="wide-only"
-            to="/"
-          >
-            {{ t('admin.toShop') }}
-          </NavLink>
-          <Button
-            class="wide-only"
-            variant="link"
-            @click="leave"
-          >
-            {{ t('admin.signOut') }}
-          </Button>
-          <!-- Below the threshold the five actions above no longer fit side by
-               side, and the sections have nowhere to sit either. -->
+          <!-- Below the threshold the sections have nowhere to sit, so the bar
+               carries the one control that opens them — on the left, where the
+               drawer comes from. -->
           <Button
             class="narrow-only"
             variant="icon"
@@ -88,10 +76,26 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
     </template>
 
     <div class="workspace">
-      <AdminSections
-        class="rail"
-        compact
-      />
+      <div class="rail">
+        <AdminSections
+          compact
+          :current-path="route.path"
+        />
+
+        <span class="spacer" />
+
+        <div class="account">
+          <NavLink to="/">
+            {{ t('admin.toShop') }}
+          </NavLink>
+          <Button
+            variant="link"
+            @click="leave"
+          >
+            {{ t('admin.signOut') }}
+          </Button>
+        </div>
+      </div>
 
       <main class="canvas">
         <RouterView />
@@ -100,19 +104,16 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
 
     <Drawer
       :open="menuOpen"
-      :label="t('admin.title')"
+      :label="title"
       @close="menuOpen = false"
     >
-      <AdminSections @pick="menuOpen = false" />
+      <AdminSections
+        :current-path="route.path"
+        @pick="menuOpen = false"
+      />
 
       <hr>
 
-      <p
-        v-if="session.staff"
-        class="who"
-      >
-        {{ session.staff.email }}
-      </p>
       <NavLink
         class="leave"
         to="/"
@@ -139,24 +140,36 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
 }
 
 .rail {
+  display: flex;
+  flex-direction: column;
   padding: var(--space-3) var(--space-2);
   border-right: 1px solid var(--colour-border);
   background: var(--colour-surface-raised);
 }
 
+.spacer {
+  flex: 1;
+}
+
+/* Who is signed in, and how to leave: at the foot of the navigation, which is
+   where the drawer already puts them on a phone. */
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: start;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--colour-border);
+}
+
+.account > * {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-s);
+}
+
 .canvas {
   min-width: 0;
   padding: var(--space-6) var(--space-4);
-}
-
-.who {
-  min-width: 0;
-  overflow: hidden;
-  margin: 0;
-  color: var(--colour-text-muted);
-  font-size: var(--text-s);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 hr {
@@ -178,8 +191,7 @@ hr {
     grid-template-columns: 1fr;
   }
 
-  .rail,
-  .wide-only {
+  .rail {
     display: none;
   }
 }
