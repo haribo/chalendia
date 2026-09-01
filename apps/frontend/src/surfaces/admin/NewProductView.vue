@@ -189,7 +189,9 @@ async function submit(): Promise<void> {
 }
 
 .included {
-  margin: calc(var(--space-4) * -1 + var(--space-1)) 0 0 var(--space-3);
+  /* No negative margin: pulling this line up pulls the next field with it, and
+     its notched legend lands outside its own frame. */
+  margin: 0 0 0 var(--space-3);
   color: var(--colour-text-muted);
   font-size: var(--text-s);
 }
