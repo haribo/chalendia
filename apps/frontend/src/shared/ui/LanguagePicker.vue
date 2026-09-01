@@ -5,12 +5,24 @@ import { useI18n } from 'vue-i18n'
 import SelectField from '@/shared/ui/SelectField.vue'
 import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n'
 
+const props = withDefaults(
+  defineProps<{
+    /** In a bar, among other controls, rather than framed in a form. */
+    bare?: boolean
+  }>(),
+  { bare: false },
+)
+
 const { t, locale } = useI18n()
 
-// The code, not the language name: a visitor looking for their language scans
-// for "EN", and a name in a language they do not read helps nobody.
+// In a bar, the code: someone looking for their language scans for "EN", and a
+// name in a language they do not read helps nobody. On a settings page there is
+// room for the name, and nothing to scan past.
 const options = computed(() =>
-  SUPPORTED_LOCALES.map((code) => ({ value: code, label: code.toUpperCase() })),
+  SUPPORTED_LOCALES.map((code) => ({
+    value: code,
+    label: props.bare ? code.toUpperCase() : t(`language.${code}`),
+  })),
 )
 
 const selected = computed({
@@ -22,8 +34,8 @@ const selected = computed({
 <template>
   <SelectField
     v-model="selected"
-    bare
-    :label="t('language.label')"
+    :bare="bare"
+    :label="bare ? t('language.label') : t('language.interface')"
     :options="options"
   />
 </template>

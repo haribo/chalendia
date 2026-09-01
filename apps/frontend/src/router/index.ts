@@ -48,6 +48,11 @@ export const routes: RouteRecordRaw[] = [
         name: 'admin-dashboard',
         component: () => import('@/surfaces/admin/DashboardView.vue'),
       },
+      {
+        path: 'settings',
+        name: 'admin-settings',
+        component: () => import('@/surfaces/admin/SettingsView.vue'),
+      },
     ],
   },
 ]

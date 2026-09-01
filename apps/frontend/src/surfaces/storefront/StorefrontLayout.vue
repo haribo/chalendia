@@ -25,8 +25,8 @@ const title = computed(() => shop.name ?? PRODUCT_NAME)
     <template #bar>
       <AppBar :title="title">
         <template #actions>
-          <LanguagePicker />
-          <ThemePicker />
+          <LanguagePicker bare />
+          <ThemePicker bare />
           <!-- Only offered to someone who can use it; the API refuses the rest. -->
           <NavLink
             v-if="hasStaffRole"

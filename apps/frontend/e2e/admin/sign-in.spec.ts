@@ -44,20 +44,15 @@ test.describe('Signing in', () => {
       await expect(page).toHaveURL(/\/admin$/)
       await expect(page.getByRole('heading', { name: /dashboard|tableau de bord/i })).toBeVisible()
 
-      // Who is signed in shows in the bar on a wide screen and in the drawer
-      // on a narrow one (#41). Either way the interface names who it let in.
-      if (await menuButton(page).isVisible()) {
-        await menuButton(page).click()
-        await expect(page.getByRole('dialog').getByText('owner@fabrique-savons.fr')).toBeVisible()
-        await page.keyboard.press('Escape')
-      } else {
-        await expect(page.getByText('owner@fabrique-savons.fr')).toBeVisible()
-      }
+      // Who is signed in is read on the settings page and nowhere else in the
+      // back office (#52, docs/design/core.md § 4).
+      await page.goto('/admin/settings')
+      await expect(page.getByText('owner@fabrique-savons.fr')).toBeVisible()
     })
 
     await reportStep(page, 'Signing out returns to the shop', async () => {
       // Below 768 px the account actions live in the drawer (#41); above it
-      // they are in the bar. The journey is the same either way.
+      // they sit at the foot of the rail (#52). The journey is the same.
       if (await menuButton(page).isVisible()) await menuButton(page).click()
 
       await page.getByRole('button', { name: /sign out|se déconnecter/i }).click()

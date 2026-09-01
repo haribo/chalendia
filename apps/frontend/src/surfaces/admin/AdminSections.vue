@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** The permanent rail is tighter than the same list inside the drawer. */
     compact?: boolean
+    /**
+     * Which section to mark. Given rather than read from the router, so this
+     * component is a function of what it is handed and testable without one.
+     */
+    currentPath?: string
   }>(),
-  { compact: false },
+  { compact: false, currentPath: '' },
 )
 
 const emit = defineEmits<{ pick: [] }>()
@@ -14,13 +19,21 @@ const emit = defineEmits<{ pick: [] }>()
 const { t } = useI18n()
 
 // The v1 sections, as the design defines them. Not configurable.
+//
+// The ones with no screen of their own yet all lead to the dashboard, so only
+// the first is ever marked: four sections highlighted at once would say the
+// merchant is in all of them.
 const sections = [
   { key: 'dashboard', to: '/admin' },
   { key: 'catalogue', to: '/admin' },
   { key: 'orders', to: '/admin' },
   { key: 'content', to: '/admin' },
-  { key: 'settings', to: '/admin' },
+  { key: 'settings', to: '/admin/settings' },
 ] as const
+
+function isCurrent(to: string, index: number): boolean {
+  return to === '/admin' ? props.currentPath === '/admin' && index === 0 : props.currentPath === to
+}
 </script>
 
 <template>
@@ -35,7 +48,7 @@ const sections = [
       v-for="(section, index) in sections"
       :key="section.key"
       :to="section.to"
-      :class="{ current: index === 0 }"
+      :class="{ current: isCurrent(section.to, index) }"
       @click="emit('pick')"
     >
       {{ t(`admin.nav.${section.key}`) }}

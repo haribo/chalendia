@@ -106,8 +106,8 @@ async function submit(): Promise<void> {
         {{ PRODUCT_NAME }}
       </p>
       <div class="controls">
-        <LanguagePicker />
-        <ThemePicker />
+        <LanguagePicker bare />
+        <ThemePicker bare />
       </div>
     </header>
 

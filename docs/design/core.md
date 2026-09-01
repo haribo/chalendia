@@ -111,6 +111,25 @@ Changing the currency after the first order is refused: past orders and invoices
 amounts in the currency they were issued in, and reinterpreting them would falsify
 accounting records.
 
+### Where they are changed
+
+Staff change all of this in the back office's **Settings** section, which keeps apart two
+things that are otherwise constantly confused:
+
+- **Your preferences** — the interface language and the theme. They belong to the person
+  and not to the shop: two staff members administering the same shop each have their own,
+  and changing one changes nothing for customers or colleagues. They apply as soon as they
+  are chosen, so nothing on that page is saved by a button.
+- **The shop** — everything in the table above. It is the same for everyone who
+  administers the shop, and only an administrator may change it.
+
+The Settings page also names who is signed in. It is the one surface where that address is
+read rather than acted on, which is why it appears there and nowhere else in the back
+office.
+
+Before a session exists — setup, sign-in — the interface language and the theme stay in
+the bar of those screens: there is no Settings page to reach yet.
+
 ---
 
 ## 5. Money
