@@ -49,6 +49,16 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/surfaces/admin/DashboardView.vue'),
       },
       {
+        path: 'catalogue',
+        name: 'admin-catalogue',
+        component: () => import('@/surfaces/admin/CatalogueView.vue'),
+      },
+      {
+        path: 'catalogue/new',
+        name: 'admin-catalogue-new',
+        component: () => import('@/surfaces/admin/NewProductView.vue'),
+      },
+      {
         path: 'settings',
         name: 'admin-settings',
         component: () => import('@/surfaces/admin/SettingsView.vue'),

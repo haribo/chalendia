@@ -41,6 +41,32 @@ describe('AdminSections', () => {
   })
 })
 
+describe('AdminSections, marking where the merchant is', () => {
+  const marked = (path: string) =>
+    sections({ currentPath: path })
+      .findAll('a.current')
+      .map((link) => link.text())
+
+  it('marks the section of the page being shown', () => {
+    expect(marked('/admin/catalogue')).toEqual(['Catalogue'])
+    expect(marked('/admin/settings')).toEqual(['Settings'])
+  })
+
+  /** Creating a product is still being in the catalogue. */
+  it('marks the section a deeper screen belongs to', () => {
+    expect(marked('/admin/catalogue/new')).toEqual(['Catalogue'])
+  })
+
+  /**
+   * The sections with no screen of their own all lead to the dashboard, so
+   * only the first is ever marked: four at once would say the merchant is in
+   * all of them.
+   */
+  it('marks one section at most when several share a destination', () => {
+    expect(marked('/admin')).toEqual(['Dashboard'])
+  })
+})
+
 describe('AdminSections, folded', () => {
   function folded() {
     return sections({ folded: true })
