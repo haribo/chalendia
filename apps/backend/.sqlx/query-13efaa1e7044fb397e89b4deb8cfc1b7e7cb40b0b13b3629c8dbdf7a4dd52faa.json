@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into products (title, description, slug, state)\n             values ($1, $2, $3, $4)\n             on conflict (slug) do nothing\n             returning id",
+  "query": "insert into vat_rates (name, basis_points, is_default)\n         values ($1, $2, $3)\n         on conflict (name) do nothing\n         returning id",
   "describe": {
     "columns": [
       {
@@ -9,7 +9,7 @@
         "type_info": "Int8",
         "origin": {
           "Table": {
-            "table": "products",
+            "table": "vat_rates",
             "name": "id"
           }
         }
@@ -18,14 +18,13 @@
     "parameters": {
       "Left": [
         "Text",
-        "Text",
-        "Text",
-        "Text"
+        "Int4",
+        "Bool"
       ]
     },
     "nullable": [
       false
     ]
   },
-  "hash": "591069a265a9174fd9aab5676ce716d419e962b4fafb1d7796f7e340408fa524"
+  "hash": "13efaa1e7044fb397e89b4deb8cfc1b7e7cb40b0b13b3629c8dbdf7a4dd52faa"
 }

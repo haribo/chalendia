@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update vat_rates set is_default = false where is_default",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "0e9cc0e0d43b8ee28bc93dddaaec60dc525a7fd7df3ffe8bdcedbbeb463291f7"
+}

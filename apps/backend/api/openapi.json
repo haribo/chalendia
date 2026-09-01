@@ -323,6 +323,235 @@
           }
         }
       }
+    },
+    "/api/vat-rates": {
+      "get": {
+        "tags": [
+          "tax"
+        ],
+        "summary": "List the rates the shop charges.",
+        "description": "Readable by any staff member: the product form has to offer them.",
+        "operationId": "list_rates",
+        "responses": {
+          "200": {
+            "description": "The rates, highest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VatRate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tax"
+        ],
+        "summary": "Add a rate.",
+        "operationId": "create_rate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewVatRate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The rates, the new one among them",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VatRate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Reserved to an administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "A field was refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vat-rates/{id}": {
+      "delete": {
+        "tags": [
+          "tax"
+        ],
+        "summary": "Remove a rate, unless products carry it.",
+        "operationId": "remove_rate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The rate to remove",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "It is gone"
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Reserved to an administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such rate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Products carry it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vat-rates/{id}/default": {
+      "put": {
+        "tags": [
+          "tax"
+        ],
+        "summary": "Make a rate the shop default.",
+        "operationId": "make_default",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The rate to make default",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The rates, with the default moved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VatRate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Reserved to an administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such rate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -335,6 +564,14 @@
           "status"
         ],
         "properties": {
+          "dependents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "How many rows depend on what the caller tried to remove.\n\nA number rather than a sentence: the shop cannot know the reader's\nlanguage, and \"1 products\" is what happens when a server writes prose\n(`docs/design/core.md` § 8, Errors — user-visible errors are localized)."
+          },
           "detail": {
             "type": [
               "string",
@@ -463,6 +700,36 @@
           },
           "title": {
             "type": "string"
+          },
+          "vatRateId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Absent means the shop default applies (`docs/design/core.md` § 6)."
+          }
+        }
+      },
+      "NewVatRate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "basisPoints": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Absent means the first rate is the default and the others are not."
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -538,6 +805,14 @@
           },
           "title": {
             "type": "string"
+          },
+          "vatBasisPoints": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The rate as it applies, the shop default included: the interface shows\nwhat is charged, not whether a row happens to be filled in."
           }
         }
       },
@@ -619,6 +894,19 @@
               "string",
               "null"
             ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vatEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether any screen has a tax amount to show at all\n(`docs/design/core.md` § 6)."
           }
         }
       },
@@ -643,6 +931,31 @@
           "ok",
           "degraded"
         ]
+      },
+      "VatRate": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "basisPoints",
+          "isDefault"
+        ],
+        "properties": {
+          "basisPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -662,6 +975,10 @@
     {
       "name": "catalogue",
       "description": "Products and what they are sold as"
+    },
+    {
+      "name": "tax",
+      "description": "The rates the shop charges"
     }
   ]
 }

@@ -35,6 +35,13 @@ pub struct ApiError {
     /// one field at a time is a caller submitting five times.
     #[serde(rename = "invalid-params", skip_serializing_if = "Option::is_none")]
     invalid_params: Option<Vec<InvalidParam>>,
+    /// How many rows depend on what the caller tried to remove.
+    ///
+    /// A number rather than a sentence: the shop cannot know the reader's
+    /// language, and "1 products" is what happens when a server writes prose
+    /// (`docs/design/core.md` § 8, Errors — user-visible errors are localized).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    dependents: Option<i64>,
     #[serde(skip)]
     #[schema(ignore)]
     status_code: StatusCode,
@@ -48,12 +55,19 @@ impl ApiError {
             status: status_code.as_u16(),
             detail: None,
             invalid_params: None,
+            dependents: None,
             status_code,
         }
     }
 
     pub fn with_invalid_params(mut self, params: Vec<InvalidParam>) -> Self {
         self.invalid_params = Some(params);
+        self
+    }
+
+    /// The count the interface turns into a sentence in the reader's language.
+    pub fn with_dependents(mut self, count: i64) -> Self {
+        self.dependents = Some(count);
         self
     }
 

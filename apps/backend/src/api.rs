@@ -27,6 +27,10 @@ use crate::http::health::{Dependency, Health, Status};
         crate::http::staff::me,
         crate::http::catalogue::list_products,
         crate::http::catalogue::create_product,
+        crate::http::tax::list_rates,
+        crate::http::tax::create_rate,
+        crate::http::tax::remove_rate,
+        crate::http::tax::make_default,
     ),
     components(schemas(
         Health,
@@ -42,12 +46,15 @@ use crate::http::health::{Dependency, Health, Status};
         crate::catalogue::ProductPage,
         crate::catalogue::ProductSummary,
         crate::catalogue::ProductState,
+        crate::tax::VatRate,
+        crate::tax::NewVatRate,
     )),
     tags(
         (name = "system", description = "Liveness and diagnosis"),
         (name = "shop", description = "The shop's own configuration"),
         (name = "staff", description = "Signing in and who is signed in"),
         (name = "catalogue", description = "Products and what they are sold as"),
+        (name = "tax", description = "The rates the shop charges"),
     ),
 )]
 pub struct ApiDoc;

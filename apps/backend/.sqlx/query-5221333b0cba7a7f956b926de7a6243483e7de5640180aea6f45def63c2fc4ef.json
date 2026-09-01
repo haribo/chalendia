@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select p.id, p.title, p.slug, p.state, v.price, v.merchant_reference\n         from products p\n         join lateral (\n             select price, merchant_reference\n             from variants\n             where product_id = p.id\n             order by id\n             limit 1\n         ) v on true\n         order by p.created_at desc, p.id desc\n         limit $1 offset $2",
+  "query": "select p.id, p.title, p.slug, p.state, v.price, v.merchant_reference,\n                coalesce(own.basis_points, fallback.basis_points) as vat_basis_points\n         from products p\n         join lateral (\n             select price, merchant_reference\n             from variants\n             where product_id = p.id\n             order by id\n             limit 1\n         ) v on true\n         left join vat_rates own on own.id = p.vat_rate_id\n         left join vat_rates fallback on fallback.is_default\n         order by p.created_at desc, p.id desc\n         limit $1 offset $2",
   "describe": {
     "columns": [
       {
@@ -68,6 +68,12 @@
             "name": "merchant_reference"
           }
         }
+      },
+      {
+        "ordinal": 6,
+        "name": "vat_basis_points",
+        "type_info": "Int4",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -82,8 +88,9 @@
       false,
       false,
       false,
-      true
+      true,
+      null
     ]
   },
-  "hash": "6c55a39b9eb4f026795e26fae55be33f2ff09d3efe8a1d1948844f1e00a48489"
+  "hash": "5221333b0cba7a7f956b926de7a6243483e7de5640180aea6f45def63c2fc4ef"
 }
