@@ -1,6 +1,7 @@
 //! Password hashing and verification. See `docs/backend/adr/0005-passwords-and-sessions.md`.
 
-use argon2::password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, Salt, SaltString};
+use argon2::password_hash::phc::PasswordHash;
+use argon2::password_hash::{PasswordHasher, PasswordVerifier};
 use argon2::{Algorithm, Argon2, Params, Version};
 
 /// The minimum the design states to the user before they submit
@@ -42,16 +43,12 @@ pub fn check(password: &str) -> Result<(), PasswordError> {
 /// Returns the PHC string to store. Never returns the password, and the
 /// password never reaches a log or an error on the way.
 pub fn hash(password: &str) -> String {
-    // The salt is drawn here rather than through the hasher's own helper: that
-    // helper wants a generator from an older `rand_core` than the rest of the
-    // tree, and bridging two versions of a randomness trait to save four lines
-    // is how a security-relevant dependency graph becomes unreadable.
-    let mut salt_bytes = [0u8; Salt::RECOMMENDED_LENGTH];
-    getrandom::fill(&mut salt_bytes).expect("the operating system provides randomness");
-    let salt = SaltString::encode_b64(&salt_bytes).expect("a recommended-length salt encodes");
-
+    // The salt is the crate's own, drawn from the operating system: since
+    // password-hash 0.6 the helper uses `getrandom` directly rather than a
+    // `rand_core` generator, which is what this code used to draw by hand to
+    // avoid bridging two versions of a randomness trait.
     argon2()
-        .hash_password(password.as_bytes(), &salt)
+        .hash_password(password.as_bytes())
         .expect("hashing a password with valid parameters cannot fail")
         .to_string()
 }
@@ -129,6 +126,17 @@ mod tests {
 
         assert!(!stored.contains("correct horse"));
         assert!(stored.starts_with("$argon2id$"));
+    }
+
+    /// Written by argon2 0.5.3, before the crate changed its API (#64). Every
+    /// installation that has run setup holds hashes like this one, and a
+    /// migration that cannot read them locks operators out of their own shop.
+    const WRITTEN_BY_0_5_3: &str = "$argon2id$v=19$m=19456,t=2,p=1$QU3Dj1s+IqTTK8HcDMSEAg$kYic6d3F7anIr7esNW+Lx14hUjs2hUbW69NYCwj24ys";
+
+    #[test]
+    fn a_hash_written_by_the_previous_version_still_verifies() {
+        assert!(verify("correct horse battery staple", WRITTEN_BY_0_5_3));
+        assert!(!verify("Correct horse battery staple", WRITTEN_BY_0_5_3));
     }
 
     #[test]
