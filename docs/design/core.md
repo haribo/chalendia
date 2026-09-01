@@ -167,7 +167,17 @@ the bar of those screens: there is no Settings page to reach yet.
   rounded. It is not computed per line and summed.
 - Shipping carries its own rate (*TBD: default is the shop default rate; confirm
   against merchant practice*).
+- **Changing a rate's percentage moves every product carrying it.** A product points at
+  a rate, not at a number: a merchant correcting a rate that changed by law expects the
+  catalogue to follow, and copying the number onto each product is how half of them stay
+  wrong. Orders and invoices already issued are the exception below.
 - Changing a rate never alters existing orders or issued invoices.
+
+When VAT is **off**, no screen shows a tax amount, and the storefront carries the legal
+mention that VAT is not applicable — on the product page, in the cart, and on the order
+documents, since that is where a customer looks for it. The exact wording is the
+merchant's, since it names the article of law they rely on (*TBD: a default text per
+country, or an empty field the merchant must fill*).
 
 Destination-based rates, OSS/IOSS thresholds, B2B reverse charge and per-country
 matrices are out of v1.
