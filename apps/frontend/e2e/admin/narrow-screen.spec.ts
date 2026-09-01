@@ -34,13 +34,12 @@ test.describe('The back office on a narrow screen', () => {
       await expect(page.getByRole('button', { name: /sign out|se déconnecter/i })).toBeHidden()
     })
 
-    await reportStep(page, 'The drawer holds the sections and the account', async () => {
+    await reportStep(page, 'The drawer holds the sections and the way out', async () => {
       await menu.click()
 
       const drawer = page.getByRole('dialog')
       await expect(drawer.getByRole('link', { name: /catalogue/i })).toBeVisible()
       await expect(drawer.getByRole('link', { name: /settings|réglages/i })).toBeVisible()
-      await expect(drawer.getByText('owner@fabrique-savons.fr')).toBeVisible()
       await expect(drawer.getByRole('button', { name: /sign out|se déconnecter/i })).toBeVisible()
     })
 
