@@ -546,6 +546,7 @@
         "required": [
           "name",
           "legalIdentity",
+          "country",
           "currency",
           "contentLanguage",
           "timezone",
@@ -562,6 +563,10 @@
           },
           "contentLanguage": {
             "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2. Decides which VAT rates the shop may charge\n(`docs/design/core.md` § 4, § 6)."
           },
           "currency": {
             "type": "string"
@@ -595,6 +600,13 @@
               "string",
               "null"
             ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Absent on an installation that predates the column, never guessed."
           },
           "currency": {
             "type": [

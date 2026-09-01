@@ -79,6 +79,7 @@ fn setup_body() -> Value {
     json!({
         "name": "La Fabrique à Savons",
         "legalIdentity": "SIRET 000 000 000 00000",
+        "country": "FR",
         "currency": "EUR",
         "contentLanguage": "fr",
         "timezone": "Europe/Paris",

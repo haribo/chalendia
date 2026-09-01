@@ -21,6 +21,9 @@ pub struct ShopState {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub currency: Option<String>,
+    /// Absent on an installation that predates the column, never guessed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub country: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content_language: Option<String>,
 }
@@ -30,6 +33,9 @@ pub struct ShopState {
 pub struct SetupRequest {
     pub name: String,
     pub legal_identity: String,
+    /// ISO 3166-1 alpha-2. Decides which VAT rates the shop may charge
+    /// (`docs/design/core.md` § 4, § 6).
+    pub country: String,
     pub currency: String,
     pub content_language: String,
     pub timezone: String,
@@ -51,7 +57,7 @@ static DECOY_HASH: LazyLock<String> =
     LazyLock::new(|| password::hash("a password nobody signs in with"));
 
 pub async fn state(pool: &PgPool) -> Result<ShopState, sqlx::Error> {
-    let shop = sqlx::query!("select name, currency, content_language from shops limit 1")
+    let shop = sqlx::query!("select name, currency, country, content_language from shops limit 1")
         .fetch_optional(pool)
         .await?;
 
@@ -60,12 +66,14 @@ pub async fn state(pool: &PgPool) -> Result<ShopState, sqlx::Error> {
             configured: false,
             name: None,
             currency: None,
+            country: None,
             content_language: None,
         },
         Some(row) => ShopState {
             configured: true,
             name: Some(row.name),
             currency: Some(row.currency),
+            country: row.country,
             content_language: Some(row.content_language),
         },
     })
@@ -103,6 +111,7 @@ pub async fn setup(pool: &PgPool, request: SetupRequest) -> Result<i64, SetupErr
 
     let name = required(&request.name, "name", &mut problems);
     let legal_identity = required(&request.legal_identity, "legalIdentity", &mut problems);
+    let country = required(&request.country, "country", &mut problems);
     let currency = required(&request.currency, "currency", &mut problems);
     let content_language = required(&request.content_language, "contentLanguage", &mut problems);
     let timezone = required(&request.timezone, "timezone", &mut problems);
@@ -144,10 +153,11 @@ pub async fn setup(pool: &PgPool, request: SetupRequest) -> Result<i64, SetupErr
     }
 
     sqlx::query!(
-        "insert into shops (name, legal_identity, currency, content_language, timezone, vat_enabled)
-         values ($1, $2, $3, $4, $5, $6)",
+        "insert into shops (name, legal_identity, country, currency, content_language, timezone, vat_enabled)
+         values ($1, $2, $3, $4, $5, $6, $7)",
         name,
         legal_identity,
+        country,
         currency,
         content_language,
         timezone,
