@@ -100,6 +100,7 @@ Set at installation, editable by an administrator afterwards.
 |---|---|
 | Shop name, logo, favicon | Displayed on the storefront and in emails |
 | Contact and legal identity | Required for invoices and legal pages |
+| Country | **One per shop**, where it is established. Decides which VAT rates apply and what the legal identity must carry |
 | Currency | **One per shop.** No switcher, no conversion, no display-only rates |
 | Content language | **One per shop.** The language merchants write products and pages in |
 | Interface languages | English and French, chosen by each user |
@@ -151,6 +152,14 @@ the bar of those screens: there is no Settings page to reach yet.
 
 - VAT is either **off** (the shop shows a legal notice that VAT is not applicable) or
   **on** with a list of merchant-defined rates.
+- **The rates are those of the shop's country**, not of the customer's. A shop charges
+  the VAT of where it is established, which is what the law allows below the
+  cross-border thresholds a self-hosted shop rarely reaches. Above them the merchant
+  needs an accountant and a declaration, not a setting — see the exclusions below.
+- A rate has a **name and a percentage**, because "20 %" is not what a merchant looks
+  for in a list; one of them is the shop default.
+- A rate that is assigned to a product cannot be deleted. It is refused with the list of
+  products using it, the way a category in use is (§ 8, Deletion).
 - Each product carries one rate from that list. A product with no rate assigned uses
   the shop default rate.
 - Entered prices include tax. The tax amount is derived, not added.

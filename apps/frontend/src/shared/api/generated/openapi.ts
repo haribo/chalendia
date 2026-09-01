@@ -236,6 +236,11 @@ export interface components {
             administratorEmail: string;
             administratorPassword: string;
             contentLanguage: string;
+            /**
+             * @description ISO 3166-1 alpha-2. Decides which VAT rates the shop may charge
+             *     (`docs/design/core.md` § 4, § 6).
+             */
+            country: string;
             currency: string;
             legalIdentity: string;
             name: string;
@@ -246,6 +251,8 @@ export interface components {
             /** @description Until this is true, setup is the only thing the shop will do. */
             configured: boolean;
             contentLanguage?: string | null;
+            /** @description Absent on an installation that predates the column, never guessed. */
+            country?: string | null;
             currency?: string | null;
             name?: string | null;
         };

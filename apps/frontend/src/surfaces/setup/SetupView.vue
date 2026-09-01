@@ -9,6 +9,7 @@ import IconGlobe from '@/shared/ui/icons/IconGlobe.vue'
 import IconLock from '@/shared/ui/icons/IconLock.vue'
 import IconMail from '@/shared/ui/icons/IconMail.vue'
 import IconPayments from '@/shared/ui/icons/IconPayments.vue'
+import IconPlace from '@/shared/ui/icons/IconPlace.vue'
 import IconReceipt from '@/shared/ui/icons/IconReceipt.vue'
 import IconSchedule from '@/shared/ui/icons/IconSchedule.vue'
 import IconStorefront from '@/shared/ui/icons/IconStorefront.vue'
@@ -23,15 +24,17 @@ import { runSetup } from '@/shared/api/setup'
 import { PRODUCT_NAME } from '@/shared/shop'
 import { useSessionStore } from '@/stores/session'
 import { useShopStore } from '@/stores/shop'
+import { countryOptions } from '@/shared/countries'
 import { fieldErrorsFrom, type FieldErrors } from './setup-errors'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 const shop = useShopStore()
 const session = useSessionStore()
 
 const name = ref('')
 const legalIdentity = ref('')
+const country = ref('FR')
 const currency = ref('EUR')
 // Proposed by the browser rather than by a default nobody chose.
 const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
@@ -42,6 +45,9 @@ const administratorPassword = ref('')
 
 const submitting = ref(false)
 const errors = ref<FieldErrors>({})
+
+// Named and sorted per interface language; the shop holds the code.
+const countries = computed(() => countryOptions(locale.value))
 
 const currencies = [
   { value: 'EUR', label: 'EUR — Euro' },
@@ -68,6 +74,7 @@ async function submit(): Promise<void> {
   const outcome = await runSetup({
     name: name.value,
     legalIdentity: legalIdentity.value,
+    country: country.value,
     currency: currency.value,
     contentLanguage: contentLanguage.value,
     timezone: timezone.value,
@@ -148,7 +155,21 @@ async function submit(): Promise<void> {
 
       <fieldset class="group">
         <legend>{{ t('setup.groups.locale') }}</legend>
+        <!-- The country leads the group: the currency, the timezone and the
+             VAT rates that follow all hang off where the shop is. -->
         <div class="two">
+          <div>
+            <SelectField
+              v-model="country"
+              :icon="IconPlace"
+              :label="t('setup.fields.country')"
+              :options="countries"
+              :error="errors.country"
+            />
+            <p class="hint">
+              {{ t('setup.fields.countryDecides') }}
+            </p>
+          </div>
           <div>
             <SelectField
               v-model="currency"
@@ -160,19 +181,21 @@ async function submit(): Promise<void> {
               {{ t('setup.fields.currencyFinal') }}
             </p>
           </div>
+        </div>
+        <div class="two">
           <SelectField
             v-model="timezone"
             :icon="IconSchedule"
             :label="t('setup.fields.timezone')"
             :options="timezones"
           />
+          <SelectField
+            v-model="contentLanguage"
+            :icon="IconGlobe"
+            :label="t('setup.fields.contentLanguage')"
+            :options="languages"
+          />
         </div>
-        <SelectField
-          v-model="contentLanguage"
-          :icon="IconGlobe"
-          :label="t('setup.fields.contentLanguage')"
-          :options="languages"
-        />
       </fieldset>
 
       <fieldset class="group">

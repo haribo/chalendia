@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select name, currency, content_language from shops limit 1",
+  "query": "select name, currency, country, content_language from shops limit 1",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,17 @@
       },
       {
         "ordinal": 2,
+        "name": "country",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "shops",
+            "name": "country"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
         "name": "content_language",
         "type_info": "Text",
         "origin": {
@@ -43,8 +54,9 @@
     "nullable": [
       false,
       false,
+      true,
       false
     ]
   },
-  "hash": "efdf11df16b8475a7ab88327c946dae6eb8fbc685462cfd03a5284cb73c09c4d"
+  "hash": "cb5f188b4d33e2c099963dde27b8752e10c1a01713f62b0ab4fb01c015ddc439"
 }

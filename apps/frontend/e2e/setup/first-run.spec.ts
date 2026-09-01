@@ -21,6 +21,11 @@ test.describe('First run', () => {
       await page
         .getByLabel(/legal name|raison sociale/i)
         .fill('SAS La Fabrique — SIRET 512 874 331 00027')
+      // Chosen rather than left at its default: a field nobody ever picks is a
+      // field nobody tests (#67).
+      await page
+        .getByLabel(/country of the shop|pays de la boutique/i)
+        .selectOption('BE')
     })
 
     await reportStep(page, 'A bad address and a short password are refused', async () => {

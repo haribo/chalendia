@@ -89,6 +89,7 @@ async fn signed_in_staff(pool: &PgPool) -> String {
             json!({
                 "name": "La Fabrique à Savons",
                 "legalIdentity": "SIRET 000 000 000 00000",
+                "country": "FR",
                 "currency": "EUR",
                 "contentLanguage": "fr",
                 "timezone": "Europe/Paris",
