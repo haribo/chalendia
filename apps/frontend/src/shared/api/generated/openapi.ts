@@ -197,8 +197,12 @@ export interface components {
              * Format: int64
              * @description Inclusive of tax, in minor units of the shop currency
              *     (`docs/design/core.md` § 5, § 6).
+             *
+             *     Optional in the contract and required by the shop: an amount nobody can
+             *     read is absent as far as an interface is concerned, and refusing it here
+             *     is what lets every other refusal come back in the same answer.
              */
-            price: number;
+            price?: number | null;
             state?: null | components["schemas"]["ProductState"];
             title: string;
         };

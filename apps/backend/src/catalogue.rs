@@ -41,7 +41,12 @@ pub struct NewProduct {
     pub description: Option<String>,
     /// Inclusive of tax, in minor units of the shop currency
     /// (`docs/design/core.md` § 5, § 6).
-    pub price: i64,
+    ///
+    /// Optional in the contract and required by the shop: an amount nobody can
+    /// read is absent as far as an interface is concerned, and refusing it here
+    /// is what lets every other refusal come back in the same answer.
+    #[serde(default)]
+    pub price: Option<i64>,
     #[serde(default)]
     pub merchant_reference: Option<String>,
     /// Draft unless staff publish from the same form. Absent means draft.
@@ -158,10 +163,15 @@ pub async fn create(pool: &PgPool, request: NewProduct) -> Result<i64, Catalogue
     let description = optional(request.description.as_deref());
     let merchant_reference = optional(request.merchant_reference.as_deref());
 
-    if request.price < 0 {
-        // The sign is the whole problem, and it is visible in the value.
-        problems.push(FieldProblem::blank("price"));
-    }
+    // Missing and negative are refused the same way and without words: an
+    // empty field and a minus sign each show their own problem.
+    let price = match request.price {
+        Some(price) if price >= 0 => price,
+        _ => {
+            problems.push(FieldProblem::blank("price"));
+            0
+        }
+    };
 
     let state = match request.state {
         None => ProductState::Draft,
@@ -221,7 +231,7 @@ pub async fn create(pool: &PgPool, request: NewProduct) -> Result<i64, Catalogue
     sqlx::query!(
         "insert into variants (product_id, price, merchant_reference) values ($1, $2, $3)",
         product,
-        request.price,
+        price,
         merchant_reference,
     )
     .execute(&mut *transaction)
