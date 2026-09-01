@@ -5,6 +5,14 @@ import { useI18n } from 'vue-i18n'
 import SelectField from '@/shared/ui/SelectField.vue'
 import { THEME_CHOICES, useTheme, type ThemeChoice } from '@/composables/useTheme'
 
+withDefaults(
+  defineProps<{
+    /** In a bar, among other controls, rather than framed in a form. */
+    bare?: boolean
+  }>(),
+  { bare: false },
+)
+
 const { t } = useI18n()
 const { choice, setTheme } = useTheme()
 
@@ -21,7 +29,7 @@ const selected = computed({
 <template>
   <SelectField
     v-model="selected"
-    bare
+    :bare="bare"
     :label="t('theme.label')"
     :options="options"
   />

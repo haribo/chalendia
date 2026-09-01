@@ -60,8 +60,8 @@ async function submit(): Promise<void> {
         {{ title }}
       </p>
       <div class="controls">
-        <LanguagePicker />
-        <ThemePicker />
+        <LanguagePicker bare />
+        <ThemePicker bare />
       </div>
     </header>
 
