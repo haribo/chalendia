@@ -60,6 +60,35 @@
       "hide": "Masquer"
     }
   },
+  "catalogue": {
+    "title": "Catalogue",
+    "add": "Ajouter un produit",
+    "empty": "Aucun produit pour l'instant.",
+    "paging": "{from}–{to} sur {total}",
+    "column": {
+      "product": "Produit",
+      "reference": "Référence",
+      "price": "Prix",
+      "state": "État"
+    },
+    "state": {
+      "draft": "Brouillon",
+      "published": "Publié",
+      "retired": "Retiré"
+    },
+    "new": {
+      "title": "Nouveau produit",
+      "name": "Nom",
+      "description": "Description",
+      "price": "Prix",
+      "priceSuffix": "TTC",
+      "reference": "Référence",
+      "publish": "Le publier maintenant",
+      "create": "Créer le produit",
+      "creating": "Création"
+    },
+    "unreachable": "La boutique n'a pas répondu. Réessayez."
+  },
   "drawer": {
     "close": "Fermer"
   },

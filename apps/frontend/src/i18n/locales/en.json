@@ -60,6 +60,35 @@
       "hide": "Hide"
     }
   },
+  "catalogue": {
+    "title": "Catalogue",
+    "add": "Add a product",
+    "empty": "No products yet.",
+    "paging": "{from}–{to} of {total}",
+    "column": {
+      "product": "Product",
+      "reference": "Reference",
+      "price": "Price",
+      "state": "State"
+    },
+    "state": {
+      "draft": "Draft",
+      "published": "Published",
+      "retired": "Retired"
+    },
+    "new": {
+      "title": "New product",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price",
+      "priceSuffix": "incl. tax",
+      "reference": "Reference",
+      "publish": "Publish it now",
+      "create": "Create the product",
+      "creating": "Creating"
+    },
+    "unreachable": "The shop did not answer. Try again."
+  },
   "drawer": {
     "close": "Close"
   },

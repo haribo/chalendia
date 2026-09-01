@@ -16,6 +16,13 @@ const props = withDefaults(
     disabled?: boolean
     icon?: Component
     autocomplete?: string
+    /** Several lines, for prose rather than a value. */
+    multiline?: boolean
+    /**
+     * A fixed unit the value is expressed in — a currency, a weight. It sits
+     * inside the frame because it belongs to the value, not to the label.
+     */
+    suffix?: string
   }>(),
   {
     type: 'text',
@@ -25,6 +32,8 @@ const props = withDefaults(
     disabled: false,
     icon: undefined,
     autocomplete: undefined,
+    multiline: false,
+    suffix: undefined,
   },
 )
 
@@ -57,7 +66,20 @@ const invalid = computed(() => props.error !== undefined)
       :disabled="locked"
       :error="error || undefined"
     >
+      <textarea
+        v-if="multiline"
+        :id="id"
+        v-model="model"
+        rows="3"
+        :disabled="locked"
+        :required="!optional"
+        :aria-invalid="invalid || undefined"
+        :aria-describedby="describedBy"
+        @focus="focused = true"
+        @blur="focused = false"
+      />
       <input
+        v-else
         :id="id"
         v-model="model"
         :type="type"
@@ -69,6 +91,14 @@ const invalid = computed(() => props.error !== undefined)
         @focus="focused = true"
         @blur="focused = false"
       >
+
+      <!-- After the control, so a screen reader meets the value first and the
+           unit second, the way it is read aloud. -->
+      <span
+        v-if="suffix"
+        class="suffix"
+        aria-hidden="true"
+      >{{ suffix }}</span>
     </FieldFrame>
 
     <p
@@ -85,6 +115,17 @@ const invalid = computed(() => props.error !== undefined)
 .field {
   display: flex;
   flex-direction: column;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.suffix {
+  flex: none;
+  color: var(--colour-text-muted);
+  font-size: var(--text-s);
+  white-space: nowrap;
 }
 
 .hint {

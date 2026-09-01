@@ -34,14 +34,20 @@ const { t } = useI18n()
 // merchant is in all of them.
 const sections: readonly { key: string; to: string; icon: Component }[] = [
   { key: 'dashboard', to: '/admin', icon: IconDashboard },
-  { key: 'catalogue', to: '/admin', icon: IconCatalogue },
+  { key: 'catalogue', to: '/admin/catalogue', icon: IconCatalogue },
   { key: 'orders', to: '/admin', icon: IconOrders },
   { key: 'content', to: '/admin', icon: IconContent },
   { key: 'settings', to: '/admin/settings', icon: IconSettings },
 ]
 
 function isCurrent(to: string, index: number): boolean {
-  return to === '/admin' ? props.currentPath === '/admin' && index === 0 : props.currentPath === to
+  if (to === '/admin') {
+    return props.currentPath === '/admin' && index === 0
+  }
+
+  // A screen under a section belongs to it: creating a product is still being
+  // in the catalogue, and the navigation should not say otherwise.
+  return props.currentPath === to || props.currentPath.startsWith(`${to}/`)
 }
 </script>
 
