@@ -4,6 +4,7 @@ import { fieldErrorsFrom as mapRefusals, type InvalidParam } from '@/shared/api/
 export interface FieldErrors {
   name?: string
   legalIdentity?: string
+  country?: string
   currency?: string
   contentLanguage?: string
   timezone?: string
@@ -14,6 +15,7 @@ export interface FieldErrors {
 const KNOWN: Record<keyof FieldErrors, true> = {
   name: true,
   legalIdentity: true,
+  country: true,
   currency: true,
   contentLanguage: true,
   timezone: true,
