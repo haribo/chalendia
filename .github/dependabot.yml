@@ -24,6 +24,15 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # TypeScript 7 exists and the lint toolchain does not support it:
+    # typescript-eslint 8 asks for `>=4.8.4 <6.1.0`, so a bump to 7 makes
+    # `npm ci` refuse the tree and takes every other update down with it.
+    #
+    # This holds the major version only — minors and patches still come. Lift
+    # it when typescript-eslint widens its peer range; nothing else does.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       frontend-dependencies:
         patterns: ["*"]
