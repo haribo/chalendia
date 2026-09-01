@@ -8,8 +8,13 @@ import AppBar from '@/shared/ui/AppBar.vue'
 import Button from '@/shared/ui/Button.vue'
 import AppShell from '@/shared/ui/AppShell.vue'
 import Drawer from '@/shared/ui/Drawer.vue'
+import IconChevronLeft from '@/shared/ui/icons/IconChevronLeft.vue'
+import IconChevronRight from '@/shared/ui/icons/IconChevronRight.vue'
+import IconLogout from '@/shared/ui/icons/IconLogout.vue'
 import IconMenu from '@/shared/ui/icons/IconMenu.vue'
+import IconStorefront from '@/shared/ui/icons/IconStorefront.vue'
 import NavLink from '@/shared/ui/NavLink.vue'
+import { useFoldedRail } from '@/composables/useFoldedRail'
 import { signOut } from '@/shared/api/session'
 import { PRODUCT_NAME } from '@/shared/shop'
 import { useSessionStore } from '@/stores/session'
@@ -26,6 +31,7 @@ const shop = useShopStore()
 const title = computed(() => shop.name ?? PRODUCT_NAME)
 
 const menuOpen = ref(false)
+const { folded, toggle } = useFoldedRail()
 
 async function leave(): Promise<void> {
   menuOpen.value = false
@@ -59,7 +65,7 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
   <AppShell>
     <template #bar>
       <AppBar :title="title">
-        <template #actions>
+        <template #leading>
           <!-- Below the threshold the sections have nowhere to sit, so the bar
                carries the one control that opens them — on the left, where the
                drawer comes from. -->
@@ -75,26 +81,52 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
       </AppBar>
     </template>
 
-    <div class="workspace">
-      <div class="rail">
+    <div
+      class="workspace"
+      :class="{ folded }"
+    >
+      <div
+        class="rail"
+        :class="{ folded }"
+      >
         <AdminSections
           compact
+          :folded="folded"
           :current-path="route.path"
         />
 
         <span class="spacer" />
 
         <div class="account">
-          <NavLink to="/">
-            {{ t('admin.toShop') }}
+          <NavLink
+            to="/"
+            :title="folded ? t('admin.toShop') : undefined"
+          >
+            <IconStorefront />
+            <span :class="{ 'visually-hidden': folded }">{{ t('admin.toShop') }}</span>
           </NavLink>
           <Button
             variant="link"
+            :title="folded ? t('admin.signOut') : undefined"
             @click="leave"
           >
-            {{ t('admin.signOut') }}
+            <IconLogout />
+            <span :class="{ 'visually-hidden': folded }">{{ t('admin.signOut') }}</span>
           </Button>
         </div>
+
+        <!-- Last, under its own rule: it acts on the rail, not on anything the
+             rail holds. The chevron points the way pressing it goes. -->
+        <Button
+          class="fold"
+          variant="link"
+          :aria-label="folded ? t('admin.unfold') : t('admin.fold')"
+          @click="toggle"
+        >
+          <IconChevronRight v-if="folded" />
+          <IconChevronLeft v-else />
+          <span v-if="!folded">{{ t('admin.fold') }}</span>
+        </Button>
       </div>
 
       <main class="canvas">
@@ -119,6 +151,7 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
         to="/"
         @click="menuOpen = false"
       >
+        <IconStorefront />
         {{ t('admin.toShop') }}
       </NavLink>
       <Button
@@ -126,6 +159,7 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
         variant="link"
         @click="leave"
       >
+        <IconLogout />
         {{ t('admin.signOut') }}
       </Button>
     </Drawer>
@@ -139,12 +173,23 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
   grid-template-columns: 11rem 1fr;
 }
 
+/* The column is what holds the width, so folding the rail means folding the
+   column it sits in. */
+.workspace.folded {
+  grid-template-columns: 3.5rem 1fr;
+}
+
 .rail {
   display: flex;
   flex-direction: column;
   padding: var(--space-3) var(--space-2);
   border-right: 1px solid var(--colour-border);
   background: var(--colour-surface-raised);
+}
+
+.rail.folded {
+  align-items: center;
+  padding: var(--space-3) var(--space-1);
 }
 
 .spacer {
@@ -163,8 +208,43 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
 }
 
 .account > * {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-s);
+}
+
+.folded .account {
+  align-items: center;
+  width: 100%;
+}
+
+.folded .account > * {
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+}
+
+/* Its own rule above it, so the rail reads as three groups: the sections, the
+   account, and the control that folds them. */
+.fold {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  align-self: stretch;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-2) 0;
+  border-top: 1px solid var(--colour-border);
+  color: var(--colour-text-muted);
+  font-size: var(--text-s);
+  font-weight: 400;
+}
+
+.folded .fold {
+  justify-content: center;
+  padding: var(--space-2) 0 0;
 }
 
 .canvas {

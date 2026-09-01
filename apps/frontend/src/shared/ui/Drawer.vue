@@ -75,9 +75,8 @@ onBeforeUnmount(() => {
       class="panel"
     >
       <header class="head">
-        <p class="title">
-          {{ label }}
-        </p>
+        <!-- On the side the drawer came from, where the finger already is
+             rather than across the screen. -->
         <Button
           variant="icon"
           :aria-label="t('drawer.close')"
@@ -85,6 +84,9 @@ onBeforeUnmount(() => {
         >
           <IconClose />
         </Button>
+        <p class="title">
+          {{ label }}
+        </p>
       </header>
       <slot />
     </div>
