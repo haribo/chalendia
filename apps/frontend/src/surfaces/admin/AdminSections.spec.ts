@@ -40,3 +40,39 @@ describe('AdminSections', () => {
     expect(wrapper.emitted('pick')).toHaveLength(1)
   })
 })
+
+describe('AdminSections, folded', () => {
+  function folded() {
+    return sections({ folded: true })
+  }
+
+  it('shows an icon for every section', () => {
+    expect(folded().findAll('a svg')).toHaveLength(5)
+  })
+
+  /**
+   * An icon nobody can name is a section nobody can reach without sight, and
+   * Catalogue and Content are the two most confusable symbols (#53).
+   */
+  it('keeps every name readable to assistive technology', () => {
+    const names = folded()
+      .findAll('a')
+      .map((link) => link.text())
+
+    expect(names).toEqual(['Dashboard', 'Catalogue', 'Orders', 'Content', 'Settings'])
+  })
+
+  it('hides those names from the eye, and only then', () => {
+    expect(folded().findAll('a span.visually-hidden')).toHaveLength(5)
+    expect(sections().findAll('a span.visually-hidden')).toHaveLength(0)
+  })
+
+  it('titles each link, so hovering says what the symbol means', () => {
+    const titles = folded()
+      .findAll('a')
+      .map((link) => link.attributes('title'))
+
+    expect(titles).toEqual(['Dashboard', 'Catalogue', 'Orders', 'Content', 'Settings'])
+    expect(sections().findAll('a')[0].attributes('title')).toBeUndefined()
+  })
+})

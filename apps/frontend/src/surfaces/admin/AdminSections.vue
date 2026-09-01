@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+import IconCatalogue from '@/shared/ui/icons/IconCatalogue.vue'
+import IconContent from '@/shared/ui/icons/IconContent.vue'
+import IconDashboard from '@/shared/ui/icons/IconDashboard.vue'
+import IconOrders from '@/shared/ui/icons/IconOrders.vue'
+import IconSettings from '@/shared/ui/icons/IconSettings.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -10,8 +17,10 @@ const props = withDefaults(
      * component is a function of what it is handed and testable without one.
      */
     currentPath?: string
+    /** Icons alone. The name stays, for assistive technology and the tooltip. */
+    folded?: boolean
   }>(),
-  { compact: false, currentPath: '' },
+  { compact: false, currentPath: '', folded: false },
 )
 
 const emit = defineEmits<{ pick: [] }>()
@@ -23,13 +32,13 @@ const { t } = useI18n()
 // The ones with no screen of their own yet all lead to the dashboard, so only
 // the first is ever marked: four sections highlighted at once would say the
 // merchant is in all of them.
-const sections = [
-  { key: 'dashboard', to: '/admin' },
-  { key: 'catalogue', to: '/admin' },
-  { key: 'orders', to: '/admin' },
-  { key: 'content', to: '/admin' },
-  { key: 'settings', to: '/admin/settings' },
-] as const
+const sections: readonly { key: string; to: string; icon: Component }[] = [
+  { key: 'dashboard', to: '/admin', icon: IconDashboard },
+  { key: 'catalogue', to: '/admin', icon: IconCatalogue },
+  { key: 'orders', to: '/admin', icon: IconOrders },
+  { key: 'content', to: '/admin', icon: IconContent },
+  { key: 'settings', to: '/admin/settings', icon: IconSettings },
+]
 
 function isCurrent(to: string, index: number): boolean {
   return to === '/admin' ? props.currentPath === '/admin' && index === 0 : props.currentPath === to
@@ -41,7 +50,7 @@ function isCurrent(to: string, index: number): boolean {
        narrow one show the same sections, so they are the same component. -->
   <nav
     class="sections"
-    :class="{ compact }"
+    :class="{ compact, folded }"
     :aria-label="t('admin.title')"
   >
     <RouterLink
@@ -49,9 +58,13 @@ function isCurrent(to: string, index: number): boolean {
       :key="section.key"
       :to="section.to"
       :class="{ current: isCurrent(section.to, index) }"
+      :title="folded ? t(`admin.nav.${section.key}`) : undefined"
       @click="emit('pick')"
     >
-      {{ t(`admin.nav.${section.key}`) }}
+      <component :is="section.icon" />
+      <!-- Folded, the name is still read aloud: an icon nobody can name is a
+           section nobody can reach without sight. -->
+      <span :class="{ 'visually-hidden': folded }">{{ t(`admin.nav.${section.key}`) }}</span>
     </RouterLink>
   </nav>
 </template>
@@ -64,6 +77,9 @@ function isCurrent(to: string, index: number): boolean {
 }
 
 .sections a {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-1);
   color: var(--colour-text-muted);
@@ -78,6 +94,14 @@ function isCurrent(to: string, index: number): boolean {
 
 .compact a {
   padding: var(--space-1) var(--space-2);
+  gap: var(--space-2);
   font-size: var(--text-s);
+}
+
+.folded a {
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
 }
 </style>

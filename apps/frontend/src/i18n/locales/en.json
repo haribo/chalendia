@@ -49,6 +49,8 @@
       "apiDown": "The dashboard could not reach the API. It may be stopped, or restarting.",
       "retry": "Retry"
     },
+    "fold": "Fold",
+    "unfold": "Unfold the navigation",
     "signOut": "Sign out"
   },
   "forms": {

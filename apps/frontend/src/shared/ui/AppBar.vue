@@ -7,6 +7,9 @@ defineProps<{
 
 <template>
   <header class="bar">
+    <!-- Before the title: whatever sits here acts on what is to the left of
+         the screen, and a control belongs on the side of what it opens. -->
+    <slot name="leading" />
     <p class="title">
       {{ title }}
     </p>
