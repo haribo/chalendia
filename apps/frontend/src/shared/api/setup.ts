@@ -6,7 +6,7 @@ export type SetupRequest = components['schemas']['SetupRequest']
 export type InvalidParam = components['schemas']['InvalidParam']
 
 export type SetupOutcome =
-  | { kind: 'configured'; name?: string }
+  | { kind: 'configured'; name?: string; currency?: string }
   /** The shop refused fields; the words are the API's, never invented here. */
   | { kind: 'refused'; params?: InvalidParam[] }
   | { kind: 'already-configured' }
@@ -21,7 +21,10 @@ export async function runSetup(request: SetupRequest): Promise<SetupOutcome> {
     const { data, error, response } = await api.POST('/api/setup', { body: request })
 
     if (data) {
-      return { kind: 'configured', name: data.name ?? undefined }
+      // The currency comes back with the shop, and every price the merchant
+      // is about to see needs it. Waiting for the next page load to learn it
+      // is how an amount ends up shown in minor units.
+      return { kind: 'configured', name: data.name ?? undefined, currency: data.currency ?? undefined }
     }
     if (response.status === 409) {
       return { kind: 'already-configured' }

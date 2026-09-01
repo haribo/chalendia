@@ -13,6 +13,8 @@ import { api } from '@/shared/api/client'
 export const useShopStore = defineStore('shop', () => {
   const configured = ref(false)
   const name = ref<string | undefined>(undefined)
+  /** Needed to display any price: one currency per shop, no switcher. */
+  const currency = ref<string | undefined>(undefined)
   const loaded = ref(false)
   /** True when the shop could not be asked at all — the API is down. */
   const unreachable = ref(false)
@@ -23,6 +25,7 @@ export const useShopStore = defineStore('shop', () => {
     if (data) {
       configured.value = data.configured
       name.value = data.name ?? undefined
+      currency.value = data.currency ?? undefined
       unreachable.value = false
     } else {
       unreachable.value = Boolean(error) || true
@@ -31,11 +34,12 @@ export const useShopStore = defineStore('shop', () => {
     loaded.value = true
   }
 
-  function markConfigured(shopName?: string): void {
+  function markConfigured(shopName?: string, shopCurrency?: string): void {
     configured.value = true
     name.value = shopName
+    currency.value = shopCurrency
     loaded.value = true
   }
 
-  return { configured, name, loaded, unreachable, load, markConfigured }
+  return { configured, name, currency, loaded, unreachable, load, markConfigured }
 })

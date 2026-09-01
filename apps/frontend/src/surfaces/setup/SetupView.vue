@@ -80,7 +80,7 @@ async function submit(): Promise<void> {
 
   switch (outcome.kind) {
     case 'configured':
-      shop.markConfigured(outcome.name)
+      shop.markConfigured(outcome.name, outcome.currency)
       // The response carried a session; the interface only learns of it by
       // asking, and the guard would otherwise turn the administrator away.
       await session.refresh()
