@@ -25,27 +25,22 @@ test.describe('The catalogue', () => {
       await expect(page.locator('table')).toHaveCount(0)
     })
 
-    await reportStep(page, 'A price nobody can read is refused on the spot', async () => {
+    await reportStep(page, 'An unreadable price and a blank name are refused together', async () => {
       await page.getByRole('button', { name: /add a product|ajouter un produit/i }).click()
       await expect(page).toHaveURL(/\/catalogue\/new$/)
 
       await page.getByLabel(/^price$|^prix$/i).fill('gratuit')
       await page.getByRole('button', { name: /create the product|créer le produit/i }).click()
 
-      // The value shows the problem, so the field carries no words (#56).
+      // Both refusals are the shop's, in one answer, and neither carries words:
+      // an empty name and an amount that is not one each show their problem.
       await expect(page.getByLabel(/^price$|^prix$/i)).toHaveAttribute('aria-invalid', 'true')
-    })
-
-    await reportStep(page, 'The shop refuses what it is given, all at once', async () => {
-      await page.getByLabel(/^price$|^prix$/i).fill('6,90')
-      await page.getByRole('button', { name: /create the product|créer le produit/i }).click()
-
-      // A blank title is the shop's refusal, not the form's.
       await expect(page.getByLabel(/^name$|^nom$/i)).toHaveAttribute('aria-invalid', 'true')
       await expect(page).toHaveURL(/\/catalogue\/new$/)
     })
 
     await reportStep(page, 'Described and published, the product is created', async () => {
+      await page.getByLabel(/^price$|^prix$/i).fill('6,90')
       await page.getByLabel(/^name$|^nom$/i).fill("Savon de Marseille à l'huile d'olive")
       await page.getByLabel(/^description$/i).fill("Cube de 300 g, à l'huile d'olive.")
       await page.getByLabel(/^reference$|^référence$/i).fill('SAV-300')

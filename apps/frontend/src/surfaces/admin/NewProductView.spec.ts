@@ -110,19 +110,23 @@ describe('NewProductView', () => {
   })
 
   /**
-   * An unreadable amount cannot go in the request at all — the contract
-   * carries an integer — so the field is marked here, without words, and the
-   * shop is not asked. See #56.
+   * An unreadable amount is absent as far as the request is concerned, and the
+   * shop refuses it with everything else in one answer — which is the whole
+   * point of the price being optional in the contract (#56).
    */
-  it('marks an unreadable price without asking the shop', async () => {
+  it('sends an unreadable price as the nothing it is, and lets the shop refuse it', async () => {
+    createProduct.mockResolvedValue({
+      kind: 'refused',
+      params: [{ name: 'title' }, { name: 'price' }],
+    })
     const wrapper = form()
 
-    await fill(wrapper, { Name: 'Savon', Price: 'gratuit' })
+    await fill(wrapper, { Name: ' ', Price: 'gratuit' })
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(createProduct).not.toHaveBeenCalled()
-    expect(wrapper.findAll('[aria-invalid="true"]')).toHaveLength(1)
+    expect(createProduct).toHaveBeenCalledWith(expect.objectContaining({ price: undefined }))
+    expect(wrapper.findAll('[aria-invalid="true"]')).toHaveLength(2)
   })
 
   it('says so when the shop does not answer, and stays on the form', async () => {

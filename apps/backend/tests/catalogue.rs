@@ -234,6 +234,44 @@ async fn every_refused_field_comes_back_at_once(pool: PgPool) {
     assert!(answer.body["invalid-params"][0].get("reason").is_none());
 }
 
+/// The whole point of making the price optional in the contract (#56): an
+/// interface that cannot express what was typed sends nothing, and the shop
+/// still answers about every field at once.
+#[sqlx::test]
+async fn a_missing_price_is_refused_alongside_everything_else(pool: PgPool) {
+    let cookie = signed_in_staff(&pool).await;
+
+    let answer = call(
+        &pool,
+        post("/api/products", json!({ "title": "   " }), Some(&cookie)),
+    )
+    .await;
+
+    assert_eq!(answer.status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    let refused: Vec<&str> = answer.body["invalid-params"]
+        .as_array()
+        .expect("a list of refused fields")
+        .iter()
+        .map(|param| param["name"].as_str().expect("a field name"))
+        .collect();
+    assert_eq!(refused, vec!["title", "price"]);
+}
+
+#[sqlx::test]
+async fn a_missing_price_creates_nothing(pool: PgPool) {
+    let cookie = signed_in_staff(&pool).await;
+
+    call(
+        &pool,
+        post("/api/products", json!({ "title": "Savon" }), Some(&cookie)),
+    )
+    .await;
+
+    let listing = call(&pool, get("/api/products", Some(&cookie))).await;
+    assert_eq!(listing.body["total"], 0);
+}
+
 #[sqlx::test]
 async fn two_products_named_alike_get_distinct_addresses(pool: PgPool) {
     let cookie = signed_in_staff(&pool).await;

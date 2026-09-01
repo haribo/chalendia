@@ -36,21 +36,10 @@ async function submit(): Promise<void> {
   unreachable.value = false
   errors.value = {}
 
-  // Typed in major units, held in minor ones.
+  // Typed in major units, held in minor ones. An amount nobody can read is
+  // sent as the nothing it is: the shop refuses it with every other field in
+  // one answer, rather than this form refusing it on its own first (#56).
   const minor = parseAmount(price.value, shop.currency ?? 'EUR', locale.value)
-
-  // An amount that is not a number cannot be put in the request at all: the
-  // contract carries an integer. The field is marked here rather than sending
-  // something the shop would have to guess at, and the value shows the problem
-  // itself, so it is marked without words.
-  //
-  // The cost is that the other fields are then refused on the next attempt
-  // rather than with this one — see the issue linked from the pull request.
-  if (minor === undefined) {
-    errors.value = { price: '' }
-    submitting.value = false
-    return
-  }
 
   const outcome = await createProduct({
     title: title.value,
