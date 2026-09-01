@@ -158,8 +158,10 @@ the bar of those screens: there is no Settings page to reach yet.
   needs an accountant and a declaration, not a setting — see the exclusions below.
 - A rate has a **name and a percentage**, because "20 %" is not what a merchant looks
   for in a list; one of them is the shop default.
-- A rate that is assigned to a product cannot be deleted. It is refused with the list of
-  products using it, the way a category in use is (§ 8, Deletion).
+- A rate that is assigned to a product cannot be deleted. It is refused with **how many**
+  products carry it: a shop can have two hundred on one rate, and a list of them where a
+  sentence is expected is a list nobody reads. The merchant moves them to another rate,
+  then removes it.
 - Each product carries one rate from that list. A product with no rate assigned uses
   the shop default rate.
 - Entered prices include tax. The tax amount is derived, not added.
