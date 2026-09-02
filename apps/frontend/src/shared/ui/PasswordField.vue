@@ -3,6 +3,8 @@ import { computed, ref, useId, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import FieldFrame from '@/shared/ui/FieldFrame.vue'
+import IconEye from '@/shared/ui/icons/IconEye.vue'
+import IconEyeOff from '@/shared/ui/icons/IconEyeOff.vue'
 import { useFormSubmitting } from '@/shared/ui/form-state'
 
 const props = withDefaults(
@@ -44,11 +46,36 @@ const describedBy = computed(() =>
     .join(' ') || undefined,
 )
 
-/** Four steps, reached at a quarter of the minimum each. */
+/**
+ * A deliberately conservative estimate, in four steps.
+ *
+ * Length alone used to fill the bar, so twelve identical letters looked strong
+ * while the shop refuses them. This never reaches the top without length *and*
+ * variety, so it does not promise what the server would turn down — the real
+ * verdict is the server's, and this only has to avoid contradicting it (#71).
+ */
 const filledSteps = computed(() => {
-  const step = props.minimumLength / 4
-  return Math.min(4, Math.floor(model.value.length / step))
+  const value = model.value
+  if (value.length === 0) return 0
+  if (value.length < props.minimumLength) return 1
+
+  const classes = [/\p{Ll}/u, /\p{Lu}/u, /\p{N}/u, /[^\p{L}\p{N}]/u].filter((kind) =>
+    kind.test(value),
+  ).length
+  const distinct = new Set(value).size
+
+  // Long and varied, or very long: two ways to reach the top, since a
+  // passphrase of lowercase words is stronger than a short mixed string.
+  if (value.length >= props.minimumLength * 2 || (classes >= 3 && distinct >= 10)) return 4
+  if (classes >= 2 || distinct >= 8) return 3
+
+  return 2
 })
+
+/** What the bar says to someone who cannot see it. */
+const strengthLabel = computed(() =>
+  t(`forms.password.strength.${['empty', 'weak', 'fair', 'good', 'strong'][filledSteps.value]}`),
+)
 </script>
 
 <template>
@@ -82,17 +109,28 @@ const filledSteps = computed(() => {
           type="button"
           class="reveal"
           :disabled="locked"
+          :aria-label="revealed ? t('forms.password.hide') : t('forms.password.show')"
           @click="revealed = !revealed"
         >
-          {{ revealed ? t('forms.password.hide') : t('forms.password.show') }}
+          <IconEyeOff v-if="revealed" />
+          <IconEye v-else />
         </button>
       </template>
     </FieldFrame>
 
+    <!-- Named, not merely coloured: four green segments carry nothing to
+         someone who cannot tell them apart, and nothing at all to a screen
+         reader (WCAG 1.4.1). -->
+    <!-- Once the shop has refused it, the bar says so too. A local estimate
+         cannot see everything a dictionary does — motdepasse123 is long and
+         varied and still guessed — so when the verdict arrives, the bar stops
+         claiming otherwise rather than sitting green under a refusal. -->
     <div
       v-if="strength"
       class="strength"
-      role="presentation"
+      :class="{ refused: invalid }"
+      role="img"
+      :aria-label="invalid ? t('forms.password.strength.refused') : strengthLabel"
     >
       <span
         v-for="step in 4"
@@ -118,14 +156,20 @@ const filledSteps = computed(() => {
 }
 
 .reveal {
+  display: inline-flex;
+  align-items: center;
   flex: none;
   border: 0;
   background: transparent;
-  color: var(--colour-accent);
+  /* Muted, not accented: revealing a password is a convenience beside the
+     value, never the action the screen exists for. */
+  color: var(--colour-text-muted);
   font: inherit;
-  font-size: var(--text-s);
-  font-weight: 600;
   cursor: pointer;
+}
+
+.reveal:hover {
+  color: var(--colour-text);
 }
 
 .reveal:disabled {
@@ -136,6 +180,10 @@ const filledSteps = computed(() => {
   display: flex;
   gap: var(--space-1);
   margin: var(--space-1) 0 0 var(--space-3);
+}
+
+.strength.refused span.reached {
+  background: var(--colour-danger);
 }
 
 .strength span {
