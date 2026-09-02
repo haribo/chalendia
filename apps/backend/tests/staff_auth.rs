@@ -150,6 +150,30 @@ async fn setup_runs_once_and_is_refused_afterwards(pool: PgPool) {
     assert_eq!(accounts, 1);
 }
 
+/// Long enough and still guessed: the one case where the value hides its own
+/// problem, so the shop names it — as an identifier the interface translates,
+/// never as a sentence (#71).
+#[sqlx::test]
+async fn a_guessable_password_is_refused_and_creates_nothing(pool: PgPool) {
+    let mut body = setup_body();
+    body["administratorPassword"] = json!("motdepasse123");
+
+    let answer = call(&pool, post("/api/setup", body)).await;
+
+    assert_eq!(answer.status, StatusCode::UNPROCESSABLE_ENTITY);
+    let params = answer.body["invalid-params"]
+        .as_array()
+        .expect("refused fields");
+    assert_eq!(params[0]["name"], "administratorPassword");
+    assert_eq!(params[0]["reason"], "common");
+
+    let shops: i64 = sqlx::query_scalar("select count(*) from shops")
+        .fetch_one(&pool)
+        .await
+        .expect("the shops can be counted");
+    assert_eq!(shops, 0);
+}
+
 #[sqlx::test]
 async fn a_short_password_is_refused_and_creates_nothing(pool: PgPool) {
     let mut body = setup_body();
@@ -162,13 +186,9 @@ async fn a_short_password_is_refused_and_creates_nothing(pool: PgPool) {
         .as_array()
         .expect("refused fields");
     assert_eq!(params[0]["name"], "administratorPassword");
-    // The count of what is missing is what the dots on screen do not show.
-    assert!(
-        params[0]["reason"]
-            .as_str()
-            .unwrap()
-            .contains("7 characters missing")
-    );
+    // Too short shows its own problem: the field is marked, and nothing is
+    // written (#71).
+    assert!(params[0].get("reason").is_none(), "{:?}", params[0]);
 
     let shops: i64 = sqlx::query_scalar("select count(*) from shops")
         .fetch_one(&pool)

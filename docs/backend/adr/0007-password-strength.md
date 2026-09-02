@@ -23,7 +23,11 @@ something every install can rely on.
 in addition to the twelve-character minimum.
 
 The shop's own words are passed as context — the shop name, the legal identity, the
-staff address — so a password built from them is penalised the way a name is.
+staff address. Measured, this catches a password that **is** one of them or nearly so:
+`owner@fabrique-savons.fr` drops from 4 to 0. It does **not** catch a password merely
+built out of them — `fabriquesavons2026` scores 4 either way. The context is worth
+passing for what it does catch, and this states what it does not, so nobody later reads
+a promise into it.
 
 ### Why not the hand-written scorer used by tribnest
 
