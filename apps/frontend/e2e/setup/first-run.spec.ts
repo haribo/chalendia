@@ -33,16 +33,10 @@ test.describe('First run', () => {
       await page.getByLabel(/^password$|^mot de passe$/i).fill('short')
       await page.getByRole('button', { name: /create the shop|créer la boutique/i }).click()
 
-      // Both refusals arrive together, and the address carries no message
-      // because its value already shows the problem.
-      //
-      // Filtered on visibility: the notch reserves its width with an invisible
-      // copy of the same words, so a bare text query finds two.
-      await expect(
-        page
-          .getByText(/characters missing|caractères manquants/i)
-          .filter({ visible: true }),
-      ).toBeVisible()
+      // Both refusals arrive together, and neither carries words: an address
+      // missing its domain and a password too short each show their own
+      // problem (#71).
+      await expect(page.locator('.message').filter({ visible: true })).toHaveCount(0)
 
       // The field keeps its own name even while refused, which is what lets
       // this line find it at all.
@@ -54,6 +48,19 @@ test.describe('First run', () => {
         'aria-invalid',
         'true',
       )
+      await expect(page).toHaveURL(/\/setup$/)
+    })
+
+    await reportStep(page, 'A long password a dictionary knows is refused too', async () => {
+      await page.getByLabel(/email address|adresse e-mail/i).fill('owner@fabrique-savons.fr')
+      await page.getByLabel(/^password$|^mot de passe$/i).fill('motdepasse123')
+      await page.getByRole('button', { name: /create the shop|créer la boutique/i }).click()
+
+      // Thirteen characters, and the value hides its problem entirely — so
+      // this is the one refusal the shop puts words on.
+      await expect(
+        page.getByText(/too common|trop courant/i).filter({ visible: true }),
+      ).toBeVisible()
       await expect(page).toHaveURL(/\/setup$/)
     })
 

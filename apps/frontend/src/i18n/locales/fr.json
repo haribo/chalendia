@@ -54,8 +54,23 @@
     "signOut": "Se déconnecter"
   },
   "forms": {
+    "weakness": {
+      "common": "Ce mot de passe est trop courant.",
+      "repeated": "Les répétitions sont faciles à deviner.",
+      "sequence": "Les suites sont faciles à deviner.",
+      "date": "Les dates sont faciles à deviner.",
+      "guessable": "Ce mot de passe est trop facile à deviner."
+    },
     "optional": "facultatif",
     "password": {
+      "strength": {
+        "empty": "Force du mot de passe : vide",
+        "weak": "Force du mot de passe : faible",
+        "fair": "Force du mot de passe : moyenne",
+        "good": "Force du mot de passe : bonne",
+        "refused": "Force du mot de passe : refusé",
+        "strong": "Force du mot de passe : forte"
+      },
       "show": "Afficher",
       "hide": "Masquer"
     }

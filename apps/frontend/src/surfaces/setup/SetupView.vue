@@ -46,6 +46,18 @@ const administratorPassword = ref('')
 const submitting = ref(false)
 const errors = ref<FieldErrors>({})
 
+/**
+ * The shop names a weakness; the sentence is written here, where the reader's
+ * language is known. An empty string is a refusal without words — the length
+ * shows its own problem (#71).
+ */
+const passwordProblem = computed(() => {
+  const named = errors.value.administratorPassword
+  if (named === undefined || named === '') return named
+
+  return t(`forms.weakness.${named}`)
+})
+
 // Named and sorted per interface language; the shop holds the code.
 const countries = computed(() => countryOptions(locale.value))
 
@@ -221,8 +233,7 @@ async function submit(): Promise<void> {
           v-model="administratorPassword"
           :icon="IconLock"
           :label="t('setup.fields.administratorPassword')"
-          :hint="t('setup.fields.passwordRule')"
-          :error="errors.administratorPassword"
+          :error="passwordProblem"
         />
       </fieldset>
 
