@@ -65,9 +65,17 @@ Custom permission matrices are out of v1.
 - Until the address is verified, the account may browse and hold a cart but cannot
   place an order. Verification is re-sendable, with a bounded number of attempts.
 - Password rules follow current guidance: **at least 12 characters**, no composition
-  rules, no forced rotation, and rejection of known-breached passwords (*TBD: breach
-  check source, and whether it is optional for offline installs*). Length is the only
-  requirement stated to the user, and it is stated before they submit.
+  rules, no forced rotation. Length is stated to the user before they submit.
+- A password that would be **guessed** is refused, however long it is: `motdepasse123`
+  and `aaaaaaaaaaaa` are twelve characters and neither survives a dictionary. The shop
+  says what is wrong with it — "this looks like a common password", "repeats are easy
+  to guess" — and what would help, in the reader's language. It never asks for a capital
+  and a digit: `Password123!` has both and is guessed just as fast.
+- The check runs **offline**, on dictionaries the shop carries, since a self-hosted
+  installation may have no outbound internet
+  ([backend ADR 0007](../backend/adr/0007-password-strength.md)).
+- While typing, the strength shown is an estimate and says so by being conservative: it
+  never fills for something the shop would refuse.
 - **The first administrator is created at setup and is verified by construction**: the
   shop cannot send mail before it is configured, so requiring a verification the
   operator could not receive would lock them out of their own installation. Every
