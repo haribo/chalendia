@@ -60,6 +60,16 @@ impl ApiError {
         }
     }
 
+    /// The stable identifier of this problem kind, which is how the interface
+    /// chooses a message in the reader's language
+    /// (`docs/backend/adr/0003-problem-details-errors.md`). A relative
+    /// reference, resolved against the request: this shop is served from
+    /// whatever address its operator gave it.
+    pub fn with_kind(mut self, kind: &'static str) -> Self {
+        self.kind = kind;
+        self
+    }
+
     pub fn with_invalid_params(mut self, params: Vec<InvalidParam>) -> Self {
         self.invalid_params = Some(params);
         self

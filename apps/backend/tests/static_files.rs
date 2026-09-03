@@ -35,6 +35,9 @@ async fn get(dir: &str, path: &str) -> (StatusCode, String) {
         AppState {
             db: unreachable_pool(),
             config: config_serving(dir),
+            // Neither is exercised here; images have their own suite.
+            storage: chalendia_backend::storage::Storage::at(std::env::temp_dir()),
+            deriver: chalendia_backend::images::Deriver::default(),
         },
     )
     .oneshot(
@@ -138,6 +141,9 @@ async fn the_content_type_of_an_asset_is_not_the_shell_one() {
         AppState {
             db: unreachable_pool(),
             config: config_serving(dir.path().to_str().unwrap()),
+            // Neither is exercised here; images have their own suite.
+            storage: chalendia_backend::storage::Storage::at(std::env::temp_dir()),
+            deriver: chalendia_backend::images::Deriver::default(),
         },
     )
     .oneshot(

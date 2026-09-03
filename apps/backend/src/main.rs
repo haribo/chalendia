@@ -3,6 +3,8 @@ use std::process::ExitCode;
 use chalendia_backend::config::Config;
 use chalendia_backend::db;
 use chalendia_backend::http::{AppState, router};
+use chalendia_backend::images::Deriver;
+use chalendia_backend::storage::Storage;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -45,6 +47,27 @@ async fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
+    let storage = Storage::at(&config.media_dir);
+    if let Err(error) = tokio::fs::create_dir_all(storage.root()).await {
+        // Before the listener: a shop that cannot write an image would accept
+        // uploads all day and lose every one of them.
+        tracing::error!(
+            "cannot use the media directory {}: {error}",
+            storage.root().display()
+        );
+        eprintln!(
+            "cannot use the media directory {}: {error}",
+            storage.root().display()
+        );
+        return ExitCode::FAILURE;
+    }
+
+    // Looks for pending images straight away, which is how a restart in the
+    // middle of an encoding is taken up again
+    // (`docs/backend/adr/0008-image-pipeline.md`).
+    let deriver = Deriver::default();
+    tokio::spawn(deriver.clone().run(pool.clone(), storage.clone()));
+
     let listener = match tokio::net::TcpListener::bind(config.bind).await {
         Ok(listener) => listener,
         Err(error) => {
@@ -55,14 +78,17 @@ async fn main() -> ExitCode {
     };
 
     tracing::info!(
-        "listening on http://{}, public url {}",
+        "listening on http://{}, public url {}, media in {}",
         config.bind,
-        config.public_url
+        config.public_url,
+        config.media_dir,
     );
 
     let state = AppState {
         db: pool,
         config: config.clone(),
+        storage,
+        deriver,
     };
     let served = axum::serve(listener, router(&config, state))
         .with_graceful_shutdown(shutdown_signal())

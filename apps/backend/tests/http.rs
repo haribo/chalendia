@@ -35,6 +35,9 @@ async fn call(pool: PgPool, request: Request<Body>) -> (StatusCode, Option<Strin
         AppState {
             db: pool,
             config: config(),
+            // Neither is exercised here; images have their own suite.
+            storage: chalendia_backend::storage::Storage::at(std::env::temp_dir()),
+            deriver: chalendia_backend::images::Deriver::default(),
         },
     )
     .oneshot(request)

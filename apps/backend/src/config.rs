@@ -19,11 +19,17 @@ pub const DATABASE_MAX_CONNECTIONS: &str = "CHALENDIA_DATABASE_MAX_CONNECTIONS";
 /// Where the built frontend lives. Set in the container image, unset in
 /// development, where the dev server serves the application itself.
 pub const STATIC_DIR: &str = "CHALENDIA_STATIC_DIR";
+/// Where uploaded files are written. Everything under it is derived from what
+/// the database holds, so it survives a restart and is worth backing up.
+pub const MEDIA_DIR: &str = "CHALENDIA_MEDIA_DIR";
 
 const DEFAULT_BIND: &str = "127.0.0.1:8080";
 /// Small on purpose: the target is one shop on a modest server, where each
 /// connection costs the database more than it buys the shop.
 const DEFAULT_DATABASE_MAX_CONNECTIONS: u32 = 5;
+/// Relative to the working directory, which the container image sets to the
+/// shop's own directory and a developer leaves at the repository root.
+const DEFAULT_MEDIA_DIR: &str = "media";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
@@ -36,6 +42,9 @@ pub struct Config {
     pub database_url: String,
     pub database_max_connections: u32,
     pub static_dir: Option<String>,
+    /// Where uploaded files live. A mounted volume in a container, a directory
+    /// anywhere else; the shop writes nothing outside it.
+    pub media_dir: String,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -109,6 +118,7 @@ impl Config {
             database_url,
             database_max_connections,
             static_dir: read(&source, STATIC_DIR),
+            media_dir: read(&source, MEDIA_DIR).unwrap_or_else(|| DEFAULT_MEDIA_DIR.to_owned()),
         })
     }
 }

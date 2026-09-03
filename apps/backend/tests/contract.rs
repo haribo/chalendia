@@ -78,6 +78,9 @@ async fn the_running_shop_serves_its_own_contract() {
         AppState {
             db: pool(),
             config: config(),
+            // Neither is exercised here; images have their own suite.
+            storage: chalendia_backend::storage::Storage::at(std::env::temp_dir()),
+            deriver: chalendia_backend::images::Deriver::default(),
         },
     )
     .oneshot(

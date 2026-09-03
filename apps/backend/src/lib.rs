@@ -4,6 +4,8 @@ pub mod catalogue;
 pub mod config;
 pub mod db;
 pub mod http;
+pub mod images;
 pub mod shop;
+pub mod storage;
 pub mod tax;
 pub mod validation;

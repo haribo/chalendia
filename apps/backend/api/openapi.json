@@ -166,6 +166,200 @@
         }
       }
     },
+    "/api/products/{id}/images": {
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Every image of one product, in the order they are shown.",
+        "operationId": "list_images",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The product",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The product's images",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductImage"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Add one photograph to a product.",
+        "description": "Multipart, with a `file` part carrying the JPEG and an optional\n`alternativeText` part. The answer comes back before the sizes the shop\nserves are derived, and says so: the image is `pending`\n(`docs/backend/adr/0008-image-pipeline.md`).",
+        "operationId": "add_image",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The product",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Stored, and being prepared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "type: /problems/malformed-upload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "type: /problems/no-such-product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "type: /problems/image-too-heavy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "type: /problems/image-not-jpeg, /problems/image-too-small, /problems/image-too-large, /problems/too-many-images, /problems/image-missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products/{id}/images/{imageId}": {
+      "delete": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Remove one image, and the files it was stored as.",
+        "operationId": "remove_image",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The product",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "imageId",
+            "in": "path",
+            "description": "The image",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Removed"
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "type: /problems/no-such-image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sessions": {
       "post": {
         "tags": [
@@ -643,6 +837,15 @@
           }
         }
       },
+      "ImageState": {
+        "type": "string",
+        "description": "How far a derived size has got.",
+        "enum": [
+          "pending",
+          "ready",
+          "failed"
+        ]
+      },
       "InvalidParam": {
         "type": "object",
         "description": "One refused field, in the shape RFC 9457 reserves for exactly this.\n\n`reason` is present only when it says something the submitted value does not\nalready show: \"already taken\" yes, \"this address is malformed\" no — the\nclient can see that.",
@@ -730,6 +933,51 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ProductImage": {
+        "type": "object",
+        "description": "One image, as the back office reads it.",
+        "required": [
+          "id",
+          "reference",
+          "position",
+          "state",
+          "width",
+          "height"
+        ],
+        "properties": {
+          "alternativeText": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Absent is a flag in the back office, not a refusal at upload\n(`docs/design/catalog.md` § 5)."
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Ascending, first shown first."
+          },
+          "reference": {
+            "type": "string",
+            "description": "The varying part of every URL this image is served at."
+          },
+          "state": {
+            "$ref": "#/components/schemas/ImageState"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
