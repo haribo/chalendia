@@ -59,12 +59,15 @@ Stated in the documentation, not implied:
 |---|---|
 | HTTPS termination | The shop expects a reverse proxy in front; it never serves its own certificates |
 | Database backups | The shop owns no backup schedule and no off-site storage |
+| Backing up the uploaded files | They live on a mounted volume beside the database, and nothing in them can be recomputed from it: a dump alone restores a catalogue whose every photograph is missing |
 | Email deliverability (SPF, DKIM, DMARC) | Depends on the operator's domain and DNS |
 | Carrier and payment provider contracts | The merchant's own commercial agreements |
 | Publishing modified sources | Required by the licence when a modified version is served over a network (ADR 0002) |
 
 The shop refuses to start rather than run without a configured database, and says which
-variable is missing.
+variable is missing. It refuses the same way when it cannot write to the directory its
+uploads go in — an installation that accepts photographs all day and loses each one is
+worse than one that will not start.
 
 ---
 

@@ -101,24 +101,61 @@ Typo tolerance and suggestions are *TBD*, and out of v1 unless free.
 
 - Images are uploaded in the back office and stored by the shop. External URLs are not
   a supported source.
-- On upload, the shop derives the sizes it serves and keeps the original, which is never
-  served. Any later change to the served sizes is applied by re-deriving from the
-  original, without asking the merchant for the files again.
+- On upload the shop derives the sizes it serves and keeps the **source**, which is
+  never served. Any later change to the served sizes is applied by re-deriving from it,
+  without asking the merchant for the files again.
 
-| Derived size | Used by |
-|---|---|
-| Thumbnail | Cart lines, order lines, search results, back office lists |
-| Medium | Category grids, product cards |
-| Large | Product page and zoom |
+| Derived size | Long side | Used by |
+|---|---|---|
+| Thumbnail | 200 px | Cart lines, order lines, search results, back office lists |
+| Medium | 600 px | Category grids, product cards |
+| Large | 1400 px | Product page and zoom |
 
-- Served formats favour the smallest modern encoding the browser accepts, with a
-  fallback for browsers that accept none of them.
-- Derivation happens once, at upload. Nothing is resized per request.
+Ratios are kept; the numbers are the long side, so a portrait and a landscape photograph
+of the same product sit in the same grid.
+
+### What the shop keeps, and what it never sees
+
+The browser **reduces a photograph to 2400 px on the long side before uploading it**, and
+that reduced file is what the shop keeps as its source. A phone photograph is several
+megabytes for something served at 1400 px, and the upload is the slowest part of a
+merchant's day.
+
+The consequence is stated rather than implied: **the untouched original never reaches the
+shop**. Re-derivation stays possible for every size a web page displays — that is what
+the promise above is worth — and a 4K nobody shows is given up. A source below 800 px on
+the long side is refused, since the large size would be an upscale; **a source above
+2400 px is refused too**, rather than quietly reduced. The browser's reduction is a
+convenience for the merchant, and the limit is the shop's own — a client that skips the
+browser is told what the shop keeps instead of being told nothing and served something
+else.
+
+### One format, and what that costs
+
+The browser converts to **JPEG** and the shop accepts nothing else: one decoding branch,
+and a smaller surface for a file arriving from outside.
+
+**Transparency is flattened onto white** during that conversion. A cut-out product on a
+transparent background — what a photography studio delivers by default — becomes a white
+rectangle, invisible on a light page and plainly visible on a dark one. This is a
+deliberate trade for simplicity, recorded here so a merchant's complaint about a white
+background meets a decision that can be revisited rather than a surprise.
+
+### Serving
+
+- Served in **AVIF**, with a fallback for browsers that accept none of the modern
+  formats. Encoding is slower and happens once per image; the bytes saved are paid on
+  every visit.
+- Derivation happens once per image and **after the upload answers**: a merchant adding
+  ten photographs does not wait for twenty seconds of encoding. Until it is done the shop
+  serves the source, and the back office shows which images are still being prepared —
+  never a silent gap ([backend ADR 0008](../backend/adr/0008-image-pipeline.md)).
+- Nothing is ever resized per request.
 - Every image carries alternative text, prompted at upload; a product image without it
   is flagged in the back office.
-- Limits: a maximum file size and a maximum number of images per product, both
-  enforced with an explicit message (*TBD: values*). Without them, one merchant's photo
-  library fills the disk and the shop stops.
+- Limits: **8 MB per file and 10 images per product**, refused with an explicit message.
+  Without them, one merchant's photo library fills the disk and the shop stops. They are
+  enforced by the shop, never only by the browser: a client sends whatever it wants.
 - The first image is the product's default; staff order the rest explicitly.
 
 ---
