@@ -65,6 +65,7 @@ Rules must be concise. One rule per line when possible.
 
 - A change **modifies the UI** when it changes the rendered output for an end user — an element added, removed or moved, a styling change, an interaction behavior change. A refactor proven to render identically is exempt and says so explicitly
 - Before implementing a UI-modifying change, produce a mockup of the touched surfaces and states and obtain the user's explicit validation before writing code — realistic data including the edge cases (long free-form text, crowded lists), and every theme when theming applies. Debated variants are shown side by side
+- The mockup is delivered as an **Artifact**, never as a file to open by hand — one per deliverable, redeployed to the same URL at each iteration, so the link and the validated version are one thing
 - Validation is an explicit go on that specific mockup; absence of objection is not validation
 - A visual check after implementation verifies conformance to the validated mockup — it is never where the design gets discovered
 - When a non-obvious UI/UX decision is settled in conversation, propose adding it to the matching design document — interaction patterns, forms, terminology — rather than leaving it implicit in a component
