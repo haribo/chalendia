@@ -22,13 +22,14 @@ describe('PasswordField', () => {
     await wrapper.get('button').trigger('click')
 
     expect(wrapper.get('input').attributes('type')).toBe('text')
-    expect(wrapper.get('button').text()).toBe('Hide')
+    // The word became an eye; the name is what a screen reader still hears.
+    expect(wrapper.get('button').attributes('aria-label')).toBe('Hide')
   })
 
   it('offers the reveal, never imposes it', () => {
     // Creating an account blind is the best way to mistype the same thing
     // twice; the default still hides.
-    expect(field().get('button').text()).toBe('Show')
+    expect(field().get('button').attributes('aria-label')).toBe('Show')
   })
 
   it('never submits the form it sits in', () => {
@@ -40,10 +41,47 @@ describe('PasswordField', () => {
     expect(wrapper.findAll('.strength span.reached')).toHaveLength(0)
 
     await wrapper.get('input').setValue('correct')
-    expect(wrapper.findAll('.strength span.reached')).toHaveLength(2)
+    // Below the minimum, one step — never two: the bar must not promise what
+    // the shop would refuse (#71).
+    expect(wrapper.findAll('.strength span.reached')).toHaveLength(1)
 
     await wrapper.get('input').setValue('correct horse battery staple')
     expect(wrapper.findAll('.strength span.reached')).toHaveLength(4)
+  })
+
+  /**
+   * Length used to fill the bar on its own, so twelve identical letters looked
+   * strong while the shop refuses them outright (#71).
+   */
+  it('never calls length alone strong', async () => {
+    const wrapper = field({ minimumLength: 12 })
+
+    await wrapper.get('input').setValue('aaaaaaaaaaaa')
+
+    expect(wrapper.findAll('.strength span.reached').length).toBeLessThanOrEqual(2)
+  })
+
+  it('names what it shows, for whoever cannot see four green segments', async () => {
+    const wrapper = field({ minimumLength: 12 })
+    expect(wrapper.get('.strength').attributes('aria-label')).toBe('Password strength: empty')
+
+    await wrapper.get('input').setValue('correct horse battery staple')
+
+    expect(wrapper.get('.strength').attributes('aria-label')).toBe('Password strength: strong')
+  })
+
+  /**
+   * A local estimate cannot see everything a dictionary does: motdepasse123 is
+   * long and varied, and still refused. When the verdict arrives, the bar must
+   * stop claiming otherwise (#71).
+   */
+  it('stops claiming strength once the shop has refused it', async () => {
+    const wrapper = field({ minimumLength: 12, error: 'This password is too common.' })
+
+    await wrapper.get('input').setValue('motdepasse123')
+
+    expect(wrapper.get('.strength').classes()).toContain('refused')
+    expect(wrapper.get('.strength').attributes('aria-label')).toBe('Password strength: refused')
   })
 
   it('drops the strength bar when asked, whatever is typed', async () => {

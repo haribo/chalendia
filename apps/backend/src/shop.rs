@@ -134,15 +134,28 @@ pub async fn setup(pool: &PgPool, request: SetupRequest) -> Result<i64, SetupErr
         problems.push(FieldProblem::blank("administratorEmail"));
     }
 
-    if let Err(password::PasswordError::TooShort { minimum }) =
-        password::check(&request.administrator_password)
-    {
-        let missing = minimum.saturating_sub(request.administrator_password.chars().count());
-        // The count of what is missing is what the value does not show.
-        problems.push(FieldProblem::saying(
-            "administratorPassword",
-            format!("{missing} characters missing"),
-        ));
+    match password::check(
+        &request.administrator_password,
+        &[
+            &request.administrator_email,
+            &request.name,
+            &request.legal_identity,
+        ],
+    ) {
+        Ok(()) => {}
+        Err(password::PasswordError::TooShort { .. }) => {
+            // Too short shows its own problem: the field is marked, and the
+            // interface says nothing (`docs/design/core.md` § 3).
+            problems.push(FieldProblem::blank("administratorPassword"));
+        }
+        Err(password::PasswordError::Guessable { reason }) => {
+            // The identifier, never a sentence: the shop does not know the
+            // reader's language.
+            problems.push(FieldProblem::saying(
+                "administratorPassword",
+                reason.as_str(),
+            ));
+        }
     }
 
     if !problems.is_empty() {

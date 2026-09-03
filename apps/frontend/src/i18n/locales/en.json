@@ -54,8 +54,23 @@
     "signOut": "Sign out"
   },
   "forms": {
+    "weakness": {
+      "common": "This password is too common.",
+      "repeated": "Repeats are easy to guess.",
+      "sequence": "Sequences are easy to guess.",
+      "date": "Dates are easy to guess.",
+      "guessable": "This password is too easy to guess."
+    },
     "optional": "optional",
     "password": {
+      "strength": {
+        "empty": "Password strength: empty",
+        "weak": "Password strength: weak",
+        "fair": "Password strength: fair",
+        "good": "Password strength: good",
+        "refused": "Password strength: refused",
+        "strong": "Password strength: strong"
+      },
       "show": "Show",
       "hide": "Hide"
     }
