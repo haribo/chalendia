@@ -44,6 +44,11 @@ jobs:
       - name: Install the Rust toolchain
         run: rustup component add rustfmt clippy
 
+      # The AVIF encoder builds its assembly paths with nasm, and refuses to
+      # build without it (docs/backend/adr/0008-image-pipeline.md).
+      - name: Install nasm
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends nasm
+
       - uses: extractions/setup-just@v4
 
       - uses: Swatinem/rust-cache@v2

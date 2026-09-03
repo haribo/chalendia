@@ -5,24 +5,33 @@ edition = "2024"
 
 [dependencies]
 argon2 = "0.6"
-axum = "0.8"
+axum = { version = "0.8", features = ["multipart"] }
 axum-extra = { version = "0.12.6", features = ["cookie"] }
 base64 = "0.23.1"
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde"] }
 dotenvy = "0.15.7"
 getrandom = "0.4.3"
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+ravif = { version = "0.13", features = ["asm", "threading"] }
+rgb = "0.8"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 sha2 = "0.11.0"
 sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "tls-rustls-ring", "postgres", "macros", "migrate", "chrono"] }
 time = "0.3.55"
-tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "net", "signal"] }
+tokio = { version = "1.53.1", features = ["fs", "macros", "rt-multi-thread", "net", "signal", "time"] }
 tower-http = { version = "0.7.0", features = ["cors", "fs", "trace"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 utoipa = { version = "5.5.0", features = ["axum_extras"] }
 utoipa-axum = "0.2.0"
 zxcvbn = "3"
+
+# Dependencies built optimised even in a debug build. Without it, the AVIF
+# encoder runs unoptimised and one test image takes minutes rather than
+# seconds; our own crate stays unoptimised, so a backtrace is still readable.
+[profile.dev.package."*"]
+opt-level = 2
 
 [dev-dependencies]
 http-body-util = "0.1.5"
