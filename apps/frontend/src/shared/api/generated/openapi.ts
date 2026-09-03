@@ -70,6 +70,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/products/{id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every image of one product, in the order they are shown. */
+        get: operations["list_images"];
+        put?: never;
+        /**
+         * Add one photograph to a product.
+         * @description Multipart, with a `file` part carrying the JPEG and an optional
+         *     `alternativeText` part. The answer comes back before the sizes the shop
+         *     serves are derived, and says so: the image is `pending`
+         *     (`docs/backend/adr/0008-image-pipeline.md`).
+         */
+        post: operations["add_image"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/{id}/images/{imageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove one image, and the files it was stored as. */
+        delete: operations["remove_image"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sessions": {
         parameters: {
             query?: never;
@@ -244,6 +285,11 @@ export interface components {
             status: components["schemas"]["Status"];
         };
         /**
+         * @description How far a derived size has got.
+         * @enum {string}
+         */
+        ImageState: "pending" | "ready" | "failed";
+        /**
          * @description One refused field, in the shape RFC 9457 reserves for exactly this.
          *
          *     `reason` is present only when it says something the submitted value does not
@@ -281,6 +327,28 @@ export interface components {
             /** @description Absent means the first rate is the default and the others are not. */
             isDefault?: boolean;
             name: string;
+        };
+        /** @description One image, as the back office reads it. */
+        ProductImage: {
+            /**
+             * @description Absent is a flag in the back office, not a refusal at upload
+             *     (`docs/design/catalog.md` § 5).
+             */
+            alternativeText?: string | null;
+            /** Format: int32 */
+            height: number;
+            /** Format: int64 */
+            id: number;
+            /**
+             * Format: int32
+             * @description Ascending, first shown first.
+             */
+            position: number;
+            /** @description The varying part of every URL this image is served at. */
+            reference: string;
+            state: components["schemas"]["ImageState"];
+            /** Format: int32 */
+            width: number;
         };
         /** @description One page of a listing, and enough to say where it sits in the whole. */
         ProductPage: {
@@ -481,6 +549,151 @@ export interface operations {
             };
             /** @description A field was refused */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_images: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The product's images */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImage"][];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    add_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": string;
+            };
+        };
+        responses: {
+            /** @description Stored, and being prepared */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImage"];
+                };
+            };
+            /** @description type: /problems/malformed-upload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/no-such-product */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/image-too-heavy */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/image-not-jpeg, /problems/image-too-small, /problems/image-too-large, /problems/too-many-images, /problems/image-missing */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    remove_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product */
+                id: number;
+                /** @description The image */
+                imageId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/no-such-image */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

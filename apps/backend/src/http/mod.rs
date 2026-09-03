@@ -1,6 +1,7 @@
 pub mod catalogue;
 pub mod error;
 pub mod health;
+pub mod images;
 pub mod setup;
 pub mod shell;
 pub mod staff;
@@ -18,6 +19,8 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 use crate::config::Config;
+use crate::images::Deriver;
+use crate::storage::Storage;
 use error::ApiError;
 
 /// What every handler can reach. Cloned per request, so it holds handles, never
@@ -26,6 +29,12 @@ use error::ApiError;
 pub struct AppState {
     pub db: PgPool,
     pub config: Config,
+    /// The one way to a file, so remote object storage is a second
+    /// implementation rather than a search through the code
+    /// (`docs/adr/0004-v1-release-scope.md`).
+    pub storage: Storage,
+    /// Woken when an upload leaves an image waiting for its sizes.
+    pub deriver: Deriver,
 }
 
 /// The whole HTTP surface. Built from configuration so tests exercise the same
@@ -51,6 +60,20 @@ pub fn router(config: &Config, state: AppState) -> Router {
                     "/products",
                     get(catalogue::list_products).post(catalogue::create_product),
                 )
+                .route(
+                    "/products/{id}/images",
+                    get(images::list_images).post(images::add_image).layer(
+                        // The default is two megabytes, and the shop accepts
+                        // eight. The margin is the multipart framing around
+                        // the file, never a second, laxer limit: the file
+                        // itself is measured after it is read.
+                        axum::extract::DefaultBodyLimit::max(crate::images::MAX_BYTES + 64 * 1024),
+                    ),
+                )
+                .route(
+                    "/products/{id}/images/{imageId}",
+                    axum::routing::delete(images::remove_image),
+                )
                 .route("/vat-rates", get(tax::list_rates).post(tax::create_rate))
                 .route("/vat-rates/{id}", axum::routing::delete(tax::remove_rate))
                 .route(
@@ -61,6 +84,10 @@ pub fn router(config: &Config, state: AppState) -> Router {
                 // writing a client reads it from the running instance.
                 .route("/openapi.json", get(openapi_document)),
         )
+        // Outside /api on purpose: these are files a page loads, not the API
+        // a client calls, and they are the only public thing the shop serves
+        // from its own storage.
+        .route("/media/images/{reference}/{file}", get(images::serve_image))
         .with_state(state);
 
     let app = match &config.static_dir {

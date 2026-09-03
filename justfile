@@ -34,6 +34,9 @@ dev-setup:
     command -v cargo >/dev/null  || missing+=("rust (https://rustup.rs)")
     command -v node >/dev/null   || missing+=("node (https://nodejs.org/)")
     command -v docker >/dev/null || missing+=("docker (https://docs.docker.com/engine/install/)")
+    # The AVIF encoder builds its assembly paths with nasm and refuses to build
+    # without it (docs/backend/adr/0008-image-pipeline.md).
+    command -v nasm >/dev/null   || missing+=("nasm (https://nasm.us, or your package manager)")
     if [ ${#missing[@]} -gt 0 ]; then
         echo "missing prerequisites:"
         for tool in "${missing[@]}"; do echo "  - $tool"; done

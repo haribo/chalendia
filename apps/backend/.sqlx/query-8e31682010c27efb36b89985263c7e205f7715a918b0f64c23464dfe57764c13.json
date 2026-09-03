@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select state from product_images where reference = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "state",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "state"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8e31682010c27efb36b89985263c7e205f7715a918b0f64c23464dfe57764c13"
+}

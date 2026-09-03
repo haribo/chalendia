@@ -1,0 +1,100 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select id, reference, position, alternative_text, state, source_width, source_height from product_images where product_id = $1 order by position, id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "reference",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "reference"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "position",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "position"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "alternative_text",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "alternative_text"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "state",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "state"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "source_width",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "source_width"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "source_height",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "source_height"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "39e3a7fd7856364be6051f19eb804cf0b1c9c87919e4931b39af73ab518a17c0"
+}

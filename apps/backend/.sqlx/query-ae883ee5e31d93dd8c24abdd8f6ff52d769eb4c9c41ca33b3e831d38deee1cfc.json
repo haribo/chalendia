@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select state from product_images limit 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "state",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "state"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "ae883ee5e31d93dd8c24abdd8f6ff52d769eb4c9c41ca33b3e831d38deee1cfc"
+}

@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update product_images set state = $2, failure = $3 where id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "eaf2171d60ee6cfa03199cf3a4542c9c5b07fb0b447c98f4af00ef44c7d2746f"
+}

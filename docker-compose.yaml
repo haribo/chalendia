@@ -31,6 +31,10 @@ services:
       CHALENDIA_PUBLIC_URL: ${CHALENDIA_PUBLIC_URL:-http://localhost:8080}
       DATABASE_URL: postgres://${POSTGRES_USER:-chalendia}:${POSTGRES_PASSWORD:-chalendia}@database:5432/${POSTGRES_DB:-chalendia}
       RUST_LOG: ${RUST_LOG:-info}
+    volumes:
+      # The product photographs. The only state outside the database, and the
+      # only one that cannot be recomputed: back it up with the dump.
+      - media:/srv/chalendia/media
     ports:
       - "${CHALENDIA_PORT:-8080}:8080"
     depends_on:
@@ -41,3 +45,4 @@ services:
 
 volumes:
   database:
+  media:
