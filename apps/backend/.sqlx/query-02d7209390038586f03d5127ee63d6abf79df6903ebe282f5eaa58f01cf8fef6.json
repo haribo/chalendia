@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update product_images as image set position = ordering.position from unnest($1::bigint[], $2::int[]) as ordering (id, position) where image.id = ordering.id and image.product_id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8Array",
+        "Int4Array",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "02d7209390038586f03d5127ee63d6abf79df6903ebe282f5eaa58f01cf8fef6"
+}

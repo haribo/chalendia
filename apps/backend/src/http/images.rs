@@ -159,6 +159,49 @@ pub async fn remove_image(
     }
 }
 
+/// The order a product's images are to be shown in.
+#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct WantedOrder {
+    /// Every image of the product, in the order they are to be shown.
+    ///
+    /// The whole list, never a move: a list says what the order is to be,
+    /// where a move says what it becomes from an order the caller read a
+    /// moment ago and that may have changed since.
+    pub image_ids: Vec<i64>,
+}
+
+/// Put a product's images in a given order.
+#[utoipa::path(
+    put,
+    path = "/api/products/{id}/images/order",
+    tag = "catalogue",
+    params(("id" = i64, Path, description = "The product")),
+    request_body = WantedOrder,
+    responses(
+        (status = 200, description = "The images, in their new order", body = Vec<ProductImage>),
+        (status = 401, description = "No live session", body = ApiError),
+        (status = 404, description = "type: /problems/no-such-product", body = ApiError),
+        (
+            status = 409,
+            description = "type: /problems/not-the-same-images — one missing, extra, \
+                           repeated, or belonging to another product",
+            body = ApiError,
+        ),
+    ),
+)]
+pub async fn reorder_images(
+    CurrentStaff(_staff): CurrentStaff,
+    State(state): State<AppState>,
+    Path(product_id): Path<i64>,
+    Json(wanted): Json<WantedOrder>,
+) -> Response {
+    match images::reorder(&state.db, product_id, &wanted.image_ids).await {
+        Ok(images) => Json(images).into_response(),
+        Err(error) => refusal_response(error),
+    }
+}
+
 /// Serve one file of one image.
 ///
 /// Public and unauthenticated: this is what a storefront page loads. The file
@@ -279,6 +322,12 @@ fn refusal_response(error: ImageError) -> Response {
             "Content Too Large",
             "/problems/image-too-heavy",
             format!("The file is {bytes} bytes, and the shop accepts at most {MAX_BYTES}."),
+        ),
+        ImageError::NotTheSameImages => problem(
+            StatusCode::CONFLICT,
+            "Conflict",
+            "/problems/not-the-same-images",
+            "The order sent is not exactly this product's images. Read them again.",
         ),
         ImageError::TooMany => problem(
             StatusCode::UNPROCESSABLE_ENTITY,

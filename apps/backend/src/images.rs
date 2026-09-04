@@ -80,10 +80,18 @@ pub enum ImageError {
     NoSuchProduct,
     NoSuchImage,
     NotJpeg,
-    TooSmall { long_side: u32 },
-    TooLarge { long_side: u32 },
-    TooHeavy { bytes: usize },
+    TooSmall {
+        long_side: u32,
+    },
+    TooLarge {
+        long_side: u32,
+    },
+    TooHeavy {
+        bytes: usize,
+    },
     TooMany,
+    /// The order sent is not exactly the product's images.
+    NotTheSameImages,
     Unavailable,
 }
 
@@ -241,6 +249,87 @@ pub async fn remove(
     }
 
     Ok(())
+}
+
+/// Puts a product's images in the order the caller asks for.
+///
+/// The **whole list**, never a move. A list says what the order is to be; a
+/// "move this one up" says what it is to become from an order the caller read
+/// a moment ago and that may have changed since.
+///
+/// The list must be exactly the product's images — none missing, none extra,
+/// none repeated, none belonging elsewhere. Without that rule a client holding
+/// a stale page silently reorders images it has never seen, and the merchant
+/// finds a storefront ordered by a screen nobody was looking at.
+pub async fn reorder(
+    pool: &PgPool,
+    product_id: i64,
+    wanted: &[i64],
+) -> Result<Vec<ProductImage>, ImageError> {
+    let mut transaction = pool.begin().await?;
+
+    // Locked as the upload locks it, so an image cannot be added or removed
+    // between the check below and the write that trusts it.
+    let product = sqlx::query_scalar!(
+        "select id from products where id = $1 for update",
+        product_id
+    )
+    .fetch_optional(&mut *transaction)
+    .await?;
+    if product.is_none() {
+        return Err(ImageError::NoSuchProduct);
+    }
+
+    let held: Vec<i64> = sqlx::query_scalar!(
+        "select id from product_images where product_id = $1",
+        product_id
+    )
+    .fetch_all(&mut *transaction)
+    .await?;
+
+    if !is_the_same_set(&held, wanted) {
+        return Err(ImageError::NotTheSameImages);
+    }
+
+    // One statement over the whole list. `(product_id, position)` carries no
+    // unique index precisely so this can pass through an intermediate state
+    // where two rows share a position — see `0006_product_images.sql`.
+    let positions: Vec<i32> = (0..wanted.len())
+        .map(|index| i32::try_from(index).unwrap_or(i32::MAX))
+        .collect();
+
+    sqlx::query!(
+        "update product_images as image \
+         set position = ordering.position \
+         from unnest($1::bigint[], $2::int[]) as ordering (id, position) \
+         where image.id = ordering.id and image.product_id = $3",
+        wanted,
+        &positions,
+        product_id,
+    )
+    .execute(&mut *transaction)
+    .await?;
+
+    transaction.commit().await?;
+
+    Ok(list(pool, product_id).await?)
+}
+
+/// The same images, in any order, each exactly once.
+///
+/// Sorted copies rather than sets: the duplicate that a set would swallow is
+/// one of the things being refused.
+fn is_the_same_set(held: &[i64], wanted: &[i64]) -> bool {
+    if held.len() != wanted.len() {
+        return false;
+    }
+
+    let mut held: Vec<i64> = held.to_vec();
+    let mut wanted: Vec<i64> = wanted.to_vec();
+    held.sort_unstable();
+    wanted.sort_unstable();
+
+    held == wanted
 }
 
 /// What a request for one file needs to know: whether the image exists, and
@@ -459,6 +548,22 @@ impl Deriver {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_order_holding_the_same_images_is_accepted() {
+        assert!(is_the_same_set(&[1, 2, 3], &[3, 1, 2]));
+        assert!(is_the_same_set(&[], &[]));
+    }
+
+    #[test]
+    fn an_order_that_is_not_the_same_images_is_refused() {
+        // Missing, extra, foreign, and repeated — the repeated one is why this
+        // compares sorted lists rather than sets.
+        assert!(!is_the_same_set(&[1, 2, 3], &[1, 2]));
+        assert!(!is_the_same_set(&[1, 2], &[1, 2, 3]));
+        assert!(!is_the_same_set(&[1, 2, 3], &[1, 2, 9]));
+        assert!(!is_the_same_set(&[1, 2, 3], &[1, 2, 2]));
+    }
 
     #[test]
     fn a_state_survives_the_round_trip_through_the_database_value() {

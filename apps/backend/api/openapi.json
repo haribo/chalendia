@@ -304,6 +304,82 @@
         }
       }
     },
+    "/api/products/{id}/images/order": {
+      "put": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Put a product's images in a given order.",
+        "operationId": "reorder_images",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The product",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WantedOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The images, in their new order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductImage"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "type: /problems/no-such-product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "type: /problems/not-the-same-images — one missing, extra, repeated, or belonging to another product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/products/{id}/images/{imageId}": {
       "delete": {
         "tags": [
@@ -1202,6 +1278,23 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "WantedOrder": {
+        "type": "object",
+        "description": "The order a product's images are to be shown in.",
+        "required": [
+          "imageIds"
+        ],
+        "properties": {
+          "imageIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Every image of the product, in the order they are to be shown.\n\nThe whole list, never a move: a list says what the order is to be,\nwhere a move says what it becomes from an order the caller read a\nmoment ago and that may have changed since."
           }
         }
       }
