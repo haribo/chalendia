@@ -94,6 +94,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/products/{id}/images/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put a product's images in a given order. */
+        put: operations["reorder_images"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/products/{id}/images/{imageId}": {
         parameters: {
             query?: never;
@@ -426,6 +443,17 @@ export interface components {
             isDefault: boolean;
             name: string;
         };
+        /** @description The order a product's images are to be shown in. */
+        WantedOrder: {
+            /**
+             * @description Every image of the product, in the order they are to be shown.
+             *
+             *     The whole list, never a move: a list says what the order is to be,
+             *     where a move says what it becomes from an order the caller read a
+             *     moment ago and that may have changed since.
+             */
+            imageIds: number[];
+        };
     };
     responses: never;
     parameters: never;
@@ -653,6 +681,60 @@ export interface operations {
             };
             /** @description type: /problems/image-not-jpeg, /problems/image-too-small, /problems/image-too-large, /problems/too-many-images, /problems/image-missing */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    reorder_images: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WantedOrder"];
+            };
+        };
+        responses: {
+            /** @description The images, in their new order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImage"][];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/no-such-product */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/not-the-same-images — one missing, extra, repeated, or belonging to another product */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

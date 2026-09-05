@@ -694,6 +694,232 @@ async fn removing_an_image_removes_its_files(pool: PgPool) {
     assert_eq!(count, Some(0));
 }
 
+/// Uploads `count` images and returns their identifiers, in the order the
+/// shop gave them.
+async fn several_images(shop: &Shop, cookie: &str, product_id: i64, count: usize) -> Vec<i64> {
+    let file = a_jpeg(800, 800);
+    let mut ids = Vec::with_capacity(count);
+
+    for _ in 0..count {
+        let answer = shop
+            .call(upload(product_id, "savon.jpg", &file, None, cookie))
+            .await;
+        assert_eq!(answer.status, StatusCode::CREATED);
+        ids.push(answer.body["id"].as_i64().expect("an identifier"));
+    }
+
+    ids
+}
+
+fn put(path: &str, body: Value, cookie: &str) -> Request<Body> {
+    Request::builder()
+        .method("PUT")
+        .uri(path)
+        .header(header::CONTENT_TYPE, "application/json")
+        .header(header::COOKIE, cookie)
+        .body(Body::from(body.to_string()))
+        .expect("valid request")
+}
+
+#[sqlx::test]
+async fn the_order_of_a_products_images_can_be_changed(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let ids = several_images(&shop, &cookie, product_id, 3).await;
+
+    let reversed: Vec<i64> = ids.iter().rev().copied().collect();
+    let answer = shop
+        .call(put(
+            &format!("/api/products/{product_id}/images/order"),
+            json!({ "imageIds": reversed }),
+            &cookie,
+        ))
+        .await;
+
+    assert_eq!(answer.status, StatusCode::OK);
+    let returned: Vec<i64> = answer
+        .body
+        .as_array()
+        .expect("an array")
+        .iter()
+        .map(|image| image["id"].as_i64().expect("an identifier"))
+        .collect();
+    assert_eq!(returned, reversed, "the answer carries the new order");
+
+    // And a fresh read agrees: the order was written, not merely echoed.
+    let listed = shop
+        .call(get(
+            &format!("/api/products/{product_id}/images"),
+            Some(&cookie),
+        ))
+        .await;
+    let read: Vec<i64> = listed
+        .body
+        .as_array()
+        .expect("an array")
+        .iter()
+        .map(|image| image["id"].as_i64().expect("an identifier"))
+        .collect();
+    assert_eq!(read, reversed);
+}
+
+#[sqlx::test]
+async fn an_order_that_is_not_the_products_images_is_refused(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let ids = several_images(&shop, &cookie, product_id, 3).await;
+
+    for (name, sent) in [
+        ("one missing", vec![ids[0], ids[1]]),
+        ("one extra", vec![ids[0], ids[1], ids[2], 999_999]),
+        ("one repeated", vec![ids[0], ids[1], ids[1]]),
+        ("none at all", vec![]),
+    ] {
+        let answer = shop
+            .call(put(
+                &format!("/api/products/{product_id}/images/order"),
+                json!({ "imageIds": sent }),
+                &cookie,
+            ))
+            .await;
+
+        assert_eq!(answer.status, StatusCode::CONFLICT, "{name} was accepted");
+        assert_eq!(
+            answer.body["type"], "/problems/not-the-same-images",
+            "{name}"
+        );
+    }
+
+    // Nothing was written by any of the refusals.
+    let listed = shop
+        .call(get(
+            &format!("/api/products/{product_id}/images"),
+            Some(&cookie),
+        ))
+        .await;
+    let read: Vec<i64> = listed
+        .body
+        .as_array()
+        .expect("an array")
+        .iter()
+        .map(|image| image["id"].as_i64().expect("an identifier"))
+        .collect();
+    assert_eq!(read, ids, "the order a refusal left behind is the old one");
+}
+
+#[sqlx::test]
+async fn an_order_carrying_another_products_image_is_refused(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let ids = several_images(&shop, &cookie, product_id, 2).await;
+
+    // A second product, with an image of its own.
+    shop.call(post(
+        "/api/products",
+        json!({ "title": "Savon à la lavande", "price": 750 }),
+        Some(&cookie),
+    ))
+    .await;
+    let other = sqlx::query_scalar!("select id from products order by id desc limit 1")
+        .fetch_one(&shop.pool)
+        .await
+        .expect("the second product");
+    let strangers = several_images(&shop, &cookie, other, 1).await;
+
+    let answer = shop
+        .call(put(
+            &format!("/api/products/{product_id}/images/order"),
+            json!({ "imageIds": [ids[0], strangers[0]] }),
+            &cookie,
+        ))
+        .await;
+
+    assert_eq!(answer.status, StatusCode::CONFLICT);
+    assert_eq!(answer.body["type"], "/problems/not-the-same-images");
+}
+
+#[sqlx::test]
+async fn a_newly_uploaded_image_lands_last_and_survives_a_reorder(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let ids = several_images(&shop, &cookie, product_id, 2).await;
+
+    let reversed: Vec<i64> = ids.iter().rev().copied().collect();
+    shop.call(put(
+        &format!("/api/products/{product_id}/images/order"),
+        json!({ "imageIds": reversed }),
+        &cookie,
+    ))
+    .await;
+
+    let added = several_images(&shop, &cookie, product_id, 1).await;
+
+    let listed = shop
+        .call(get(
+            &format!("/api/products/{product_id}/images"),
+            Some(&cookie),
+        ))
+        .await;
+    let read: Vec<i64> = listed
+        .body
+        .as_array()
+        .expect("an array")
+        .iter()
+        .map(|image| image["id"].as_i64().expect("an identifier"))
+        .collect();
+
+    let mut expected = reversed;
+    expected.push(added[0]);
+    assert_eq!(read, expected, "the new image is last, the order is kept");
+}
+
+#[sqlx::test]
+async fn reordering_needs_a_session(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let ids = several_images(&shop, &cookie, product_id, 2).await;
+
+    let answer = shop
+        .call(put(
+            &format!("/api/products/{product_id}/images/order"),
+            json!({ "imageIds": ids }),
+            "chalendia_session=not-a-session",
+        ))
+        .await;
+
+    assert_eq!(answer.status, StatusCode::UNAUTHORIZED);
+}
+
+#[sqlx::test]
+async fn reordering_a_product_that_does_not_exist_is_refused(pool: PgPool) {
+    let (shop, cookie, _product_id) = a_shop_with_a_product(pool).await;
+
+    let answer = shop
+        .call(put(
+            "/api/products/999999/images/order",
+            json!({ "imageIds": [] }),
+            &cookie,
+        ))
+        .await;
+
+    assert_eq!(answer.status, StatusCode::NOT_FOUND);
+    assert_eq!(answer.body["type"], "/problems/no-such-product");
+}
+
+/// `images/order` sits beside `images/{imageId}`, and a literal segment must
+/// win over a parameter — otherwise the order route is read as an image named
+/// "order" and answers a parsing failure instead.
+#[sqlx::test]
+async fn the_order_route_is_not_read_as_an_image_called_order(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let ids = several_images(&shop, &cookie, product_id, 2).await;
+
+    let answer = shop
+        .call(put(
+            &format!("/api/products/{product_id}/images/order"),
+            json!({ "imageIds": ids }),
+            &cookie,
+        ))
+        .await;
+
+    assert_eq!(answer.status, StatusCode::OK);
+}
+
 #[sqlx::test]
 async fn a_path_that_walks_out_of_the_volume_reaches_nothing(pool: PgPool) {
     let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;

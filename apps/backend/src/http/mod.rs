@@ -74,6 +74,10 @@ pub fn router(config: &Config, state: AppState) -> Router {
                     "/products/{id}/images/{imageId}",
                     axum::routing::delete(images::remove_image),
                 )
+                .route(
+                    "/products/{id}/images/order",
+                    axum::routing::put(images::reorder_images),
+                )
                 .route("/vat-rates", get(tax::list_rates).post(tax::create_rate))
                 .route("/vat-rates/{id}", axum::routing::delete(tax::remove_rate))
                 .route(
