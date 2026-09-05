@@ -18,7 +18,9 @@ import Page from '@/shared/ui/Page.vue'
 import PageTitle from '@/shared/ui/PageTitle.vue'
 import PasswordField from '@/shared/ui/PasswordField.vue'
 import SelectField from '@/shared/ui/SelectField.vue'
+import IconTrash from '@/shared/ui/icons/IconTrash.vue'
 import Stack from '@/shared/ui/Stack.vue'
+import Table from '@/shared/ui/Table.vue'
 import TextField from '@/shared/ui/TextField.vue'
 import ThemePicker from '@/shared/ui/ThemePicker.vue'
 import GalleryMenu from '@/surfaces/dev/GalleryMenu.vue'
@@ -54,6 +56,93 @@ const rates = [
   { value: 'standard', label: 'Standard — 20 %' },
   { value: 'reduced', label: 'Réduit — 5,5 %' },
   { value: 'zero', label: 'Exonéré — 0 %' },
+]
+
+// A catalogue, as a surface would hand one over: five of the six kinds, a long
+// title, and a reference the second product does not have.
+const productColumns = [
+  { key: 'title', header: 'Produit' },
+  { key: 'reference', header: 'Référence' },
+  { key: 'price', header: 'Prix', align: 'end' as const },
+  { key: 'vat', header: 'TVA', align: 'end' as const },
+  { key: 'state', header: 'État' },
+]
+
+const productRows = [
+  {
+    key: 1,
+    cells: {
+      title: { kind: 'strong' as const, value: 'Savon au miel de châtaignier' },
+      reference: { kind: 'code' as const, value: 'SAV-MIEL-100' },
+      price: { kind: 'number' as const, value: '6,90 €' },
+      vat: { kind: 'number' as const, value: '20 %' },
+      state: { kind: 'pill' as const, value: 'Publié', tone: 'accent' as const },
+    },
+  },
+  {
+    key: 2,
+    cells: {
+      title: {
+        kind: 'strong' as const,
+        value: 'Savon surgras à l’argile rose et à l’huile d’amande douce',
+      },
+      reference: { kind: 'code' as const },
+      price: { kind: 'number' as const, value: '8,20 €' },
+      vat: { kind: 'number' as const, value: '20 %' },
+      state: { kind: 'pill' as const, value: 'Brouillon' },
+    },
+  },
+  {
+    key: 3,
+    cells: {
+      title: { kind: 'strong' as const, value: 'Coffret découverte' },
+      reference: { kind: 'code' as const, value: 'COF-DEC-003' },
+      price: { kind: 'number' as const, value: '24,00 €' },
+      vat: { kind: 'number' as const },
+      state: { kind: 'pill' as const, value: 'Retiré' },
+    },
+  },
+]
+
+// The rates, which is where a cell has to be described per row: the same
+// column carries a pill on the default rate and a button on the others.
+const rateColumns = [
+  { key: 'name', header: 'Nom' },
+  { key: 'rate', header: 'Taux', align: 'end' as const },
+  { key: 'mark', header: '', align: 'end' as const },
+  { key: 'act', header: '', align: 'end' as const },
+]
+
+const noop = (): void => {}
+
+const rateRows = [
+  {
+    key: 'standard',
+    cells: {
+      name: { kind: 'strong' as const, value: 'Standard' },
+      rate: { kind: 'number' as const, value: '20 %' },
+      mark: { kind: 'pill' as const, value: 'Par défaut', tone: 'accent' as const },
+      act: {
+        kind: 'actions' as const,
+        actions: [{ label: 'Supprimer Standard', icon: IconTrash, onPress: noop }],
+      },
+    },
+  },
+  {
+    key: 'reduced',
+    cells: {
+      name: { kind: 'strong' as const, value: 'Réduit' },
+      rate: { kind: 'number' as const, value: '5,5 %' },
+      mark: {
+        kind: 'actions' as const,
+        actions: [{ label: 'Rendre par défaut', onPress: noop }],
+      },
+      act: {
+        kind: 'actions' as const,
+        actions: [{ label: 'Supprimer Réduit', icon: IconTrash, onPress: noop }],
+      },
+    },
+  },
 ]
 </script>
 
@@ -219,6 +308,43 @@ const rates = [
           <GalleryVariant label="long, équilibré sur deux lignes">
             <PageTitle>{{ overflowing }}</PageTitle>
           </GalleryVariant>
+        </GalleryCanvas>
+      </GallerySection>
+
+      <!-- ── Données ────────────────────────────────────────── -->
+
+      <GallerySection
+        name="Table"
+        contract="Des lignes de cellules typées — texte, identité, nombre, code, pastille, actions — et rien d’autre. Sous 768 px chaque ligne devient une carte, et une seule des deux formes est dans le document."
+      >
+        <GalleryCanvas>
+          <Table
+            style="width: 100%"
+            :columns="productColumns"
+            :rows="productRows"
+            empty="Aucun produit pour l’instant."
+            label="Produits"
+          />
+        </GalleryCanvas>
+
+        <GalleryCanvas>
+          <Table
+            style="width: 100%"
+            :columns="rateColumns"
+            :rows="rateRows"
+            empty="Aucun taux pour l’instant."
+            label="Taux de TVA"
+          />
+        </GalleryCanvas>
+
+        <GalleryCanvas>
+          <Table
+            style="width: 100%"
+            :columns="productColumns"
+            :rows="[]"
+            empty="Aucun produit pour l’instant."
+            label="Produits, sans aucun"
+          />
         </GalleryCanvas>
       </GallerySection>
 

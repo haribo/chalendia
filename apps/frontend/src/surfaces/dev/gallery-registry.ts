@@ -27,6 +27,7 @@ export const FAMILIES = [
    */
   { label: 'Fondations', components: ['Typographie'] },
   { label: 'Disposition', components: ['Stack', 'Grid', 'Page', 'PageTitle'] },
+  { label: 'Données', components: ['Table'] },
   { label: 'Actions', components: ['Button', 'NavLink'] },
   {
     label: 'Champs',
@@ -59,6 +60,10 @@ export function anchorOf(component: string): string {
  * reviews side by side, which is exactly what the gallery exists to prevent.
  */
 export const NOT_SHOWN: Record<string, string> = {
+  TableCell:
+    'One cell of a table, never rendered on its own. Its six kinds are what the ' +
+    'Table section shows, and a cell outside a row would be a specimen of a ' +
+    'thing that does not exist by itself.',
   AppShell:
     'It is the page frame itself — a bar, a body, a scroll container. Rendered inside ' +
     'the gallery it would nest a second application in the first, and what it does is ' +
