@@ -107,4 +107,16 @@ export default defineConfigWithVueTs(
       'vue/multi-word-component-names': 'off',
     },
   },
+
+  {
+    // The gallery never reaches a user: it is compiled out of the production
+    // build, and its readers are the people who build the screens.
+    // Translating it would put eighty keys nobody reads into the resources a
+    // translator works through — the cost of the rule without its benefit.
+    name: 'chalendia/gallery-speaks-to-us',
+    files: ['src/surfaces/dev/**/*.vue'],
+    rules: {
+      'vue/no-bare-strings-in-template': 'off',
+    },
+  },
 )
