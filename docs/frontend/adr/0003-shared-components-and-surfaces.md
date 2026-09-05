@@ -2,7 +2,9 @@
 
 ## Status
 
-Active
+Active — amended 2026-09-05 (#83): § 4 gains the state-colour corollary, and
+§ 6 adds the gallery. Neither reverses a decision; both close a gap the first
+gallery made visible.
 
 ## Context
 
@@ -70,6 +72,18 @@ A shared component's props describe what it does — a select's options, a bar's
 actions slot — never what it is used for. No `LanguageSelect`, no `AdminBar`. If
 a variant name reads as a use case, the variant belongs to the caller.
 
+**A state colour belongs to a component whose identity is the state.** A pill
+that says "published" or "failed", an alert, a strength bar: the state is what
+they are, and the colour carries it — beside a shape, never alone
+([core.md](../../design/core.md) § 8, and WCAG 1.4.1). A `Button` never takes
+one: a button's identity is the action it performs, not the state it happens to
+sit next to. The day a screen wants a red button, what it wants is a
+confirmation naming what will be lost ([core.md](../../design/core.md) § 8,
+Deletion), and that is the caller's composition rather than a variant.
+
+Taken from the reference project's frontend ADR 0008, which states the same
+corollary; theirs is where we would have learnt it the expensive way.
+
 ### 5. Style lives with the component that owns it
 
 Shared components carry the CSS of what they render, scoped. Surface components
@@ -79,6 +93,26 @@ shared component's look.
 Every value is a semantic token (frontend ADR 0002); this ADR adds where the
 declarations live, not which values they may use.
 
+### 6. Every shared component is shown in the gallery
+
+`/dev/design-system` renders each shared component with its states side by side.
+A component that is not there is a component whose refused, busy or empty state
+nobody has looked at — which is how two of them shipped with defects this very
+gallery found on the day it was written.
+
+A component may be left out, and then it says why: `AppShell` is the page frame
+itself and would nest a second application inside the first. The exemption is a
+line in a registry, and a test refuses an empty one.
+
+The gallery is **one** page, not one per kind of component. The reference
+project split theirs between primitives and assembled patterns, watched the two
+drift until neither had a criterion for where a new element belonged, and merged
+them back (their frontend ADR 0013). Composites land here under their own
+heading.
+
+It never reaches a merchant: the route is compiled out of the production build,
+and a check reads the built assets rather than trusting that claim.
+
 ## Rationale
 
 - The two-occurrence threshold is the whole decision. Everything else follows
@@ -87,7 +121,9 @@ declarations live, not which values they may use.
   once: a `SelectField` has one accessible behavior to get right, and every
   screen inherits it.
 - Enforcing by lint rather than by review is what keeps the rule true after the
-  first busy week.
+  first busy week. The gallery is the same idea applied to what lint cannot see:
+  a rule can forbid a raw `<button>`, and only an eye catches a refused state
+  that renders its label on top of its value.
 
 ## Alternatives considered
 

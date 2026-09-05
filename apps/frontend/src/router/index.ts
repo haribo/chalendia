@@ -13,6 +13,12 @@ import StorefrontLayout from '@/surfaces/storefront/StorefrontLayout.vue'
 export const ADMIN_PREFIX = '/admin'
 export const SETUP_PATH = '/setup'
 export const SIGN_IN_PATH = '/sign-in'
+/**
+ * Where the design system is shown. Development only — see the route below.
+ * Exported so the setup guard can let it through by name rather than by a
+ * path spelled twice.
+ */
+export const DESIGN_SYSTEM_ROUTE = 'design-system'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -65,6 +71,28 @@ export const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  /*
+   * The design system, for whoever builds screens — never for a merchant.
+   *
+   * One gallery, not one per kind of component. tribnest split theirs between
+   * primitives and assembled patterns, watched the two drift until neither
+   * had a criterion for where a new element belonged, and merged them back
+   * (their frontend ADR 0013). The composites this project has yet to build
+   * land here, under their own heading.
+   *
+   * `import.meta.env.DEV` is a literal at build time, so the production bundle
+   * carries neither this route nor the chunk behind it. A check on the built
+   * assets asserts that rather than trusting the claim.
+   */
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: '/dev/design-system',
+          name: DESIGN_SYSTEM_ROUTE,
+          component: () => import('@/surfaces/dev/DesignSystemView.vue'),
+        } satisfies RouteRecordRaw,
+      ]
+    : []),
 ]
 
 /**
@@ -75,7 +103,9 @@ export function resolveSetupGuard(
   to: RouteLocationNormalized,
   configured: boolean,
 ): true | { name: string } {
-  if (configured || to.name === 'setup') {
+  // The gallery shows components, not a shop. Sending it to setup would make
+  // it unreachable on exactly the fresh checkout where it is most useful.
+  if (configured || to.name === 'setup' || to.name === DESIGN_SYSTEM_ROUTE) {
     return true
   }
 

@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build && npm run check:gallery-absent",
     "preview": "vite preview",
     "typecheck": "vue-tsc -b",
     "lint": "eslint . && npm run lint:tokens",
     "lint:tokens": "node scripts/check-theme-tokens.mjs",
+    "check:gallery-absent": "node scripts/check-gallery-absent.mjs",
     "test": "vitest run",
     "codegen:api": "openapi-typescript ../backend/api/openapi.json -o src/shared/api/generated/openapi.ts",
     "test:e2e": "playwright test"
