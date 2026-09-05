@@ -6,6 +6,10 @@ Active — amended 2026-09-05 (#83): § 4 gains the state-colour corollary, and
 § 6 adds the gallery. Neither reverses a decision; both close a gap the first
 gallery made visible.
 
+The structural half of § 2 — how a surface renders a table or a list without
+writing its markup — is settled by
+[ADR 0004](0004-typed-table-cells.md).
+
 ## Context
 
 Two screens existed and nine CSS rules were already duplicated byte-for-byte
