@@ -164,17 +164,36 @@ const notched = computed(() => props.floating || Boolean(props.error))
 </template>
 
 <style scoped>
+/*
+ * The three lengths below are the only ones in the frontend that do not come
+ * from the spacing scale, and they stay off it on purpose: they describe the
+ * geometry of a notched border — where the notch sits on the line, and how
+ * much of the line it eats — not the rhythm between elements. Moving them onto
+ * `--space-*` would make a theme that retunes the spacing scale shift a border
+ * out from under its own label.
+ */
 .frame {
+  /* How far the notch rises onto the border, and how far the border drops to
+     make room — the same value on both sides, or the label drifts off its
+     own gap in the line. */
+  --notch-rise: 0.55rem;
+  /* Where the notch starts along the border. */
+  --notch-inset: 0.55rem;
+  /* What the notch eats out of the border on each side of its text. */
+  --notch-bite: 0.3rem;
+  /* Clearance above the frame, so the risen notch does not touch the field
+     stacked above it. Not `--notch-rise`: the notch text is smaller than the
+     line it rises onto, so it needs less room than it rises. */
+  --notch-clearance: 0.4rem;
+
   position: relative;
-  /* The notch overhangs the top of the border, so a stack of fields needs
-     this clearance or one label touches the frame above it. */
-  margin-top: 0.4rem;
+  margin-top: var(--notch-clearance);
   color: var(--colour-text-muted);
 }
 
 .decor {
   position: absolute;
-  inset: -0.55rem 0 0;
+  inset: calc(-1 * var(--notch-rise)) 0 0;
   margin: 0;
   padding: 0;
   border: 1px solid var(--colour-border);
@@ -184,7 +203,7 @@ const notched = computed(() => props.floating || Boolean(props.error))
 
 .notch {
   max-width: 0;
-  margin-left: 0.55rem;
+  margin-left: var(--notch-inset);
   padding: 0;
   font-size: var(--text-s);
   line-height: 1;
@@ -194,7 +213,7 @@ const notched = computed(() => props.floating || Boolean(props.error))
 
 .notched .notch {
   max-width: 100%;
-  padding: 0 0.3rem;
+  padding: 0 var(--notch-bite);
 }
 
 /* Invisible, but it still reserves the width the border must skip. */
@@ -208,7 +227,7 @@ const notched = computed(() => props.floating || Boolean(props.error))
   top: 50%;
   left: 0.75rem;
   display: flex;
-  gap: 0.3rem;
+  gap: var(--notch-bite);
   max-width: calc(100% - 3.5rem);
   overflow: hidden;
   font-size: var(--text-m);
@@ -221,7 +240,9 @@ const notched = computed(() => props.floating || Boolean(props.error))
 }
 
 .notched .row {
-  top: -0.55rem;
+  /* The row rises onto the border, by the same amount the border drops for
+     it: one value, so the label and its gap in the line cannot drift apart. */
+  top: calc(-1 * var(--notch-rise));
   left: 0.85rem;
   font-size: var(--text-s);
 }
