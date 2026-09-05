@@ -95,13 +95,13 @@ function isCurrent(to: string, index: number): boolean {
 .sections a.current {
   background: var(--colour-accent);
   color: var(--colour-on-accent);
-  font-weight: 600;
+  font: var(--style-body-strong);
 }
 
 .compact a {
   padding: var(--space-1) var(--space-2);
   gap: var(--space-2);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .folded a {

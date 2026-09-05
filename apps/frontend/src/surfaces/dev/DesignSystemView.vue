@@ -58,7 +58,14 @@ const rates = [
 </script>
 
 <template>
-  <div class="gallery">
+  <!-- Written in French and exempt from i18n, in a document whose `lang`
+       follows the reader's interface language. Saying so here is what keeps a
+       screen reader from pronouncing it as English, and what makes
+       `text-transform` capitalise it under French rules. -->
+  <div
+    class="gallery"
+    lang="fr"
+  >
     <GalleryMenu />
 
     <Page
@@ -76,6 +83,38 @@ const rates = [
           <ThemePicker bare />
         </Stack>
       </template>
+
+      <!-- ── Fondations ─────────────────────────────────────── -->
+
+      <GallerySection
+        name="Typographie"
+        contract="Sept styles nommés par leur rôle. Chacun porte sa taille, son interligne, sa graisse et sa couleur ; on le consomme entier."
+      >
+        <GalleryCanvas stacked>
+          <p class="text-title">
+            Catalogue
+          </p>
+          <p class="text-heading">
+            La Fabrique à Savons
+          </p>
+          <p class="text-body">
+            Un savon surgras saponifié à froid, à l’huile d’olive et au miel de
+            châtaignier.
+          </p>
+          <p class="text-body-strong">
+            Savon au miel de châtaignier
+          </p>
+          <p class="text-caption">
+            Contient 1,15 € de TVA — 5,75 € hors taxe.
+          </p>
+          <p class="text-caption-strong">
+            Publié
+          </p>
+          <p class="text-label">
+            Référence
+          </p>
+        </GalleryCanvas>
+      </GallerySection>
 
       <!-- ── Disposition ────────────────────────────────────── -->
 

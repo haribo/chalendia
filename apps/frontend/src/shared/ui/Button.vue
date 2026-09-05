@@ -47,9 +47,7 @@ button {
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   padding: var(--space-1) var(--space-4);
-  font: inherit;
-  font-size: var(--text-s);
-  font-weight: 600;
+  font: var(--style-caption-strong);
   cursor: pointer;
 }
 

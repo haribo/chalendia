@@ -136,9 +136,7 @@ async function submit(): Promise<void> {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-family: var(--font-display);
-  font-size: var(--text-l);
-  font-weight: 600;
+  font: var(--style-heading);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -151,9 +149,7 @@ async function submit(): Promise<void> {
 
 h1 {
   margin: 0 0 var(--space-4);
-  font-family: var(--font-display);
-  font-size: var(--text-l);
-  font-weight: 600;
+  font: var(--style-heading);
 }
 
 .refused {
@@ -163,14 +159,13 @@ h1 {
   border-left-width: 3px;
   border-radius: var(--radius-1);
   color: var(--colour-danger);
-  font-size: var(--text-s);
-  font-weight: 600;
+  font: var(--style-caption-strong);
 }
 
 .back {
   display: inline-block;
   margin-top: var(--space-6);
   color: var(--colour-accent);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 </style>

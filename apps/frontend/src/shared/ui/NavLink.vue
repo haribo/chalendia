@@ -8,7 +8,7 @@ defineProps<{
 
 <template>
   <RouterLink
-    class="link"
+    class="link text-caption"
     :to="to"
   >
     <slot />
@@ -18,7 +18,6 @@ defineProps<{
 <style scoped>
 .link {
   color: var(--colour-accent);
-  font-size: var(--text-s);
   text-decoration: none;
   white-space: nowrap;
 }

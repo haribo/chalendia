@@ -49,14 +49,13 @@ const anchor = anchorOf(props.name)
 .name {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: var(--text-m);
-  font-weight: 600;
+  font: var(--style-body-strong);
 }
 
 .contract {
   margin: 0;
   max-width: 60ch;
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 </style>

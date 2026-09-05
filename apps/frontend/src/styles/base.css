@@ -2,13 +2,13 @@ html {
   background: var(--colour-surface);
 }
 
+/* The document reads as `body` unless a style says otherwise — consumed from
+   the scale rather than restated, so the two cannot drift. */
 body {
   margin: 0;
   background: var(--colour-surface);
   color: var(--colour-text);
-  font-family: var(--font-body);
-  font-size: var(--text-m);
-  line-height: 1.6;
+  font: var(--style-body);
 }
 
 /* Held by whatever is showing a modal surface: a page that keeps scrolling

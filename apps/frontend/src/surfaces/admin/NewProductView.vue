@@ -193,7 +193,7 @@ async function submit(): Promise<void> {
      its notched legend lands outside its own frame. */
   margin: 0 0 0 var(--space-3);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .unreachable {
@@ -203,7 +203,6 @@ async function submit(): Promise<void> {
   border-left-width: 3px;
   border-radius: var(--radius-1);
   color: var(--colour-danger);
-  font-size: var(--text-s);
-  font-weight: 600;
+  font: var(--style-caption-strong);
 }
 </style>

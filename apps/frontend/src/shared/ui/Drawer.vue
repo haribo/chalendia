@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
         >
           <IconClose />
         </Button>
-        <p class="title">
+        <p class="title text-heading">
           {{ label }}
         </p>
       </header>
@@ -132,9 +132,6 @@ onBeforeUnmount(() => {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-family: var(--font-display);
-  font-size: var(--text-l);
-  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -1,0 +1,116 @@
+/*
+ * The type scale — see docs/design/typography.md and frontend ADR 0003 § 4.
+ *
+ * A closed set of seven styles, each named after the role it plays and each
+ * bundling size, leading, weight, family and a default colour. Nothing in the
+ * application sets a raw font size or weight; it picks a style.
+ *
+ * The bundling is the point. Before this file the frontend carried eleven
+ * distinct combinations of size, weight and family — four different weights on
+ * one size — because every screen chose its own, and two `line-height`
+ * declarations in total, so a 1.6 rem title inherited the body's 1.6 leading.
+ *
+ * A style is consumed whole. Deviating on **colour** is legitimate and is
+ * justified where it happens — a button's label is not grey. Deviating on size
+ * or weight is leaving the scale.
+ *
+ * Two ways to consume one, both legitimate:
+ *
+ *   - **A class** on an element of a template — `<h1 class="text-title">`. It
+ *     reads at the point of use, which is where a reader asks what a piece of
+ *     text is, and it carries the colour as well.
+ *   - **`font: var(--style-…)`** inside a component's own CSS. This is the one
+ *     that works where a scoped selector would beat a class — a scoped rule
+ *     carries an attribute, and therefore more specificity than a bare class.
+ *     It sets the type only: the colour stays whatever the rule already says,
+ *     which is what keeps a button's label from turning grey.
+ *
+ * What is forbidden is a bare `font-size` or `font-weight`, and lint says so.
+ */
+
+:root {
+  /* Leading belongs to the style, not to the page: a title and a paragraph
+     want different ones at the same reading distance. */
+  --lead-title: 1.2;
+  --lead-heading: 1.3;
+  --lead-body: 1.6;
+  --lead-caption: 1.5;
+  --lead-label: 1.4;
+
+  /* One value, where the frontend had 0.06em, 0.08em and 0.09em depending on
+     which screen was written first. */
+  --track-label: 0.08em;
+
+  /*
+   * Each style as a `font` shorthand, so the classes below and the few places
+   * that cannot carry a class — a `:deep()` selector reaching a control, the
+   * document body — consume one definition rather than two that drift.
+   */
+  --style-title: 600 var(--text-xl) / var(--lead-title) var(--font-display);
+  --style-heading: 600 var(--text-l) / var(--lead-heading) var(--font-display);
+  --style-body: 400 var(--text-m) / var(--lead-body) var(--font-body);
+  --style-body-strong: 600 var(--text-m) / var(--lead-body) var(--font-body);
+  --style-caption: 400 var(--text-s) / var(--lead-caption) var(--font-body);
+  --style-caption-strong: 600 var(--text-s) / var(--lead-caption) var(--font-body);
+}
+
+/* The title of a screen. One per page. */
+.text-title {
+  font: var(--style-title);
+  color: var(--colour-text);
+}
+
+/* The title of a surface: a bar, a drawer, a section. */
+.text-heading {
+  font: var(--style-heading);
+  color: var(--colour-text);
+}
+
+/* Running text, and what a control displays. */
+.text-body {
+  font: var(--style-body);
+  color: var(--colour-text);
+}
+
+/* An identity inside content: the name of a row, of a card. Emphasis is a
+   weight, never a size. */
+.text-body-strong {
+  font: var(--style-body-strong);
+  color: var(--colour-text);
+}
+
+/* Metadata: a hint, a counter, a secondary mention. */
+.text-caption {
+  font: var(--style-caption);
+  color: var(--colour-text-muted);
+}
+
+/* Metadata that carries weight: a state, a count. */
+.text-caption-strong {
+  font: var(--style-caption-strong);
+  color: var(--colour-text);
+}
+
+/*
+ * A rubric: a column header, a group title.
+ *
+ * The one style with no `--style-…` variable, deliberately. It carries capitals
+ * and tracking as well as type, and a variable can only hand back the `font`
+ * shorthand — consuming it that way drops the rest without a word, which is how
+ * the catalogue's column headers lost their capitals the first time.
+ */
+.text-label {
+  font: 600 var(--text-s) / var(--lead-label) var(--font-body);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--colour-text-muted);
+}
+
+/*
+ * The monospace family is orthogonal to the scale: a merchant reference reads
+ * as a code at caption size and as a code at body size. It modifies a style
+ * rather than being one.
+ */
+.text-mono {
+  font-family: var(--font-mono);
+}

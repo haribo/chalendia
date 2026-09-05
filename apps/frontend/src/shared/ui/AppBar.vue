@@ -10,7 +10,7 @@ defineProps<{
     <!-- Before the title: whatever sits here acts on what is to the left of
          the screen, and a control belongs on the side of what it opens. -->
     <slot name="leading" />
-    <p class="title">
+    <p class="title text-heading">
       {{ title }}
     </p>
     <div class="actions">
@@ -36,10 +36,6 @@ defineProps<{
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-family: var(--font-display);
-  font-size: var(--text-l);
-  font-weight: 600;
-  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

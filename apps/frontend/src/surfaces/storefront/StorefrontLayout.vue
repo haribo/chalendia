@@ -66,6 +66,6 @@ const title = computed(() => shop.name ?? PRODUCT_NAME)
   border-top: 1px solid var(--colour-border);
   background: var(--colour-surface-raised);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 </style>
