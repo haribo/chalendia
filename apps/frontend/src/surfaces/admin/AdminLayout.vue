@@ -212,7 +212,7 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
   gap: var(--space-2);
   align-items: center;
   padding: var(--space-1) var(--space-2);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .folded .account {
@@ -238,8 +238,7 @@ onBeforeUnmount(() => wide?.removeEventListener('change', onWidth))
   padding: var(--space-2) var(--space-2) 0;
   border-top: 1px solid var(--colour-border);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
-  font-weight: 400;
+  font: var(--style-caption);
 }
 
 .folded .fold {

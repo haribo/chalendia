@@ -6,6 +6,7 @@ import { initTheme } from './composables/useTheme'
 import { i18n } from './i18n'
 import { createAppRouter } from './router'
 import './styles/tokens.css'
+import './styles/typography.css'
 import './styles/base.css'
 
 // Before the first paint: applying the stored theme afterwards shows the wrong

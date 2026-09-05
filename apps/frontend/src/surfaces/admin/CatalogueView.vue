@@ -84,18 +84,24 @@ onMounted(load)
       <table v-if="!narrow">
         <thead>
           <tr>
-            <th>{{ t('catalogue.column.product') }}</th>
-            <th>{{ t('catalogue.column.reference') }}</th>
-            <th class="number">
+            <th class="text-label">
+              {{ t('catalogue.column.product') }}
+            </th>
+            <th class="text-label">
+              {{ t('catalogue.column.reference') }}
+            </th>
+            <th class="number text-label">
               {{ t('catalogue.column.price') }}
             </th>
             <th
               v-if="shop.vatEnabled"
-              class="number"
+              class="number text-label"
             >
               {{ t('catalogue.column.vat') }}
             </th>
-            <th>{{ t('catalogue.column.state') }}</th>
+            <th class="text-label">
+              {{ t('catalogue.column.state') }}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -182,7 +188,7 @@ header {
 .paging {
   margin: 0;
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .unreachable {
@@ -192,25 +198,19 @@ header {
   border-left-width: 3px;
   border-radius: var(--radius-1);
   color: var(--colour-danger);
-  font-size: var(--text-s);
-  font-weight: 600;
+  font: var(--style-caption-strong);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-s);
 }
 
 thead th {
   padding: var(--space-1) var(--space-3);
   border-bottom: 1px solid var(--colour-border);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
-  font-weight: 700;
-  letter-spacing: 0.06em;
   text-align: left;
-  text-transform: uppercase;
 }
 
 tbody td {
@@ -222,13 +222,13 @@ tbody td {
 /* The merchant wrote the title and recognises the row by it, so it wraps
    rather than being cut. */
 td.name {
-  font-weight: 600;
+  font: var(--style-body-strong);
 }
 
 .reference {
   color: var(--colour-text-muted);
   font-family: var(--font-mono);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .number {
@@ -242,10 +242,7 @@ td.name {
   padding: 0 var(--space-2);
   border: 1px solid currentColor;
   border-radius: var(--radius-pill);
-  font-size: var(--text-s);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font: var(--style-caption-strong);
 }
 
 .state.published {
@@ -277,7 +274,7 @@ td.name {
 }
 
 .cards .name {
-  font-weight: 600;
+  font: var(--style-body-strong);
 }
 
 .cards .meta {
@@ -285,7 +282,7 @@ td.name {
   gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .cards .number {

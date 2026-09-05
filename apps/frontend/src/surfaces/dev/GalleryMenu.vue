@@ -26,7 +26,7 @@ import { anchorOf, FAMILIES } from '@/surfaces/dev/gallery-registry'
       :key="family.label"
       :gap="1"
     >
-      <p class="family">
+      <p class="family text-label">
         {{ family.label }}
       </p>
       <Stack
@@ -68,17 +68,13 @@ import { anchorOf, FAMILIES } from '@/surfaces/dev/gallery-registry'
 
 .family {
   margin: 0;
-  font-size: var(--text-s);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--colour-text-muted);
 }
 
 a {
   color: var(--colour-accent);
   font-family: var(--font-mono);
-  font-size: var(--text-s);
+  font: var(--style-caption);
   text-decoration: none;
 }
 

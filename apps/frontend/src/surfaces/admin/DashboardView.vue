@@ -34,6 +34,6 @@ const { t } = useI18n()
   border-radius: var(--radius-1);
   background: var(--colour-surface-raised);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 </style>

@@ -205,7 +205,9 @@ const notched = computed(() => props.floating || Boolean(props.error))
   max-width: 0;
   margin-left: var(--notch-inset);
   padding: 0;
-  font-size: var(--text-s);
+  font: var(--style-caption);
+  /* The notch sits astride the border line, so it takes no leading of its
+     own — the one deviation the style allows, and here is its reason. */
   line-height: 1;
   white-space: nowrap;
   transition: max-width 120ms ease;
@@ -230,7 +232,7 @@ const notched = computed(() => props.floating || Boolean(props.error))
   gap: var(--notch-bite);
   max-width: calc(100% - 3.5rem);
   overflow: hidden;
-  font-size: var(--text-m);
+  font: var(--style-body);
   white-space: nowrap;
   transform: translateY(-50%);
   transition:
@@ -244,7 +246,7 @@ const notched = computed(() => props.floating || Boolean(props.error))
      it: one value, so the label and its gap in the line cannot drift apart. */
   top: calc(-1 * var(--notch-rise));
   left: 0.85rem;
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .icon-reserve {
@@ -282,8 +284,7 @@ const notched = computed(() => props.floating || Boolean(props.error))
   border: 0;
   background: transparent;
   color: var(--colour-text);
-  font: inherit;
-  font-size: var(--text-m);
+  font: var(--style-body);
 }
 
 .control :deep(input:focus) {
@@ -329,8 +330,8 @@ const notched = computed(() => props.floating || Boolean(props.error))
 }
 
 .optional {
+  font: var(--style-caption);
   font-style: italic;
-  font-size: var(--text-s);
 }
 
 .optional.resting {

@@ -200,6 +200,6 @@ const strengthLabel = computed(() =>
 .hint {
   margin: var(--space-1) 0 0 var(--space-3);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 </style>

@@ -26,7 +26,7 @@ onMounted(refresh)
     :aria-busy="status.kind === 'loading'"
     :aria-label="t('admin.status.title')"
   >
-    <h2 class="head">
+    <h2 class="head text-label">
       {{ t('admin.status.title') }}
     </h2>
 
@@ -117,10 +117,6 @@ onMounted(refresh)
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--colour-border);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .row {
@@ -152,12 +148,11 @@ onMounted(refresh)
 
 .name {
   flex: 1;
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .state {
-  font-size: var(--text-s);
-  font-weight: 600;
+  font: var(--style-caption-strong);
 }
 
 .state.ok {
@@ -174,7 +169,7 @@ onMounted(refresh)
   padding: var(--space-2) var(--space-3);
   border-top: 1px solid var(--colour-border);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .action {

@@ -171,7 +171,6 @@ onMounted(async () => apply(await listRates()))
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-s);
 }
 
 td {
@@ -182,7 +181,7 @@ td {
 }
 
 td.name {
-  font-weight: 600;
+  font: var(--style-body-strong);
 }
 
 td.percent {
@@ -202,16 +201,13 @@ td.act {
   border: 1px solid var(--colour-accent);
   border-radius: var(--radius-pill);
   color: var(--colour-accent);
-  font-size: var(--text-s);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font: var(--style-caption-strong);
 }
 
 .empty,
 .in-use {
   margin: 0;
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .empty {

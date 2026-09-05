@@ -100,8 +100,7 @@ select {
   border: 0;
   background: transparent;
   color: var(--colour-text);
-  font: inherit;
-  font-size: var(--text-m);
+  font: var(--style-body);
   cursor: pointer;
 }
 
@@ -120,7 +119,7 @@ select:focus {
   padding: var(--space-1) var(--space-3);
   background: var(--colour-surface);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .hidden {

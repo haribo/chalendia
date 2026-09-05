@@ -64,7 +64,7 @@ label {
   display: inline-flex;
   gap: var(--space-2);
   align-items: center;
-  font-size: var(--text-m);
+  font: var(--style-body);
   cursor: pointer;
 }
 

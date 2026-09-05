@@ -27,7 +27,7 @@ defineProps<{ label: string }>()
 }
 
 figcaption {
-  font-size: var(--text-s);
+  font: var(--style-caption);
   color: var(--colour-text-muted);
 }
 </style>

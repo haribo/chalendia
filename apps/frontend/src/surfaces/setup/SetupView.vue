@@ -150,7 +150,9 @@ async function submit(): Promise<void> {
       @submit="submit"
     >
       <fieldset class="group">
-        <legend>{{ t('setup.groups.shop') }}</legend>
+        <legend class="text-label">
+          {{ t('setup.groups.shop') }}
+        </legend>
         <TextField
           v-model="name"
           :icon="IconStorefront"
@@ -166,7 +168,9 @@ async function submit(): Promise<void> {
       </fieldset>
 
       <fieldset class="group">
-        <legend>{{ t('setup.groups.locale') }}</legend>
+        <legend class="text-label">
+          {{ t('setup.groups.locale') }}
+        </legend>
         <!-- The country leads the group: the currency, the timezone and the
              VAT rates that follow all hang off where the shop is. -->
         <div class="two">
@@ -211,7 +215,9 @@ async function submit(): Promise<void> {
       </fieldset>
 
       <fieldset class="group">
-        <legend>{{ t('setup.groups.tax') }}</legend>
+        <legend class="text-label">
+          {{ t('setup.groups.tax') }}
+        </legend>
         <CheckboxField
           v-model="vatEnabled"
           :icon="IconReceipt"
@@ -220,7 +226,9 @@ async function submit(): Promise<void> {
       </fieldset>
 
       <fieldset class="group">
-        <legend>{{ t('setup.groups.account') }}</legend>
+        <legend class="text-label">
+          {{ t('setup.groups.account') }}
+        </legend>
         <TextField
           v-model="administratorEmail"
           type="email"
@@ -267,9 +275,7 @@ async function submit(): Promise<void> {
 .brand {
   flex: 1;
   margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 600;
+  font: var(--style-title);
 }
 
 .controls {
@@ -292,10 +298,6 @@ async function submit(): Promise<void> {
   padding: 0 0 var(--space-1);
   border-bottom: 1px solid var(--colour-border);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .two {
@@ -315,7 +317,7 @@ async function submit(): Promise<void> {
 .hint {
   margin: var(--space-1) 0 0 var(--space-3);
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 
 .closed {
@@ -328,14 +330,12 @@ async function submit(): Promise<void> {
 
 .closed h1 {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--text-l);
-  font-weight: 600;
+  font: var(--style-heading);
 }
 
 .closed p {
   margin: 0;
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 </style>

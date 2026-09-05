@@ -90,13 +90,12 @@ const mayManageRates = computed(() => session.staff?.role === 'administrator')
 
 h2 {
   margin: 0;
-  font-size: var(--text-m);
-  font-weight: 600;
+  font: var(--style-body-strong);
 }
 
 .about {
   margin: calc(var(--space-4) * -1) 0 0;
   color: var(--colour-text-muted);
-  font-size: var(--text-s);
+  font: var(--style-caption);
 }
 </style>
