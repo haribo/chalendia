@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { anchorOf, FAMILIES, NOT_SHOWN, SHOWN } from '@/surfaces/dev/gallery-registry'
+import {
+  anchorOf,
+  FAMILIES,
+  NOT_COMPONENTS,
+  NOT_SHOWN,
+  SHOWN,
+} from '@/surfaces/dev/gallery-registry'
 
 /**
  * The test that keeps the gallery from becoming a museum
@@ -60,7 +66,21 @@ describe('the gallery registry', () => {
     const filed = FAMILIES.flatMap((family) => [...family.components])
 
     expect(new Set(filed).size).toBe(filed.length)
-    expect([...filed].sort()).toEqual([...SHOWN].sort())
+    expect([...filed].filter((name) => !NOT_COMPONENTS.includes(name)).sort()).toEqual(
+      [...SHOWN].sort(),
+    )
+  })
+
+  it('keeps the non-component sections out of the component checks', () => {
+    // The type scale has a section and an anchor but no file in shared/ui.
+    // Without this, the walk above would report it as a stale registry entry.
+    for (const name of NOT_COMPONENTS) {
+      expect(SHOWN).not.toContain(name)
+      // Widened: the families are `as const`, so `components` is a tuple of
+      // literals and `includes` would refuse a plain string.
+      const filed = FAMILIES.flatMap((family) => [...family.components] as string[])
+      expect(filed).toContain(name)
+    }
   })
 
   it('gives every component an anchor of its own', () => {

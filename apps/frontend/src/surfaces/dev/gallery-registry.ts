@@ -20,6 +20,12 @@
  * components has no first and no last, so nothing here is numbered.
  */
 export const FAMILIES = [
+  /*
+   * Not a component: the scale every component consumes. It leads because a
+   * reader asking what a piece of text should be needs it before anything
+   * else, and because the components below are rendered in it.
+   */
+  { label: 'Fondations', components: ['Typographie'] },
   { label: 'Disposition', components: ['Stack', 'Grid', 'Page', 'PageTitle'] },
   { label: 'Actions', components: ['Button', 'NavLink'] },
   {
@@ -29,8 +35,17 @@ export const FAMILIES = [
   { label: 'Coquille', components: ['AppBar', 'Drawer', 'LanguagePicker', 'ThemePicker'] },
 ] as const
 
+/**
+ * Sections the gallery renders that are not components in `shared/ui/`. They
+ * appear in the menu and carry an anchor like any other, and the registry test
+ * knows not to look for a file behind them.
+ */
+export const NOT_COMPONENTS: readonly string[] = ['Typographie']
+
 /** Every component the gallery renders, by file name without its extension. */
-export const SHOWN: readonly string[] = FAMILIES.flatMap((family) => [...family.components])
+export const SHOWN: readonly string[] = FAMILIES.flatMap((family) =>
+  family.components.filter((name) => !NOT_COMPONENTS.includes(name)),
+)
 
 /** The anchor a section and its menu entry share. */
 export function anchorOf(component: string): string {
