@@ -48,6 +48,14 @@ export default defineConfigWithVueTs(
           element: 'dialog',
           message: 'Add a shared dialog to shared/ui rather than a local one — see frontend ADR 0003.',
         },
+        // Structure, closed once the two screens that drew their own had
+        // somewhere to go (#85). A table is not an affordance, but hand-writing
+        // one is how a surface ends up deciding what a row looks like — which
+        // is the boundary frontend ADR 0004 draws.
+        ...['table', 'thead', 'tbody', 'tr', 'th', 'td'].map((element) => ({
+          element,
+          message: 'Use Table from shared/ui with typed cells — see frontend ADR 0004.',
+        })),
       ],
 
       // A ban reading tag names alone waves through the hand-rolled equivalent:

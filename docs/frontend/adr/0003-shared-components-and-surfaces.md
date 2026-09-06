@@ -57,6 +57,7 @@ tag names alone would wave through:
 | `<button>`, `<input>`, `<select>`, `<textarea>`, `<dialog>` | A shared component exists, or should |
 | `role="button"`, `role="dialog"`, `role="checkbox"`, `role="radio"`, `role="menu"`, `role="menuitem"`, `role="tab"` | `<div role="button" tabindex="0" @click @keydown.enter>` satisfies every accessibility rule and still bypasses the design system |
 | `contenteditable` | Same, for text entry |
+| `table`, `thead`, `tbody`, `tr`, `th`, `td` | A surface that writes its own rows is a surface deciding what a row looks like, in a file nobody else reads ([ADR 0004](0004-typed-table-cells.md)) |
 
 ### 3. When a duplication becomes a shared component
 

@@ -79,7 +79,13 @@ describe('CatalogueView', () => {
       page: page([product({ merchantReference: undefined })]),
     })
 
-    expect((await catalogue()).find('td.reference').text()).toBe('—')
+    const rendered = await catalogue()
+
+    // What a merchant reads, not where it is written: a dash stands in for the
+    // reference, and no blank cell and no "undefined" reaches the screen.
+    expect(rendered.text()).toContain('—')
+    expect(rendered.text()).not.toContain('undefined')
+    expect(rendered.text()).not.toContain('null')
   })
 
   it('names the state in words, not in colour alone', async () => {
@@ -88,7 +94,13 @@ describe('CatalogueView', () => {
       page: page([product({ state: 'draft' })]),
     })
 
-    expect((await catalogue()).find('.state').text()).toBe('Draft')
+    const rendered = await catalogue()
+
+    // WCAG 1.4.1: the state is readable without seeing a colour. Asserted on
+    // the words the screen shows, so the guarantee survives the markup that
+    // happens to carry them — this test broke once on exactly that.
+    expect(rendered.text()).toContain('Draft')
+    expect(rendered.text()).not.toContain('draft')
   })
 
   /**

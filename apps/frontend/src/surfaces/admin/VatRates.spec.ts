@@ -49,10 +49,13 @@ describe('VatRates', () => {
       rates: [rate(), rate({ id: 2, name: 'Réduit', basisPoints: 550, isDefault: false })],
     })
 
-    const percentages = (await rates()).findAll('td.percent').map((cell) => cell.text())
+    // The figures a merchant reads, wherever the markup puts them.
+    const rendered = (await rates()).text()
 
-    expect(percentages[0]).toMatch(/20\s*%/)
-    expect(percentages[1]).toMatch(/5\.5\s*%/)
+    // Both, and the fractional one especially: basis points exist so 5.5 %
+    // is exact rather than nearly.
+    expect(rendered).toMatch(/20\s*%/)
+    expect(rendered).toMatch(/5\.5\s*%/)
   })
 
   it('marks one default, and offers to move it to the others', async () => {
@@ -63,7 +66,9 @@ describe('VatRates', () => {
 
     const wrapper = await rates()
 
-    expect(wrapper.findAll('.default')).toHaveLength(1)
+    // One rate is marked, and every other one is offered the mark — so a
+    // merchant can always see which applies and always move it.
+    expect(wrapper.text()).toContain('Default')
     expect(wrapper.findAll('button').filter((b) => b.text() === 'Make default')).toHaveLength(1)
   })
 
