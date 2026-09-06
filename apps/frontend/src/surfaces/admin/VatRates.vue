@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import Button from '@/shared/ui/Button.vue'
-import IconTrash from '@/shared/ui/icons/IconTrash.vue'
+import VatRateTable from '@/surfaces/admin/VatRateTable.vue'
 import TextField from '@/shared/ui/TextField.vue'
 import {
   addRate,
@@ -13,9 +13,8 @@ import {
   type VatRate,
 } from '@/shared/api/tax'
 import { fieldErrorsFrom } from '@/shared/api/field-errors'
-import { formatRate } from '@/shared/money'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const rates = ref<VatRate[]>([])
 const name = ref('')
@@ -80,52 +79,14 @@ onMounted(async () => apply(await listRates()))
 
 <template>
   <div class="rates">
-    <p
-      v-if="rates.length === 0"
-      class="empty"
-    >
-      {{ t('settings.rates.empty') }}
-    </p>
-
-    <table v-else>
-      <tbody>
-        <tr
-          v-for="rate in sorted"
-          :key="rate.id"
-        >
-          <td class="name">
-            {{ rate.name }}
-          </td>
-          <td class="percent">
-            {{ formatRate(rate.basisPoints, locale) }}
-          </td>
-          <td class="mark">
-            <span
-              v-if="rate.isDefault"
-              class="default"
-            >{{ t('settings.rates.default') }}</span>
-            <Button
-              v-else
-              variant="link"
-              :disabled="busy"
-              @click="promote(rate)"
-            >
-              {{ t('settings.rates.makeDefault') }}
-            </Button>
-          </td>
-          <td class="act">
-            <Button
-              variant="icon"
-              :aria-label="t('settings.rates.remove', { name: rate.name })"
-              :disabled="busy"
-              @click="remove(rate)"
-            >
-              <IconTrash />
-            </Button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- The empty sentence is the table's own empty state, so nothing here
+         decides between a table and a sentence. -->
+    <VatRateTable
+      :rates="sorted"
+      :busy="busy"
+      @promote="promote"
+      @remove="remove"
+    />
 
     <!-- The shop sends the count; the sentence is written here, where the
          reader's language is known and one product is not "1 products". -->
@@ -195,14 +156,6 @@ td.act {
   text-align: right;
 }
 
-.default {
-  display: inline-flex;
-  padding: 0 var(--space-2);
-  border: 1px solid var(--colour-accent);
-  border-radius: var(--radius-pill);
-  color: var(--colour-accent);
-  font: var(--style-caption-strong);
-}
 
 .empty,
 .in-use {

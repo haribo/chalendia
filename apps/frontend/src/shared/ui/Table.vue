@@ -37,6 +37,15 @@ function cellOf(row: Row, column: Column): Cell {
 }
 
 const hasRows = computed(() => props.rows.length > 0)
+
+/**
+ * No header row when no column names anything.
+ *
+ * The rates screen is such a table: four columns, none of them a rubric — a
+ * name, a figure, a mark and an action read for themselves. A row of empty
+ * headers above them would be chrome for nothing.
+ */
+const hasHeaders = computed(() => props.columns.some((column) => column.header !== ''))
 </script>
 
 <template>
@@ -57,7 +66,7 @@ const hasRows = computed(() => props.rows.length > 0)
     v-else-if="!narrow"
     :aria-label="label"
   >
-    <thead>
+    <thead v-if="hasHeaders">
       <tr>
         <th
           v-for="column in columns"

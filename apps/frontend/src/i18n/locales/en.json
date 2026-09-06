@@ -115,6 +115,7 @@
     "shop": "The shop",
     "shopAbout": "{country} · {currency} · {timezone}. Everyone who administers this shop sees the same.",
     "rates": {
+      "title": "VAT rates",
       "name": "Name",
       "rate": "Rate",
       "add": "Add",
@@ -141,8 +142,8 @@
       "name": "Name",
       "legalIdentity": "Legal name and registration number",
       "country": "Country of the shop",
-    "countryDecides": "Sets which VAT rates you can charge.",
-    "currency": "Currency",
+      "countryDecides": "Sets which VAT rates you can charge.",
+      "currency": "Currency",
       "currencyFinal": "Final once the first order is placed.",
       "timezone": "Time zone",
       "contentLanguage": "Product page language",

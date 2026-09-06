@@ -115,6 +115,7 @@
     "shop": "La boutique",
     "shopAbout": "{country} · {currency} · {timezone}. Tous ceux qui administrent cette boutique voient la même chose.",
     "rates": {
+      "title": "Taux de TVA",
       "name": "Nom",
       "rate": "Taux",
       "add": "Ajouter",
@@ -141,8 +142,8 @@
       "name": "Nom",
       "legalIdentity": "Raison sociale et immatriculation",
       "country": "Pays de la boutique",
-    "countryDecides": "Détermine les taux de TVA que vous pouvez appliquer.",
-    "currency": "Devise",
+      "countryDecides": "Détermine les taux de TVA que vous pouvez appliquer.",
+      "currency": "Devise",
       "currencyFinal": "Définitive dès la première commande.",
       "timezone": "Fuseau horaire",
       "contentLanguage": "Langue des fiches produits",

@@ -200,6 +200,30 @@ describe('Table', () => {
     expect(onPress).not.toHaveBeenCalled()
   })
 
+  it('renders no header row when no column names anything', () => {
+    stubMatchMedia(false)
+    // The rates screen is such a table: a name, a figure, a mark, an action —
+    // each reads for itself, and a row of empty headers above them is chrome
+    // for nothing.
+    const rendered = table({
+      columns: [{ key: 'name', header: '' }, { key: 'act', header: '' }],
+      rows: [{ key: 1, cells: { name: { kind: 'strong', value: 'Standard' } } }],
+    })
+
+    expect(rendered.find('thead').exists()).toBe(false)
+    expect(rendered.find('tbody').exists()).toBe(true)
+  })
+
+  it('renders the header row as soon as one column names something', () => {
+    stubMatchMedia(false)
+    const rendered = table({
+      columns: [{ key: 'name', header: 'Taux' }, { key: 'act', header: '' }],
+      rows: [{ key: 1, cells: { name: { kind: 'strong', value: 'Standard' } } }],
+    })
+
+    expect(rendered.find('thead').exists()).toBe(true)
+  })
+
   it('renders a cell a row never filed, rather than failing on it', () => {
     stubMatchMedia(false)
     // A column whose key no row carries: the table shows the absence instead
