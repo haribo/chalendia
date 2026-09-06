@@ -73,8 +73,8 @@ import { anchorOf, FAMILIES } from '@/surfaces/dev/gallery-registry'
 
 a {
   color: var(--colour-accent);
-  font-family: var(--font-mono);
   font: var(--style-caption);
+  font-family: var(--font-mono);
   text-decoration: none;
 }
 

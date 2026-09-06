@@ -49,7 +49,27 @@ function* files(directory) {
   }
 }
 
+/*
+ * The `font` shorthand resets `font-family`, so a mono declaration placed
+ * before it is silently undone. That is not hypothetical: the catalogue's
+ * merchant reference shipped without its monospace face for exactly this
+ * reason, and neither the type check, the lint, nor a look at the screenshot
+ * caught it — a pixel comparison did.
+ */
+function familyUndoneByShorthand(text) {
+  const found = []
+  for (const [, selector, block] of text.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+    const family = block.indexOf('font-family:')
+    const shorthand = block.indexOf('font: var(--style-')
+    if (family !== -1 && shorthand !== -1 && shorthand > family) {
+      found.push(selector.trim().split('\n').pop().trim())
+    }
+  }
+  return found
+}
+
 const violations = []
+const undone = []
 
 for (const path of files(SOURCE)) {
   if (ALLOWED.includes(path)) {
@@ -68,6 +88,21 @@ for (const path of files(SOURCE)) {
         }
       }
     })
+
+  for (const selector of familyUndoneByShorthand(readFileSync(path, 'utf8'))) {
+    undone.push(`${relative(ROOT, path)}  ${selector}`)
+  }
+}
+
+if (undone.length > 0) {
+  console.error(
+    `${undone.length} rule(s) where \`font:\` undoes the \`font-family\` above it.\n` +
+      'The shorthand resets the family: declare it after, not before.\n',
+  )
+  for (const one of undone) {
+    console.error(`  ${one}`)
+  }
+  process.exit(1)
 }
 
 if (violations.length > 0) {

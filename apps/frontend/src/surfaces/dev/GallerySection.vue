@@ -48,8 +48,8 @@ const anchor = anchorOf(props.name)
 
 .name {
   margin: 0;
-  font-family: var(--font-mono);
   font: var(--style-body-strong);
+  font-family: var(--font-mono);
 }
 
 .contract {
