@@ -1,3 +1,0 @@
-{
-  "_comment": "Review statuses, keyed by <spec>::<case title>. status: reviewed | to-fix (note required). A case with no entry is implicitly to review — which is the honest default, because only the user validates. specHash anchors a review to the spec file at review time: when it changes, the case returns to to-review."
-}

@@ -142,15 +142,29 @@ In practice:
 
 | Step | Command |
 |---|---|
-| Run the journeys and build the report | `just e2e` |
-| Open it | `just e2e-open` |
-| Record a verdict | edit `tools/e2e-report/reviews.json` |
+| Run the journeys | `just e2e` |
+| See what would be pushed | `just ozalid-dry` |
+| Push the captures | `just ozalid-push` |
+| Review them | the ozalid project, in a browser |
 
-An entry is keyed by `<spec>::<case title>` and carries `status`
-(`reviewed` or `to-fix`, the latter with a mandatory `note`), `reviewedAt`, and
-`specHash` — the hash of the spec file at review time, which is what sends the
-case back to *to review* when the code it judged has changed. The file is
-committed; the report itself is not.
+**Pushed from a developer's machine, before the pull request — never from CI.**
+A capture that reaches CI is a capture nobody looked at while there was still
+time to change it.
+
+What changed is not computed here: every capture is hashed, ozalid is asked
+which addresses it does not already hold, and what it does not hold is exactly
+what changed. A capture ozalid holds is never sent twice, which is what makes a
+full visual history affordable.
+
+The case a journey maps to is committed in `tools/ozalid/cases.json`. ozalid
+generates a case's id and the client stores it; matching on the title instead
+would open a second case the day somebody rewords a test, silently, leaving the
+history on the old one. A rename is fixed by editing one line in that file.
+
+A journey that runs in one variant only — the narrow-screen one — leaves its
+steps without siblings elsewhere. ozalid calls that a **hole**: it stores the
+edition and surfaces the gap rather than refusing the evidence the run did
+produce.
 
 ---
 
