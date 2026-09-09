@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import Alert from '@/shared/ui/Alert.vue'
 import Button from '@/shared/ui/Button.vue'
 import PageTitle from '@/shared/ui/PageTitle.vue'
 import ProductTable from '@/surfaces/admin/ProductTable.vue'
@@ -54,13 +55,9 @@ onMounted(load)
       </Button>
     </header>
 
-    <p
-      v-if="unreachable"
-      class="unreachable"
-      role="alert"
-    >
+    <Alert v-if="unreachable">
       {{ t('catalogue.unreachable') }}
-    </p>
+    </Alert>
 
     <!-- One screen: the table when there are products, a sentence where the
          table would be when there are none. No second design to maintain
@@ -93,68 +90,10 @@ header {
   justify-content: space-between;
 }
 
-.empty,
 .paging {
   margin: 0;
   color: var(--colour-text-muted);
   font: var(--style-caption);
 }
-
-.unreachable {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--colour-danger);
-  border-left-width: 3px;
-  border-radius: var(--radius-1);
-  color: var(--colour-danger);
-  font: var(--style-caption-strong);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-thead th {
-  padding: var(--space-1) var(--space-3);
-  border-bottom: 1px solid var(--colour-border);
-  color: var(--colour-text-muted);
-  text-align: left;
-}
-
-tbody td {
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--colour-border);
-  vertical-align: baseline;
-}
-
-/* The merchant wrote the title and recognises the row by it, so it wraps
-   rather than being cut. */
-td.name {
-  font: var(--style-body-strong);
-}
-
-
-.state {
-  display: inline-flex;
-  padding: 0 var(--space-2);
-  border: 1px solid currentColor;
-  border-radius: var(--radius-pill);
-  font: var(--style-caption-strong);
-}
-
-.state.published {
-  color: var(--colour-accent);
-}
-
-.state.draft,
-.state.retired {
-  color: var(--colour-text-muted);
-}
-
-
-
-
-
 
 </style>

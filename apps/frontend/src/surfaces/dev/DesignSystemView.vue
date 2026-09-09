@@ -18,7 +18,14 @@ import Page from '@/shared/ui/Page.vue'
 import PageTitle from '@/shared/ui/PageTitle.vue'
 import PasswordField from '@/shared/ui/PasswordField.vue'
 import SelectField from '@/shared/ui/SelectField.vue'
+import Alert from '@/shared/ui/Alert.vue'
+import IconCheckCircle from '@/shared/ui/icons/IconCheckCircle.vue'
+import IconEdit from '@/shared/ui/icons/IconEdit.vue'
+import IconError from '@/shared/ui/icons/IconError.vue'
+import IconHourglass from '@/shared/ui/icons/IconHourglass.vue'
 import IconTrash from '@/shared/ui/icons/IconTrash.vue'
+import IconVisibilityOff from '@/shared/ui/icons/IconVisibilityOff.vue'
+import Pill from '@/shared/ui/Pill.vue'
 import Stack from '@/shared/ui/Stack.vue'
 import Table from '@/shared/ui/Table.vue'
 import TextField from '@/shared/ui/TextField.vue'
@@ -76,7 +83,12 @@ const productRows = [
       reference: { kind: 'code' as const, value: 'SAV-MIEL-100' },
       price: { kind: 'number' as const, value: '6,90 €' },
       vat: { kind: 'number' as const, value: '20 %' },
-      state: { kind: 'pill' as const, value: 'Publié', tone: 'accent' as const },
+      state: {
+        kind: 'pill' as const,
+        value: 'Publié',
+        tone: 'accent' as const,
+        icon: IconCheckCircle,
+      },
     },
   },
   {
@@ -89,7 +101,7 @@ const productRows = [
       reference: { kind: 'code' as const },
       price: { kind: 'number' as const, value: '8,20 €' },
       vat: { kind: 'number' as const, value: '20 %' },
-      state: { kind: 'pill' as const, value: 'Brouillon' },
+      state: { kind: 'pill' as const, value: 'Brouillon', icon: IconEdit },
     },
   },
   {
@@ -99,7 +111,7 @@ const productRows = [
       reference: { kind: 'code' as const, value: 'COF-DEC-003' },
       price: { kind: 'number' as const, value: '24,00 €' },
       vat: { kind: 'number' as const },
-      state: { kind: 'pill' as const, value: 'Retiré' },
+      state: { kind: 'pill' as const, value: 'Retiré', icon: IconVisibilityOff },
     },
   },
 ]
@@ -121,7 +133,12 @@ const rateRows = [
     cells: {
       name: { kind: 'strong' as const, value: 'Standard' },
       rate: { kind: 'number' as const, value: '20 %' },
-      mark: { kind: 'pill' as const, value: 'Par défaut', tone: 'accent' as const },
+      mark: {
+        kind: 'pill' as const,
+        value: 'Par défaut',
+        tone: 'accent' as const,
+        icon: IconCheckCircle,
+      },
       act: {
         kind: 'actions' as const,
         actions: [{ label: 'Supprimer Standard', icon: IconTrash, onPress: noop }],
@@ -345,6 +362,55 @@ const rateRows = [
             empty="Aucun produit pour l’instant."
             label="Produits, sans aucun"
           />
+        </GalleryCanvas>
+      </GallerySection>
+
+      <!-- ── États ──────────────────────────────────────────── -->
+
+      <GallerySection
+        name="Pill"
+        contract="Un état, jamais une action. Le ton dit de quelle sorte d’état il s’agit ; l’icône, passée par l’appelant, dit lequel — deux états peuvent partager un ton et vouloir dire le contraire."
+      >
+        <GalleryCanvas>
+          <Pill :icon="IconEdit">
+            Brouillon
+          </Pill>
+          <Pill :icon="IconVisibilityOff">
+            Retiré
+          </Pill>
+          <Pill
+            tone="accent"
+            :icon="IconCheckCircle"
+          >
+            Publié
+          </Pill>
+          <Pill
+            tone="warning"
+            :icon="IconHourglass"
+          >
+            En préparation
+          </Pill>
+          <Pill
+            tone="danger"
+            :icon="IconError"
+          >
+            Échec
+          </Pill>
+        </GalleryCanvas>
+      </GallerySection>
+
+      <GallerySection
+        name="Alert"
+        contract="Ce que la boutique a à dire de ce qui vient d’arriver. Le ton nomme la sorte de nouvelle et l’icône en découle — contrairement à une pastille, une nouvelle d’une sorte donnée se présente toujours pareil."
+      >
+        <GalleryCanvas stacked>
+          <Alert>La boutique n’a pas répondu. Réessayez.</Alert>
+          <Alert tone="warning">
+            Deux photographies attendent encore leur texte alternatif.
+          </Alert>
+          <Alert tone="success">
+            Le taux par défaut est passé à Réduit.
+          </Alert>
         </GalleryCanvas>
       </GallerySection>
 

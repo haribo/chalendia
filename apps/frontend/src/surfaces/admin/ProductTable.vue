@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import IconCheckCircle from '@/shared/ui/icons/IconCheckCircle.vue'
+import IconEdit from '@/shared/ui/icons/IconEdit.vue'
+import IconVisibilityOff from '@/shared/ui/icons/IconVisibilityOff.vue'
 import Table from '@/shared/ui/Table.vue'
 import type { Column, Row } from '@/shared/ui/table'
 import type { ProductSummary } from '@/shared/api/catalogue'
@@ -63,6 +66,14 @@ function rowOf(product: ProductSummary): Row {
         // Published is the state a merchant is looking for; the others are
         // where a product is on its way to or back from.
         tone: product.state === 'published' ? 'accent' : 'neutral',
+        // Draft and retired share the neutral tone and mean opposite things —
+        // still being written, versus taken out of sight. The icon is what
+        // tells them apart, and it is the caller's to choose.
+        icon: {
+          draft: IconEdit,
+          published: IconCheckCircle,
+          retired: IconVisibilityOff,
+        }[product.state],
       },
     },
   }

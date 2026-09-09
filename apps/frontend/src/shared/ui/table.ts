@@ -16,7 +16,7 @@ import type { Component } from 'vue'
  */
 
 /** A cell's tone, when it has one. Never an action's: see ADR 0003 § 4. */
-export type CellTone = 'neutral' | 'accent'
+export type CellTone = 'neutral' | 'accent' | 'warning' | 'danger'
 
 /** One button inside an `actions` cell. */
 export interface CellAction {
@@ -41,9 +41,10 @@ export type Cell =
   | { kind: 'number'; value?: string }
   /** A reference someone reads character by character. */
   | { kind: 'code'; value?: string }
-  /** A state. Carries a shape as well as a tone, since colour never carries
-      meaning alone (`docs/design/core.md` § 8). */
-  | { kind: 'pill'; value?: string; tone?: CellTone }
+  /** A state. Carries an icon as well as a tone, since colour never carries
+      meaning alone (`docs/design/core.md` § 8). The icon is the caller's:
+      two states may share a tone and mean opposite things. */
+  | { kind: 'pill'; value?: string; tone?: CellTone; icon?: Component }
   | { kind: 'actions'; actions: readonly CellAction[] }
 
 export interface Column {

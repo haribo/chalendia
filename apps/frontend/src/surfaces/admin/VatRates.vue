@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import Alert from '@/shared/ui/Alert.vue'
 import Button from '@/shared/ui/Button.vue'
 import VatRateTable from '@/surfaces/admin/VatRateTable.vue'
 import TextField from '@/shared/ui/TextField.vue'
@@ -90,13 +91,9 @@ onMounted(async () => apply(await listRates()))
 
     <!-- The shop sends the count; the sentence is written here, where the
          reader's language is known and one product is not "1 products". -->
-    <p
-      v-if="inUse !== undefined"
-      class="in-use"
-      role="alert"
-    >
+    <Alert v-if="inUse !== undefined">
       {{ t('settings.rates.inUse', { count: inUse }, inUse) }}
-    </p>
+    </Alert>
 
     <div class="add">
       <TextField
@@ -141,39 +138,12 @@ td {
   vertical-align: middle;
 }
 
-td.name {
-  font: var(--style-body-strong);
-}
-
-td.percent {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
-
-td.act {
-  width: 3.5rem;
-  text-align: right;
-}
 
 
-.empty,
-.in-use {
-  margin: 0;
-  font: var(--style-caption);
-}
 
-.empty {
-  color: var(--colour-text-muted);
-}
 
-.in-use {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--colour-danger);
-  border-left-width: 3px;
-  border-radius: var(--radius-1);
-  color: var(--colour-danger);
-}
+
+
 
 /* The row that adds one, at the foot of the list rather than on a screen of
    its own to leave and come back from. */
