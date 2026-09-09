@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Button from '@/shared/ui/Button.vue'
+import Pill from '@/shared/ui/Pill.vue'
 import { ABSENT, type Cell } from '@/shared/ui/table'
 
 /**
@@ -42,11 +43,13 @@ function text(cell: Cell): string {
     </Button>
   </span>
 
-  <span
+  <Pill
     v-else-if="cell.kind === 'pill' && !isAbsent(cell)"
-    class="pill"
-    :class="cell.tone ?? 'neutral'"
-  >{{ text(cell) }}</span>
+    :tone="cell.tone"
+    :icon="cell.icon"
+  >
+    {{ text(cell) }}
+  </Pill>
 
   <!-- An absent pill falls through to here, and reads as plain text: an
        outlined pill around a dash announces a state called "—". -->
@@ -77,22 +80,8 @@ function text(cell: Cell): string {
   color: var(--colour-text-muted);
 }
 
-.pill {
-  display: inline-block;
-  padding: 0 var(--space-2);
-  border: 1px solid currentColor;
-  border-radius: var(--radius-pill);
-  font: var(--style-caption-strong);
-  white-space: nowrap;
-}
 
-.pill.accent {
-  color: var(--colour-accent);
-}
 
-.pill.neutral {
-  color: var(--colour-text-muted);
-}
 
 .actions {
   display: inline-flex;

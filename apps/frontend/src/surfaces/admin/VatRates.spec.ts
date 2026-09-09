@@ -110,12 +110,14 @@ describe('VatRates', () => {
     const english = await rates('en')
     await english.findAll('button').filter((b) => b.attributes('aria-label'))[0].trigger('click')
     await flushPromises()
-    expect(english.find('.in-use').text()).toContain('One product carries this rate')
+    // The sentence a merchant reads, wherever the markup puts it — and it is
+    // announced, which is what makes a refusal reach someone not looking at it.
+    expect(english.find('[role="alert"]').text()).toContain('One product carries this rate')
 
     const french = await rates('fr')
     await french.findAll('button').filter((b) => b.attributes('aria-label'))[0].trigger('click')
     await flushPromises()
-    expect(french.find('.in-use').text()).toContain('Un produit utilise ce taux')
+    expect(french.find('[role="alert"]').text()).toContain('Un produit utilise ce taux')
   })
 
   it('counts in the plural when several carry it', async () => {
@@ -126,6 +128,6 @@ describe('VatRates', () => {
     await wrapper.findAll('button').filter((b) => b.attributes('aria-label'))[0].trigger('click')
     await flushPromises()
 
-    expect(wrapper.find('.in-use').text()).toContain('3 products carry this rate')
+    expect(wrapper.find('[role="alert"]').text()).toContain('3 products carry this rate')
   })
 })

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import Alert from '@/shared/ui/Alert.vue'
 import Button from '@/shared/ui/Button.vue'
 import CheckboxField from '@/shared/ui/CheckboxField.vue'
 import Form from '@/shared/ui/Form.vue'
@@ -108,13 +109,9 @@ async function submit(): Promise<void> {
   <section class="new-product">
     <PageTitle>{{ t('catalogue.new.title') }}</PageTitle>
 
-    <p
-      v-if="unreachable"
-      class="unreachable"
-      role="alert"
-    >
+    <Alert v-if="unreachable">
       {{ t('catalogue.unreachable') }}
-    </p>
+    </Alert>
 
     <!-- No summary line above the fields: a refused field shows its own
          problem, and a line repeating it says nothing new. -->
@@ -196,13 +193,4 @@ async function submit(): Promise<void> {
   font: var(--style-caption);
 }
 
-.unreachable {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--colour-danger);
-  border-left-width: 3px;
-  border-radius: var(--radius-1);
-  color: var(--colour-danger);
-  font: var(--style-caption-strong);
-}
 </style>

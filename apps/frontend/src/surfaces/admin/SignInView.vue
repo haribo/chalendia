@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
+import Alert from '@/shared/ui/Alert.vue'
 import Button from '@/shared/ui/Button.vue'
 import Form from '@/shared/ui/Form.vue'
 import IconLock from '@/shared/ui/icons/IconLock.vue'
@@ -69,13 +70,12 @@ async function submit(): Promise<void> {
 
     <!-- Above the form, not on a field: the shop does not say which half is
          wrong, and marking one field would say it in its place. -->
-    <p
+    <Alert
       v-if="refused"
-      class="refused"
-      role="alert"
+      class="refusal"
     >
       {{ t('signIn.refused') }}
-    </p>
+    </Alert>
 
     <Form
       :submitting="submitting"
@@ -124,6 +124,14 @@ async function submit(): Promise<void> {
   padding: var(--space-8) var(--space-4);
 }
 
+/* This screen stacks in normal flow rather than with a gap, so the space below
+   the alert is its own to give — a margin inside `Alert` would impose one on
+   every caller (frontend ADR 0003 § 5). Without it the next field's notch,
+   which rises onto its border, lands on the alert. */
+.refusal {
+  margin-bottom: var(--space-4);
+}
+
 .bar {
   display: flex;
   align-items: center;
@@ -152,15 +160,6 @@ h1 {
   font: var(--style-heading);
 }
 
-.refused {
-  margin: 0 0 var(--space-4);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--colour-danger);
-  border-left-width: 3px;
-  border-radius: var(--radius-1);
-  color: var(--colour-danger);
-  font: var(--style-caption-strong);
-}
 
 .back {
   display: inline-block;

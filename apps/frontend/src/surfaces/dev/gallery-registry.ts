@@ -28,6 +28,7 @@ export const FAMILIES = [
   { label: 'Fondations', components: ['Typographie'] },
   { label: 'Disposition', components: ['Stack', 'Grid', 'Page', 'PageTitle'] },
   { label: 'Données', components: ['Table'] },
+  { label: 'États', components: ['Pill', 'Alert'] },
   { label: 'Actions', components: ['Button', 'NavLink'] },
   {
     label: 'Champs',
