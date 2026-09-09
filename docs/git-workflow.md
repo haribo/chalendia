@@ -76,9 +76,10 @@ Not yet gated, and deliberately listed so nobody assumes otherwise:
 |---|---|
 | Commit message and PR title validation | — |
 
-The journeys also produce the review report the user validates screens in — see
+The journeys also produce the captures the user validates screens from — see
 [`delivery-workflow.md`](delivery-workflow.md) § 6. `just e2e` runs them against
-the development stack and builds the report; `just e2e-open` opens it.
+the development stack; `just ozalid-push` sends the captures for review, from a
+developer's machine and before the pull request.
 
 All existing gates must be green before merge; there is no manual skip.
 

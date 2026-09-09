@@ -293,7 +293,7 @@ api-check:
     echo "api types: current"
 
 # =============================================================================
-# END TO END — the journeys, and the report the user reviews them in
+# END TO END — the journeys, and the captures ozalid reviews them from
 # =============================================================================
 
 # Run the journeys against a shop created from scratch, once per variant
@@ -301,11 +301,10 @@ e2e:
     #!/usr/bin/env bash
     set -euo pipefail
     trap 'just dev-stop >/dev/null 2>&1 || true' EXIT
-    # Stale reports would be merged into this run's, so the previous ones go.
+    # Stale reports would be pushed alongside this run's, so the previous ones go.
     rm -rf {{frontend_dir}}/tmp/e2e-report
     # A failing variant is the most interesting thing to look at, so the run
-    # goes on and the report is built either way — the exit code carries the
-    # verdict, not a missing report.
+    # goes on to the end — the exit code carries the verdict.
     failed=0
     for variant in ${E2E_VARIANTS:-{{e2e_variants}}}; do
         echo "── ${variant} ───────────────────────────────────────────────"
@@ -325,13 +324,12 @@ e2e:
         E2E_BASE_URL="http://localhost:{{dev_web_port}}" E2E_VARIANT="${variant}" npx playwright test || failed=1
         cd {{justfile_directory()}}
     done
-    just e2e-report || failed=1
     exit "${failed}"
 
-# Run the journeys against the container image, the way CI does and the way an
-# operator actually installs the shop — one origin, no dev server.
+# Run the journeys against the container image, the way CI and an operator do
 e2e-image:
     #!/usr/bin/env bash
+    # One origin, no dev server — the shape a merchant actually installs.
     set -euo pipefail
     trap 'docker compose down -v >/dev/null 2>&1 || true' EXIT
     rm -rf {{frontend_dir}}/tmp/e2e-report
@@ -348,16 +346,25 @@ e2e-image:
         E2E_BASE_URL="http://localhost:{{dev_api_port}}" E2E_VARIANT="${variant}" npx playwright test || failed=1
         cd {{justfile_directory()}}
     done
-    just e2e-report || failed=1
     exit "${failed}"
 
-# Build the review site from the last run
-e2e-report:
-    node tools/e2e-report/generate.mjs
+# Push the last run's captures to ozalid, where they are reviewed
+ozalid-push:
+    #!/usr/bin/env bash
+    # Local and before the pull request: the visual result is one of the two
+    # things only the user grants, and a capture reaching CI is a capture
+    # nobody looked at in time. What changed is not computed here — ozalid is
+    # asked which content it does not hold, and that is what changed.
+    set -euo pipefail
+    set -a; . ./.env; set +a
+    OZALID_REVISION="$(git rev-parse --short HEAD)" node tools/ozalid/push.mjs "$@"
 
-# Open the review site
-e2e-open:
-    xdg-open reports/e2e/index.html
+# Show what a push would send, and write nothing
+ozalid-dry:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -a; . ./.env; set +a
+    node tools/ozalid/push.mjs --dry-run
 
 # Everything a pull request must pass, in one command
 check: backend-check backend-test frontend-check frontend-test frontend-build api-check
