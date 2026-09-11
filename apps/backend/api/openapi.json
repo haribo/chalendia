@@ -434,6 +434,78 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Change what one image says it shows.",
+        "description": "The alternative text is the only field of an image a client sets after the\nupload: the order is `PUT /images/order`'s business, and the state is the\nderiver's.",
+        "operationId": "describe_image",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The product",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "imageId",
+            "in": "path",
+            "description": "The image",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WantedAlternativeText"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The image, as it now reads",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "type: /problems/no-such-image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/sessions": {
@@ -1278,6 +1350,19 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "WantedAlternativeText": {
+        "type": "object",
+        "description": "What an image is to say it shows.",
+        "properties": {
+          "alternativeText": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Absent or empty both mean the image has none — the back office flags it\neither way, so the shop stores one state and not two."
           }
         }
       },

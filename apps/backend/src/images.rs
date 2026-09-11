@@ -222,6 +222,49 @@ pub async fn list(pool: &PgPool, product_id: i64) -> Result<Vec<ProductImage>, s
         .collect())
 }
 
+/// Changes what one image says it shows.
+///
+/// The only field of an image a client may set after the upload. Position is
+/// `reorder`'s business and `state` is the deriver's — a caller that could
+/// declare an image ready would be describing work nobody did.
+///
+/// Empty is stored as absent, so "no alternative text" is one state and not
+/// two: the back office flags an image without one, and it would have to flag
+/// `Some("")` as well to stay truthful.
+pub async fn set_alternative_text(
+    pool: &PgPool,
+    product_id: i64,
+    image_id: i64,
+    alternative_text: Option<&str>,
+) -> Result<ProductImage, ImageError> {
+    let row = sqlx::query!(
+        "update product_images set alternative_text = $3 \
+         where id = $1 and product_id = $2 \
+         returning id, reference, position, alternative_text, state, source_width, source_height",
+        image_id,
+        product_id,
+        optional(alternative_text)
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    // Both "no such image" and "not this product's image" answer the same way,
+    // on purpose: telling them apart would say whether an id exists elsewhere.
+    let Some(row) = row else {
+        return Err(ImageError::NoSuchImage);
+    };
+
+    Ok(ProductImage {
+        id: row.id,
+        reference: row.reference,
+        position: row.position,
+        alternative_text: row.alternative_text,
+        state: ImageState::from_str(&row.state),
+        width: row.source_width,
+        height: row.source_height,
+    })
+}
+
 /// Removes one image, row and files together.
 ///
 /// The row goes first: a file left behind is disk nobody reads, while a row

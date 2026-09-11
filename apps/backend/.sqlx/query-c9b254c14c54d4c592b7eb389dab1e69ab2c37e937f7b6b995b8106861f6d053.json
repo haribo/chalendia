@@ -1,0 +1,102 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update product_images set alternative_text = $3 where id = $1 and product_id = $2 returning id, reference, position, alternative_text, state, source_width, source_height",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "reference",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "reference"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "position",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "position"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "alternative_text",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "alternative_text"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "state",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "state"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "source_width",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "source_width"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "source_height",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "source_height"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c9b254c14c54d4c592b7eb389dab1e69ab2c37e937f7b6b995b8106861f6d053"
+}

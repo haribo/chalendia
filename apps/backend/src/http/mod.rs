@@ -72,7 +72,7 @@ pub fn router(config: &Config, state: AppState) -> Router {
                 )
                 .route(
                     "/products/{id}/images/{imageId}",
-                    axum::routing::delete(images::remove_image),
+                    axum::routing::delete(images::remove_image).patch(images::describe_image),
                 )
                 .route(
                     "/products/{id}/images/order",

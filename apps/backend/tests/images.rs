@@ -976,3 +976,165 @@ async fn a_file_over_the_limit_is_refused_before_it_is_decoded(pool: PgPool) {
         },
     );
 }
+
+fn patch(path: &str, body: Value, cookie: &str) -> Request<Body> {
+    Request::builder()
+        .method("PATCH")
+        .uri(path)
+        .header(header::CONTENT_TYPE, "application/json")
+        .header(header::COOKIE, cookie)
+        .body(Body::from(body.to_string()))
+        .expect("valid request")
+}
+
+#[sqlx::test]
+async fn what_an_image_says_it_shows_can_be_corrected(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let answer = shop
+        .call(upload(
+            product_id,
+            "savon.jpg",
+            &a_jpeg(800, 450),
+            Some("Savon au miek"),
+            &cookie,
+        ))
+        .await;
+    let image_id = answer.body["id"].as_i64().expect("an identifier");
+
+    let corrected = shop
+        .call(patch(
+            &format!("/api/products/{product_id}/images/{image_id}"),
+            json!({ "alternativeText": "Savon au miel sur un linge écru" }),
+            &cookie,
+        ))
+        .await;
+
+    assert_eq!(corrected.status, StatusCode::OK);
+    assert_eq!(
+        corrected.body["alternativeText"],
+        "Savon au miel sur un linge écru",
+    );
+
+    // Read back through the listing, so the answer is not the only thing that
+    // knows: a handler that returned the wanted text without storing it would
+    // pass on the line above alone.
+    let listed = shop
+        .call(get(
+            &format!("/api/products/{product_id}/images"),
+            Some(&cookie),
+        ))
+        .await;
+    assert_eq!(
+        listed.body[0]["alternativeText"],
+        "Savon au miel sur un linge écru",
+    );
+}
+
+#[sqlx::test]
+async fn emptying_an_alternative_text_leaves_the_image_without_one(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let answer = shop
+        .call(upload(
+            product_id,
+            "savon.jpg",
+            &a_jpeg(800, 450),
+            Some("une description à retirer"),
+            &cookie,
+        ))
+        .await;
+    let image_id = answer.body["id"].as_i64().expect("an identifier");
+
+    let emptied = shop
+        .call(patch(
+            &format!("/api/products/{product_id}/images/{image_id}"),
+            json!({ "alternativeText": "   " }),
+            &cookie,
+        ))
+        .await;
+
+    // Absent, never an empty string: the back office flags an image without a
+    // description, and two ways of having none would need flagging twice.
+    assert_eq!(emptied.status, StatusCode::OK);
+    assert!(
+        emptied.body["alternativeText"].is_null(),
+        "blank came back as {}",
+        emptied.body["alternativeText"],
+    );
+    let stored: Option<String> = sqlx::query_scalar!(
+        "select alternative_text from product_images where id = $1",
+        image_id
+    )
+    .fetch_one(&shop.pool)
+    .await
+    .expect("the row exists");
+    assert_eq!(stored, None);
+}
+
+#[sqlx::test]
+async fn describing_an_image_of_another_product_is_refused(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let answer = shop
+        .call(upload(
+            product_id,
+            "savon.jpg",
+            &a_jpeg(800, 450),
+            None,
+            &cookie,
+        ))
+        .await;
+    let image_id = answer.body["id"].as_i64().expect("an identifier");
+
+    shop.call(post(
+        "/api/products",
+        json!({ "title": "Savon à la lavande", "price": 690 }),
+        Some(&cookie),
+    ))
+    .await;
+    let other_id = sqlx::query_scalar!("select id from products order by id desc limit 1")
+        .fetch_one(&shop.pool)
+        .await
+        .expect("the second product exists");
+
+    let refused = shop
+        .call(patch(
+            &format!("/api/products/{other_id}/images/{image_id}"),
+            json!({ "alternativeText": "volée" }),
+            &cookie,
+        ))
+        .await;
+
+    assert_eq!(refused.status, StatusCode::NOT_FOUND);
+    let untouched: Option<String> = sqlx::query_scalar!(
+        "select alternative_text from product_images where id = $1",
+        image_id
+    )
+    .fetch_one(&shop.pool)
+    .await
+    .expect("the row exists");
+    assert_eq!(untouched, None, "the other product's image was written to");
+}
+
+#[sqlx::test]
+async fn describing_an_image_needs_a_session(pool: PgPool) {
+    let (shop, cookie, product_id) = a_shop_with_a_product(pool).await;
+    let answer = shop
+        .call(upload(
+            product_id,
+            "savon.jpg",
+            &a_jpeg(800, 450),
+            None,
+            &cookie,
+        ))
+        .await;
+    let image_id = answer.body["id"].as_i64().expect("an identifier");
+
+    let refused = shop
+        .call(patch(
+            &format!("/api/products/{product_id}/images/{image_id}"),
+            json!({ "alternativeText": "sans session" }),
+            "chalendia_session=not-a-session",
+        ))
+        .await;
+
+    assert_eq!(refused.status, StatusCode::UNAUTHORIZED);
+}
