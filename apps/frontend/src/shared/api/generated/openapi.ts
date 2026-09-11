@@ -125,7 +125,13 @@ export interface paths {
         delete: operations["remove_image"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Change what one image says it shows.
+         * @description The alternative text is the only field of an image a client sets after the
+         *     upload: the order is `PUT /images/order`'s business, and the state is the
+         *     deriver's.
+         */
+        patch: operations["describe_image"];
         trace?: never;
     };
     "/api/sessions": {
@@ -442,6 +448,14 @@ export interface components {
             id: number;
             isDefault: boolean;
             name: string;
+        };
+        /** @description What an image is to say it shows. */
+        WantedAlternativeText: {
+            /**
+             * @description Absent or empty both mean the image has none — the back office flags it
+             *     either way, so the shop stores one state and not two.
+             */
+            alternativeText?: string | null;
         };
         /** @description The order a product's images are to be shown in. */
         WantedOrder: {
@@ -764,6 +778,53 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/no-such-image */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    describe_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product */
+                id: number;
+                /** @description The image */
+                imageId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WantedAlternativeText"];
+            };
+        };
+        responses: {
+            /** @description The image, as it now reads */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImage"];
+                };
             };
             /** @description No live session */
             401: {

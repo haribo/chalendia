@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select alternative_text from product_images where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "alternative_text",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "product_images",
+            "name": "alternative_text"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "0e2c1a3cc3b317978d5aff713beaed98ec04890cf028d26ca2035e3b9e4ca184"
+}

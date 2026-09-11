@@ -159,6 +159,54 @@ pub async fn remove_image(
     }
 }
 
+/// What an image is to say it shows.
+#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct WantedAlternativeText {
+    /// Absent or empty both mean the image has none — the back office flags it
+    /// either way, so the shop stores one state and not two.
+    pub alternative_text: Option<String>,
+}
+
+/// Change what one image says it shows.
+///
+/// The alternative text is the only field of an image a client sets after the
+/// upload: the order is `PUT /images/order`'s business, and the state is the
+/// deriver's.
+#[utoipa::path(
+    patch,
+    path = "/api/products/{id}/images/{imageId}",
+    tag = "catalogue",
+    params(
+        ("id" = i64, Path, description = "The product"),
+        ("imageId" = i64, Path, description = "The image"),
+    ),
+    request_body = WantedAlternativeText,
+    responses(
+        (status = 200, description = "The image, as it now reads", body = ProductImage),
+        (status = 401, description = "No live session", body = ApiError),
+        (status = 404, description = "type: /problems/no-such-image", body = ApiError),
+    ),
+)]
+pub async fn describe_image(
+    CurrentStaff(_staff): CurrentStaff,
+    State(state): State<AppState>,
+    Path((product_id, image_id)): Path<(i64, i64)>,
+    Json(wanted): Json<WantedAlternativeText>,
+) -> Response {
+    match images::set_alternative_text(
+        &state.db,
+        product_id,
+        image_id,
+        wanted.alternative_text.as_deref(),
+    )
+    .await
+    {
+        Ok(image) => Json(image).into_response(),
+        Err(error) => refusal_response(error),
+    }
+}
+
 /// The order a product's images are to be shown in.
 #[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
 #[serde(rename_all = "camelCase")]
