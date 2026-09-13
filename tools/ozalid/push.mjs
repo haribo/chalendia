@@ -14,12 +14,20 @@
  * What changed is not computed here. Every capture is hashed, ozalid is asked
  * which addresses it does not hold, and what it does not hold is exactly what
  * changed — content addressing answers the question for us.
+ *
+ * A journey's **video** goes up beside its screenshots. A reviewer needs both:
+ * a screenshot says what a step looked like, and only the film says whether
+ * getting there was a manoeuvre. Videos are never byte-stable — a fresh
+ * recording of an unchanged journey hashes differently — so they are sent every
+ * run rather than deduplicated like the stills.
  */
 
 import { createHash } from 'node:crypto'
 import { readFile, readdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import process from 'node:process'
+
+import { filmsOf, stepsOf } from './report.mjs'
 
 const ROOT = new URL('../..', import.meta.url).pathname
 const REPORTS = join(ROOT, 'apps/frontend/tmp/e2e-report')
@@ -69,36 +77,6 @@ async function call(path, options = {}) {
   return response
 }
 
-/** Walks a Playwright report and yields one entry per captured step. */
-function stepsOf(report) {
-  const found = []
-
-  const walk = (suites) => {
-    for (const suite of suites ?? []) {
-      for (const spec of suite.specs ?? []) {
-        for (const test of spec.tests ?? []) {
-          for (const result of test.results ?? []) {
-            for (const attachment of result.attachments ?? []) {
-              if (attachment.contentType !== 'image/png' || !attachment.body) continue
-              found.push({
-                case: spec.title,
-                // Playwright prefixes a named step; the bare `screenshot` is
-                // the end-of-test one, which is a moment like any other.
-                step: attachment.name.replace(/^step: /, '') || 'end of journey',
-                bytes: Buffer.from(attachment.body, 'base64'),
-              })
-            }
-          }
-        }
-      }
-      walk(suite.suites)
-    }
-  }
-
-  walk(report.suites)
-  return found
-}
-
 const files = (await readdir(REPORTS)).filter((name) => /^report-.+\.json$/.test(name))
 if (files.length === 0) {
   console.error(`no report in ${REPORTS} — run \`just e2e\` first`)
@@ -107,6 +85,8 @@ if (files.length === 0) {
 
 // case title → step name → variant → bytes
 const book = new Map()
+// case title → [{ variant, hash }], one film per variant
+const films = new Map()
 const blobs = new Map()
 
 for (const file of files) {
@@ -123,9 +103,28 @@ for (const file of files) {
     steps.set(entry.step, captures)
     book.set(entry.case, steps)
   }
+
+  for (const film of filmsOf(report)) {
+    const bytes = await readFile(film.path).catch(() => undefined)
+    if (!bytes) {
+      // A run that failed before Playwright finished muxing leaves the path in
+      // the report and no file behind it. Said rather than crashed: the stills
+      // are still worth pushing.
+      console.warn(`no film at ${film.path} — skipping it`)
+      continue
+    }
+
+    const hash = `sha256:${createHash('sha256').update(bytes).digest('hex')}`
+    blobs.set(hash, bytes)
+    films.set(film.case, [...(films.get(film.case) ?? []), { variant: axesOf(variant), hash }])
+  }
 }
 
-console.log(`${book.size} cases, ${blobs.size} distinct captures across ${files.length} variants`)
+const filmCount = [...films.values()].reduce((n, list) => n + list.length, 0)
+console.log(
+  `${book.size} cases, ${blobs.size} distinct captures and ${filmCount} film(s) ` +
+    `across ${files.length} variants`,
+)
 
 // ── The cases, by the map this repository keeps ───────────────────────────
 const stored = await readFile(CASES, 'utf8').then(JSON.parse).catch(() => ({}))
@@ -151,8 +150,10 @@ if (DRY) {
     const held = await call(`/projects/${PROJECT}/blobs/${hash}`, { method: 'HEAD' })
     if (!held.ok) absent += 1
   }
-  console.log(`\nwould send ${absent} of ${blobs.size} captures — the rest is already held`)
-  console.log(`would push an edition of ${book.size} cases`)
+  console.log(`\nwould send ${absent} of ${blobs.size} blobs — the rest is already held`)
+  // Films are among them and are always new: a fresh recording of an unchanged
+  // journey hashes differently, so they never come back as already held.
+  console.log(`would push an edition of ${book.size} cases and ${filmCount} film(s)`)
   process.exit(0)
 }
 
@@ -222,6 +223,7 @@ const manifest = {
   cases: [...book].map(([title, steps]) => ({
     id: byTitle.get(title),
     steps: [...steps].map(([name, captures]) => ({ name, captures })),
+    ...(films.has(title) ? { recordings: films.get(title) } : {}),
   })),
 }
 

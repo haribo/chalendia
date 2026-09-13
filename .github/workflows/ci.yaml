@@ -99,6 +99,9 @@ jobs:
       - name: Check the generated api types are current
         run: just api-check
 
+      - name: Test the tooling
+        run: just tools-test
+
   image:
     name: Container image
     runs-on: ubuntu-latest

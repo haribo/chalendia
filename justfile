@@ -348,6 +348,11 @@ e2e-image:
     done
     exit "${failed}"
 
+# Test the tooling. Plain `node --test`: these are scripts, not an application,
+# and the frontend's runner would have to be taught about a directory outside it.
+tools-test:
+    node --test tools/
+
 # Push the last run's captures to ozalid, where they are reviewed
 ozalid-push:
     #!/usr/bin/env bash
@@ -367,7 +372,7 @@ ozalid-dry:
     node tools/ozalid/push.mjs --dry-run
 
 # Everything a pull request must pass, in one command
-check: backend-check backend-test frontend-check frontend-test frontend-build api-check
+check: backend-check backend-test frontend-check frontend-test frontend-build api-check tools-test
 
 # =============================================================================
 # PACKAGING
