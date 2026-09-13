@@ -141,6 +141,18 @@ rectangle, invisible on a light page and plainly visible on a dark one. This is 
 deliberate trade for simplicity, recorded here so a merchant's complaint about a white
 background meets a decision that can be revisited rather than a surprise.
 
+**A photograph is uprighted before it is converted.** A camera rarely rotates its
+pixels: it writes them as the sensor read them and records, beside them, which way up
+the picture is. That note travels in the file's metadata, and the conversion to JPEG
+above does not carry it over — so a photograph that is not uprighted *at that moment*
+can never be uprighted again, and a merchant's soaps reach the storefront lying on
+their side with nothing left in the file to explain why.
+
+The consequence is stated because it decides the order of two steps rather than the
+existence of one: the browser reads the orientation, turns the pixels to match, and only
+then reduces and converts. What the shop keeps is a photograph whose pixels are already
+the right way up, which is also why the shop never needs to read that metadata itself.
+
 ### Serving
 
 - Served in **AVIF**, with a fallback for browsers that accept none of the modern
@@ -157,6 +169,59 @@ background meets a decision that can be revisited rather than a surprise.
   Without them, one merchant's photo library fills the disk and the shop stops. They are
   enforced by the shop, never only by the browser: a client sends whatever it wants.
 - The first image is the product's default; staff order the rest explicitly.
+
+### In the back office
+
+A product's photographs are a grid of cards — the same grid on a wide screen and
+on a phone. A card is its photograph and its alternative text, and everything
+that acts on a photograph is laid on the photograph itself, so two cards never
+differ in height because one carries an action the other does not.
+
+- **Every photograph states its rank**, as a digit between the two controls that
+  change it. The rank is what reordering acts on, so nothing is allowed to take
+  its place.
+- **The order changes by dragging and by two controls**, so the merchant holding a
+  mouse and the one holding a keyboard or a finger each have a way. They are named
+  *back* and *forward* rather than up and down: the order is a list and the grid is
+  only how that list is laid out — in a grid that folds to two columns, "up" means
+  nothing.
+- The control at either end of the list is **disabled rather than absent**, so the
+  group keeps its width and the digit stays where the eye left it.
+- **The first photograph is the product's default**, said once under the screen's
+  title. The ranks say the rest.
+- A **missing alternative text is a warning, not a refusal**: it is counted at the
+  top of the screen and blocks neither saving nor publishing.
+
+#### While a photograph is on its way
+
+- The shop shows **the place the photograph will take**, named by its file name,
+  rather than a progress bar. A file reduced to 2400 px before it leaves arrives in
+  a fraction of a second, and a bar that fills and vanishes says less than the
+  photograph appearing.
+- **The order cannot change while an upload is in flight**, and the controls that
+  change it are disabled with the reason written once on the screen. Reordering
+  sends the whole list and the shop refuses a list that is not exactly what it
+  holds; a photograph landing mid-gesture would make the merchant's list wrong
+  through no fault of theirs, and the refusal would name nothing they did.
+- **The alternative text stays editable**, because it changes one photograph and
+  not the list.
+
+#### Removing
+
+- Removing a photograph **asks first**. It deletes the file the shop kept, and
+  nothing brings it back.
+- The question names what follows — the photograph leaves the catalogue, the others
+  take their new rank — and its button says *remove*, never *yes*. A merchant who
+  reads quickly reads the buttons, and *yes* cannot be read without the question.
+
+#### What a refusal says
+
+- A refusal **names the file and the measurement that failed**, one message per
+  file rather than one for the batch.
+- The valid files of the same batch are uploaded anyway. Refusing nine photographs
+  because a tenth is 640 px on the long side makes the merchant start over for a
+  mistake the other nine did not make.
+
 
 ---
 
