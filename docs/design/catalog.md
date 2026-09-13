@@ -141,6 +141,18 @@ rectangle, invisible on a light page and plainly visible on a dark one. This is 
 deliberate trade for simplicity, recorded here so a merchant's complaint about a white
 background meets a decision that can be revisited rather than a surprise.
 
+**A photograph is uprighted before it is converted.** A camera rarely rotates its
+pixels: it writes them as the sensor read them and records, beside them, which way up
+the picture is. That note travels in the file's metadata, and the conversion to JPEG
+above does not carry it over — so a photograph that is not uprighted *at that moment*
+can never be uprighted again, and a merchant's soaps reach the storefront lying on
+their side with nothing left in the file to explain why.
+
+The consequence is stated because it decides the order of two steps rather than the
+existence of one: the browser reads the orientation, turns the pixels to match, and only
+then reduces and converts. What the shop keeps is a photograph whose pixels are already
+the right way up, which is also why the shop never needs to read that metadata itself.
+
 ### Serving
 
 - Served in **AVIF**, with a fallback for browsers that accept none of the modern
