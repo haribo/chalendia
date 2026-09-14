@@ -32,8 +32,16 @@ export const FAMILIES = [
   { label: 'Actions', components: ['Button', 'NavLink'] },
   {
     label: 'Champs',
-    components: ['TextField', 'SelectField', 'CheckboxField', 'PasswordField', 'FieldFrame'],
+    components: [
+      'TextField',
+      'SelectField',
+      'CheckboxField',
+      'PasswordField',
+      'FilePicker',
+      'FieldFrame',
+    ],
   },
+  { label: 'Fichiers', components: ['DropZone'] },
   { label: 'Coquille', components: ['AppBar', 'Drawer', 'LanguagePicker', 'ThemePicker'] },
 ] as const
 

@@ -31,6 +31,8 @@ import Table from '@/shared/ui/Table.vue'
 import TextField from '@/shared/ui/TextField.vue'
 import ThemePicker from '@/shared/ui/ThemePicker.vue'
 import GalleryMenu from '@/surfaces/dev/GalleryMenu.vue'
+import DropZone from '@/shared/ui/DropZone.vue'
+import FilePicker from '@/shared/ui/FilePicker.vue'
 import GallerySection from '@/surfaces/dev/GallerySection.vue'
 import GalleryCanvas from '@/surfaces/dev/GalleryCanvas.vue'
 import GalleryVariant from '@/surfaces/dev/GalleryVariant.vue'
@@ -600,6 +602,51 @@ const rateRows = [
             strength
             error="trop courant"
           />
+        </GalleryCanvas>
+      </GallerySection>
+
+      <GallerySection
+        name="FilePicker"
+        contract="Choisir des fichiers, sans l’input nu du navigateur : un vrai bouton ouvre le sélecteur."
+      >
+        <GalleryCanvas stacked>
+          <GalleryVariant label="par défaut">
+            <FilePicker
+              label="Choisir des photographies"
+              accept="image/*"
+              multiple
+            />
+          </GalleryVariant>
+          <GalleryVariant label="discret">
+            <FilePicker
+              label="Remplacer le logo"
+              variant="quiet"
+            />
+          </GalleryVariant>
+          <GalleryVariant label="indisponible">
+            <FilePicker
+              label="Ajouter"
+              disabled
+            />
+          </GalleryVariant>
+        </GalleryCanvas>
+      </GallerySection>
+
+      <GallerySection
+        name="DropZone"
+        contract="Une zone où déposer des fichiers, autour de ce que l’appelant y met. Le dépôt est un raccourci : elle entoure toujours un moyen qui se passe de souris."
+      >
+        <GalleryCanvas stacked>
+          <GalleryVariant label="au repos">
+            <DropZone>
+              <FilePicker
+                label="Choisir des photographies"
+                accept="image/*"
+                multiple
+              />
+              <span>Ou déposez-les ici.</span>
+            </DropZone>
+          </GalleryVariant>
         </GalleryCanvas>
       </GallerySection>
 

@@ -46,6 +46,21 @@
   --text-m: 0.95rem;
   --text-l: 1.15rem;
   --text-xl: 1.6rem;
+
+  /*
+   * Ink for a control laid on a photograph, and the halo that outlines it.
+   *
+   * These are the one pair that does not turn with the theme, and that is the
+   * point: a photograph takes any luminance, so no theme colour can promise a
+   * contrast against it. White outlined in black can — measured on the rendered
+   * pixels, 15.7 against a pale photograph and 20.3 against a dark one, where
+   * WCAG 1.4.11 asks for 3.0. They are therefore defined once, here, and not
+   * redefined in either theme below.
+   */
+  --ink-on-image: #ffffff;
+  --ink-on-image-hover: rgb(255 255 255 / 0.16);
+  --outline-on-image: rgb(0 0 0 / 0.95);
+  --outline-on-image-soft: rgb(0 0 0 / 0.7);
 }
 
 /* The viewer's system preference is the default signal. */
