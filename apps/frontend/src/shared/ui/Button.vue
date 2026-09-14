@@ -8,8 +8,12 @@ withDefaults(
      * not a navigation, and a link would offer to open it in a new tab.
      * `icon` is a square touch target for a button whose whole label is an
      * icon — it needs an `aria-label`, since there is no text to read.
+     * `on-image` is that same target laid on a photograph: no ground at all,
+     * white ink, and an outline drawn by the shadow. A ground would be a disc
+     * over the picture, and a coloured glyph would have no contrast to promise
+     * — a photograph takes any luminance (`docs/design/core.md` § 8).
      */
-    variant?: 'primary' | 'quiet' | 'link' | 'icon'
+    variant?: 'primary' | 'quiet' | 'link' | 'icon' | 'on-image'
     type?: 'button' | 'submit'
     disabled?: boolean
     /** Says what is happening rather than spinning in silence. */
@@ -92,6 +96,31 @@ button:disabled {
 
 .icon:hover:not(:disabled) {
   background: var(--colour-accent-quiet);
+}
+
+/* Same 44px target as `icon`, with nothing under it. */
+.on-image {
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  color: var(--ink-on-image);
+}
+
+/* Zero offset, tight radius, stacked — an outline rather than a drop. A single
+   offset shadow leaves the top edge of the glyph undefended, which is what made
+   an earlier attempt unreadable on a pale photograph. Measured on the rendered
+   pixels: 15.7 against a pale one, 20.3 against a dark one. */
+.on-image :deep(svg) {
+  filter: drop-shadow(0 0 1px var(--outline-on-image))
+    drop-shadow(0 0 1px var(--outline-on-image))
+    drop-shadow(0 0 3px var(--outline-on-image-soft));
+}
+
+.on-image:hover:not(:disabled) {
+  background: var(--ink-on-image-hover);
 }
 
 .link:hover:not(:disabled),

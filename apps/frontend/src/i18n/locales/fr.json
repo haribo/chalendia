@@ -105,7 +105,42 @@
       "create": "Créer le produit",
       "creating": "Création"
     },
-    "unreachable": "La boutique n'a pas répondu. Réessayez."
+    "unreachable": "La boutique n'a pas répondu. Réessayez.",
+    "photographs": {
+      "title": "Photographies",
+      "default": "La première photographie est celle que la boutique montre dans le catalogue.",
+      "counter": "{held} sur {most}",
+      "add": "Ajouter",
+      "choose": "Choisir des photographies",
+      "dropHint": "Ou déposez-les ici. JPEG, {least} px minimum sur le grand côté, {most} par produit.",
+      "alternativeText": "Texte alternatif",
+      "missingCount": "Une photographie attend encore son texte alternatif. | {count} photographies attendent encore leur texte alternatif.",
+      "preparing": "En préparation",
+      "failed": "Échec",
+      "retry": "Réessayer",
+      "remove": "Retirer cette photographie",
+      "moveBack": "Reculer cette photographie",
+      "moveForward": "Avancer cette photographie",
+      "sending": "Envoi",
+      "lockedWhileSending": "L’ordre ne change pas tant qu'une photographie monte. Le texte alternatif, si.",
+      "confirmRemoval": "Retirer cette photographie ?",
+      "confirmRemovalDetail": "Elle ne sera plus montrée dans le catalogue. Les autres reprennent leur rang.",
+      "cancel": "Annuler",
+      "refused": {
+        "notJpeg": "{name} — ce fichier n’est pas un JPEG, quel que soit son nom.",
+        "tooSmall": "{name} — {longSide} px sur le grand côté, il en faut {least}.",
+        "tooLarge": "{name} — plus grand que ce que la boutique garde.",
+        "tooHeavy": "{name} — plus lourd que ce que la boutique accepte.",
+        "tooMany": "{name} — ce produit porte déjà {most} photographies. Retirez-en une pour en ajouter une autre.",
+        "unreadable": "{name} — ce fichier n’a pas pu être lu comme une image.",
+        "unknown": "{name} — la boutique a refusé ce fichier.",
+        "stale": "La liste a changé pendant votre geste. Elle vient d’être relue.",
+        "unreachable": "La boutique n’a pas répondu."
+      },
+      "confirmRemovalAction": "Retirer",
+      "breadcrumb": "Fil d’Ariane",
+      "backToCatalogue": "Catalogue"
+    }
   },
   "drawer": {
     "close": "Fermer"

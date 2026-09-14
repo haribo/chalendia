@@ -42,3 +42,24 @@ export async function createProduct(product: NewProduct): Promise<CatalogueOutco
     return { kind: 'unreachable' }
   }
 }
+
+export type ProductOutcome =
+  | { kind: 'product'; product: ProductSummary }
+  | { kind: 'refused' }
+  | { kind: 'unreachable' }
+
+/**
+ * One product, by its identifier.
+ *
+ * Read rather than searched for in the listing: the listing is paginated, so a
+ * product on the second page would simply not be found.
+ */
+export async function readProduct(id: number): Promise<ProductOutcome> {
+  try {
+    const { data } = await api.GET('/api/products/{id}', { params: { path: { id } } })
+
+    return data ? { kind: 'product', product: data } : { kind: 'refused' }
+  } catch {
+    return { kind: 'unreachable' }
+  }
+}

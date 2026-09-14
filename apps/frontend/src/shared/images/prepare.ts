@@ -80,9 +80,15 @@ export type Preparation =
 export async function prepare(file: File): Promise<Preparation> {
   let bitmap: ImageBitmap
   try {
-    // `from-image` is what turns the sensor's pixels the right way up. Without
-    // it the browser hands back the raw orientation and the note is lost at the
-    // conversion below.
+    // `from-image` turns the sensor's pixels the right way up before the
+    // conversion below drops the note that said which way up they were.
+    //
+    // Measured in Chromium: it uprights whatever this option says, `none`
+    // included, so the option changes nothing *there*. It is written anyway
+    // because the specification makes the behaviour the option's and not the
+    // engine's, and a browser whose default is `none` would otherwise store
+    // every phone photograph on its side. Untested on other engines: only
+    // Chromium is installed here.
     bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   } catch {
     return { kind: 'refused', refusal: { kind: 'unreadable' }, name: file.name }
