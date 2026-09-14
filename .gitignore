@@ -27,3 +27,9 @@ logs/
 
 # Generated review site and its inputs — the statuses are committed, not this
 reports/
+
+# The photographs a shop stores. The default media directory sits inside the
+# backend, so a developer who runs the journeys ends up holding every file they
+# uploaded — and a real shop's photographs are not this repository's business.
+# The path follows CHALENDIA_MEDIA_DIR; this is its default.
+apps/backend/media/
