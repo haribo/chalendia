@@ -105,7 +105,40 @@
       "create": "Create the product",
       "creating": "Creating"
     },
-    "unreachable": "The shop did not answer. Try again."
+    "unreachable": "The shop did not answer. Try again.",
+    "photographs": {
+      "title": "Photographs",
+      "default": "The first photograph is the one the shop shows in the catalogue.",
+      "counter": "{held} of {most}",
+      "add": "Add",
+      "choose": "Choose photographs",
+      "dropHint": "Or drop them here. JPEG, {least} px minimum on the long side, {most} per product.",
+      "alternativeText": "Alternative text",
+      "missingCount": "One photograph is still waiting for its alternative text. | {count} photographs are still waiting for their alternative text.",
+      "preparing": "Being prepared",
+      "failed": "Failed",
+      "retry": "Try again",
+      "remove": "Remove this photograph",
+      "moveBack": "Move this photograph back",
+      "moveForward": "Move this photograph forward",
+      "sending": "Sending",
+      "lockedWhileSending": "The order does not change while a photograph is on its way. The alternative text does.",
+      "confirmRemoval": "Remove this photograph?",
+      "confirmRemovalDetail": "It will no longer be shown in the catalogue. The others take their new rank.",
+      "cancel": "Cancel",
+      "refused": {
+        "notJpeg": "{name} — this file is not a JPEG, whatever it is named.",
+        "tooSmall": "{name} — {longSide} px on the long side, and {least} are needed.",
+        "tooLarge": "{name} — larger than the shop keeps.",
+        "tooHeavy": "{name} — heavier than the shop accepts.",
+        "tooMany": "{name} — this product already holds {most} photographs. Remove one to add another.",
+        "unreadable": "{name} — this file could not be read as a picture.",
+        "unknown": "{name} — the shop refused this file.",
+        "stale": "The list changed while you were acting on it. It has just been read again.",
+        "unreachable": "The shop did not answer."
+      },
+      "confirmRemovalAction": "Remove"
+    }
   },
   "drawer": {
     "close": "Close"

@@ -65,6 +65,14 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/surfaces/admin/NewProductView.vue'),
       },
       {
+        path: 'catalogue/:id/photographs',
+        name: 'admin-product-photographs',
+        component: () => import('@/surfaces/admin/ProductPhotographsView.vue'),
+        // The screen takes the product as a prop rather than reading the route
+        // itself: it is then mountable in a test without a router.
+        props: true,
+      },
+      {
         path: 'settings',
         name: 'admin-settings',
         component: () => import('@/surfaces/admin/SettingsView.vue'),
