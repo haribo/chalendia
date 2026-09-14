@@ -27,6 +27,7 @@ use crate::http::health::{Dependency, Health, Status};
         crate::http::staff::me,
         crate::http::catalogue::list_products,
         crate::http::catalogue::create_product,
+        crate::http::catalogue::read_product,
         crate::http::images::list_images,
         crate::http::images::add_image,
         crate::http::images::remove_image,
