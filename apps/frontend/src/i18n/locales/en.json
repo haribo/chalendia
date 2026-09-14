@@ -137,7 +137,9 @@
         "stale": "The list changed while you were acting on it. It has just been read again.",
         "unreachable": "The shop did not answer."
       },
-      "confirmRemovalAction": "Remove"
+      "confirmRemovalAction": "Remove",
+      "breadcrumb": "Breadcrumb",
+      "backToCatalogue": "Catalogue"
     }
   },
   "drawer": {

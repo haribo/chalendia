@@ -27,6 +27,11 @@ vi.mock('@/shared/api/images', () => ({
  * screen's own decisions — which files go up, what a refusal says, what is
  * locked and when — and a real canvas would prove none of them.
  */
+const readProduct = vi.fn()
+vi.mock('@/shared/api/catalogue', () => ({
+  readProduct: (...a: unknown[]) => readProduct(...a),
+}))
+
 const prepare = vi.fn()
 vi.mock('@/shared/images/prepare', () => ({
   prepare: (...a: unknown[]) => prepare(...a),
@@ -57,16 +62,22 @@ async function screen(images: ProductImage[] = []) {
   listImages.mockResolvedValue({ kind: 'listed', images })
   const wrapper = mount(ProductPhotographsView, {
     props: { id: '3' },
-    global: { plugins: [i18n] },
+    // The trail carries a NavLink; what it points at is the router's business,
+    // and this file is about the screen's own decisions.
+    global: { plugins: [i18n], stubs: { NavLink: { template: '<a><slot /></a>' } } },
   })
   await flushPromises()
   return wrapper
 }
 
 beforeEach(() => {
-  for (const stub of [listImages, addImage, describeImage, removeImage, reorderImages, prepare]) {
+  for (const stub of [listImages, addImage, describeImage, removeImage, reorderImages, prepare, readProduct]) {
     stub.mockReset()
   }
+  readProduct.mockResolvedValue({
+    kind: 'product',
+    product: { id: 3, title: 'Savon au miel de châtaignier', slug: 'savon', state: 'draft', price: 690 },
+  })
   prepare.mockImplementation(async (file: File) => ({
     kind: 'ready',
     file,
@@ -99,6 +110,29 @@ describe('the photographs of a product', () => {
     ])
 
     expect(wrapper.text()).toContain('2 photographies attendent')
+  })
+})
+
+describe('the trail back', () => {
+  it('names the product these photographs belong to', async () => {
+    // A screen called "Photographs" under a menu called "Catalogue" otherwise
+    // says the catalogue holds photographs, and a catalogue holds products.
+    const wrapper = await screen()
+
+    expect(readProduct).toHaveBeenCalledWith(3)
+    expect(wrapper.get('.crumb').text()).toContain('Catalogue')
+    expect(wrapper.get('.crumb').text()).toContain('Savon au miel de châtaignier')
+  })
+
+  it('still leads back when the product cannot be read', async () => {
+    // The way out matters more than the name: a merchant who cannot reach the
+    // catalogue again is stuck on a screen with no exit.
+    readProduct.mockResolvedValue({ kind: 'unreachable' })
+
+    const wrapper = await screen()
+
+    expect(wrapper.get('.crumb').text()).toContain('Catalogue')
+    expect(wrapper.get('.crumb').text()).not.toContain('·')
   })
 })
 

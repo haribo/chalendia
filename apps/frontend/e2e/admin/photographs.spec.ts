@@ -35,6 +35,10 @@ test.describe('A product’s photographs', () => {
       await page.goto('/admin/catalogue/1/photographs')
 
       await expect(page.getByRole('heading', { name: /photographs|photographies/i })).toBeVisible()
+      // The trail names the product. Without it the merchant reads "Catalogue"
+      // lit in the menu and a page about photographs, and a catalogue holds
+      // products — which is what the breadcrumb is here to settle.
+      await expect(page.getByText(/Savon de Marseille/)).toBeVisible()
       // Nothing yet, and the limits are said once where they are useful.
       await expect(page.getByText(/800 px/)).toBeVisible()
     })

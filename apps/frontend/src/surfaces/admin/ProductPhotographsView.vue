@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { readProduct, type ProductSummary } from '@/shared/api/catalogue'
 import {
   addImage,
   describeImage,
@@ -17,6 +18,7 @@ import Button from '@/shared/ui/Button.vue'
 import DropZone from '@/shared/ui/DropZone.vue'
 import Grid from '@/shared/ui/Grid.vue'
 import FilePicker from '@/shared/ui/FilePicker.vue'
+import NavLink from '@/shared/ui/NavLink.vue'
 import PageTitle from '@/shared/ui/PageTitle.vue'
 import Stack from '@/shared/ui/Stack.vue'
 import PhotographCard from '@/surfaces/admin/PhotographCard.vue'
@@ -35,6 +37,7 @@ const { t } = useI18n()
 
 const MOST = 10
 
+const product = ref<ProductSummary | undefined>(undefined)
 const images = ref<ProductImage[]>([])
 const refusals = ref<string[]>([])
 /** How many files are still on their way — nought means the list is settled. */
@@ -48,6 +51,15 @@ const missing = computed(
 )
 
 onMounted(read)
+onMounted(async () => {
+  // The breadcrumb names the product, because a screen called "Photographs"
+  // under a menu called "Catalogue" otherwise says the catalogue holds
+  // photographs — and a catalogue holds products.
+  const outcome = await readProduct(productId.value)
+  if (outcome.kind === 'product') {
+    product.value = outcome.product
+  }
+})
 
 async function read() {
   const outcome = await listImages(productId.value)
@@ -182,6 +194,18 @@ async function confirmRemoval() {
 <template>
   <Stack :gap="6">
     <Stack :gap="2">
+      <!-- The product sits between the catalogue and these photographs, and
+           the trail is the only thing on screen that says so until a product
+           has a screen of its own — see issue 106. -->
+      <p
+        class="crumb"
+        :aria-label="t('catalogue.photographs.breadcrumb')"
+      >
+        <NavLink to="/admin/catalogue">
+          {{ t('catalogue.photographs.backToCatalogue') }}
+        </NavLink>
+        <span v-if="product">· {{ product.title }}</span>
+      </p>
       <PageTitle>{{ t('catalogue.photographs.title') }}</PageTitle>
       <p class="rule">
         {{ t('catalogue.photographs.default') }}
@@ -295,6 +319,15 @@ async function confirmRemoval() {
 </template>
 
 <style scoped>
+.crumb {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--colour-text-muted);
+  font: var(--style-caption);
+}
+
 .rule {
   margin: 0;
   color: var(--colour-text-muted);

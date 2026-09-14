@@ -137,7 +137,9 @@
         "stale": "La liste a changé pendant votre geste. Elle vient d’être relue.",
         "unreachable": "La boutique n’a pas répondu."
       },
-      "confirmRemovalAction": "Retirer"
+      "confirmRemovalAction": "Retirer",
+      "breadcrumb": "Fil d’Ariane",
+      "backToCatalogue": "Catalogue"
     }
   },
   "drawer": {
