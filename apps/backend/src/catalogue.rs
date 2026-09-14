@@ -255,6 +255,42 @@ pub async fn create(pool: &PgPool, request: NewProduct) -> Result<i64, Catalogue
 }
 
 /// One page of the back-office listing, most recently created first.
+/// One product, as the back office reads it.
+///
+/// The same shape the listing carries, so a client holds one product type
+/// rather than two — and the rate is the one that applies, the shop default
+/// included, for the same reason it is there (`docs/design/core.md` § 6).
+pub async fn read(pool: &PgPool, id: i64) -> Result<Option<ProductSummary>, sqlx::Error> {
+    let row = sqlx::query!(
+        "select p.id, p.title, p.slug, p.state, v.price, v.merchant_reference,
+                coalesce(own.basis_points, fallback.basis_points) as vat_basis_points
+         from products p
+         join lateral (
+             select price, merchant_reference
+             from variants
+             where product_id = p.id
+             order by id
+             limit 1
+         ) v on true
+         left join vat_rates own on own.id = p.vat_rate_id
+         left join vat_rates fallback on fallback.is_default
+         where p.id = $1",
+        id,
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.map(|row| ProductSummary {
+        id: row.id,
+        title: row.title,
+        slug: row.slug,
+        state: ProductState::from_str(&row.state),
+        price: row.price,
+        merchant_reference: row.merchant_reference,
+        vat_basis_points: row.vat_basis_points,
+    }))
+}
+
 pub async fn list(pool: &PgPool, page: i64, page_size: i64) -> Result<ProductPage, sqlx::Error> {
     let page = page.max(1);
     let page_size = page_size.clamp(1, MAX_PAGE_SIZE);

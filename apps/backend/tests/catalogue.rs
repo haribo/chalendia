@@ -387,3 +387,77 @@ async fn nobody_creates_a_product_without_a_session(pool: PgPool) {
     let listing = call(&pool, get("/api/products", Some(&cookie))).await;
     assert_eq!(listing.body["total"], 0, "nothing was created");
 }
+
+#[sqlx::test]
+async fn one_product_can_be_read_by_its_identifier(pool: PgPool) {
+    let cookie = signed_in_staff(&pool).await;
+    let created = call(
+        &pool,
+        post(
+            "/api/products",
+            json!({
+                "title": "Savon au miel de châtaignier",
+                "price": 690,
+                "merchantReference": "SAV-MIEL-100",
+            }),
+            Some(&cookie),
+        ),
+    )
+    .await;
+    let id = created.body["items"][0]["id"]
+        .as_i64()
+        .expect("an identifier");
+
+    let read = call(&pool, get(&format!("/api/products/{id}"), Some(&cookie))).await;
+
+    assert_eq!(read.status, StatusCode::OK);
+    // The same shape the listing carries, so a client holds one product type
+    // rather than two.
+    assert_eq!(read.body["id"], id);
+    assert_eq!(read.body["title"], "Savon au miel de châtaignier");
+    assert_eq!(read.body["price"], 690);
+    assert_eq!(read.body["merchantReference"], "SAV-MIEL-100");
+    assert_eq!(read.body["state"], "draft");
+    assert_eq!(read.body["slug"], "savon-au-miel-de-chataignier");
+}
+
+#[sqlx::test]
+async fn reading_a_product_that_does_not_exist_says_so(pool: PgPool) {
+    let cookie = signed_in_staff(&pool).await;
+
+    let read = call(&pool, get("/api/products/404", Some(&cookie))).await;
+
+    assert_eq!(read.status, StatusCode::NOT_FOUND);
+    // The type the image routes already answer with: one name for one problem.
+    assert_eq!(read.body["type"], "/problems/no-such-product");
+}
+
+#[sqlx::test]
+async fn reading_a_product_needs_a_session(pool: PgPool) {
+    // A draft and a retired product are exactly what the storefront must never
+    // show, so this route is staff's like the listing it mirrors.
+    let cookie = signed_in_staff(&pool).await;
+    let created = call(
+        &pool,
+        post(
+            "/api/products",
+            json!({ "title": "Savon au miel", "price": 690 }),
+            Some(&cookie),
+        ),
+    )
+    .await;
+    let id = created.body["items"][0]["id"]
+        .as_i64()
+        .expect("an identifier");
+
+    let refused = call(
+        &pool,
+        get(
+            &format!("/api/products/{id}"),
+            Some("chalendia_session=not-a-session"),
+        ),
+    )
+    .await;
+
+    assert_eq!(refused.status, StatusCode::UNAUTHORIZED);
+}

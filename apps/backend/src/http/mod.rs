@@ -60,6 +60,7 @@ pub fn router(config: &Config, state: AppState) -> Router {
                     "/products",
                     get(catalogue::list_products).post(catalogue::create_product),
                 )
+                .route("/products/{id}", get(catalogue::read_product))
                 .route(
                     "/products/{id}/images",
                     get(images::list_images).post(images::add_image).layer(

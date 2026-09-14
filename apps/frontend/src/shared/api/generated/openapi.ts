@@ -70,6 +70,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read one product.
+         * @description Staff only, like the listing: a draft or a retired product is precisely what
+         *     the storefront must never show.
+         */
+        get: operations["read_product"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/products/{id}/images": {
         parameters: {
             query?: never;
@@ -591,6 +612,47 @@ export interface operations {
             };
             /** @description A field was refused */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    read_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The product */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductSummary"];
+                };
+            };
+            /** @description No live session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description type: /problems/no-such-product */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

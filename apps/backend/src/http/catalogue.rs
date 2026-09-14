@@ -1,13 +1,15 @@
-//! The catalogue routes: creating a product, and listing them for staff.
+//! The catalogue routes: creating a product, reading one, and listing them for staff.
 
 use axum::Json;
-use axum::extract::{Query, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 use utoipa::IntoParams;
 
-use crate::catalogue::{self, CatalogueError, DEFAULT_PAGE_SIZE, NewProduct, ProductPage};
+use crate::catalogue::{
+    self, CatalogueError, DEFAULT_PAGE_SIZE, NewProduct, ProductPage, ProductSummary,
+};
 use crate::http::AppState;
 use crate::http::error::{ApiError, InvalidParam};
 use crate::http::staff::CurrentStaff;
@@ -47,6 +49,40 @@ pub async fn list_products(
         Ok(page) => Json(page).into_response(),
         Err(error) => {
             tracing::error!("cannot list the products: {error}");
+            ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
+                .into_response()
+        }
+    }
+}
+
+/// Read one product.
+///
+/// Staff only, like the listing: a draft or a retired product is precisely what
+/// the storefront must never show.
+#[utoipa::path(
+    get,
+    path = "/api/products/{id}",
+    tag = "catalogue",
+    params(("id" = i64, Path, description = "The product")),
+    responses(
+        (status = 200, description = "The product", body = ProductSummary),
+        (status = 401, description = "No live session", body = ApiError),
+        (status = 404, description = "type: /problems/no-such-product", body = ApiError),
+    ),
+)]
+pub async fn read_product(
+    CurrentStaff(_staff): CurrentStaff,
+    State(state): State<AppState>,
+    Path(id): Path<i64>,
+) -> Response {
+    match catalogue::read(&state.db, id).await {
+        Ok(Some(product)) => Json(product).into_response(),
+        Ok(None) => ApiError::new(StatusCode::NOT_FOUND, "Not Found")
+            .with_kind("/problems/no-such-product")
+            .with_detail("No product carries this identifier.")
+            .into_response(),
+        Err(error) => {
+            tracing::error!("cannot read the product: {error}");
             ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
                 .into_response()
         }

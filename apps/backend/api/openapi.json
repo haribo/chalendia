@@ -166,6 +166,60 @@
         }
       }
     },
+    "/api/products/{id}": {
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Read one product.",
+        "description": "Staff only, like the listing: a draft or a retired product is precisely what\nthe storefront must never show.",
+        "operationId": "read_product",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The product",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "type: /problems/no-such-product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/products/{id}/images": {
       "get": {
         "tags": [
