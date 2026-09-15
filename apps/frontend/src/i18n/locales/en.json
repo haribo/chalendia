@@ -140,6 +140,9 @@
       "confirmRemovalAction": "Remove",
       "breadcrumb": "Breadcrumb",
       "backToCatalogue": "Catalogue"
+    },
+    "product": {
+      "missing": "This product does not exist, or it has been removed from the catalogue."
     }
   },
   "drawer": {

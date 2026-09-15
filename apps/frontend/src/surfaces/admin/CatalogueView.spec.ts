@@ -32,7 +32,13 @@ function page(items: ProductSummary[], over: Partial<ProductPage> = {}): Product
 
 async function catalogue() {
   const wrapper = mount(CatalogueView, {
-    global: { plugins: [i18n], stubs: { RouterLink: true } },
+    global: {
+      plugins: [i18n],
+      // Rendered as the anchor it is, so a test can read where a row leads.
+      stubs: {
+        RouterLink: { props: ['to'], template: '<a :href="String(to.name ?? to)"><slot /></a>' },
+      },
+    },
   })
   await flushPromises()
   return wrapper
@@ -136,5 +142,17 @@ describe('CatalogueView', () => {
 
     expect(wrapper.find('[role="alert"]').exists()).toBe(true)
     expect(wrapper.text()).not.toContain('No products yet.')
+  })
+
+  it('opens a product from its name', async () => {
+    // A catalogue lists products, so a row leads to the product it names — not
+    // to one of its aspects, which is how a table ends up with a column per
+    // aspect and no screen for the thing itself.
+    listProducts.mockResolvedValue({ kind: 'listed', page: page([product({ id: 7 })]) })
+
+    const link = (await catalogue()).get('tbody a')
+
+    expect(link.text()).toBe('Savon de Marseille')
+    expect(link.attributes('href')).toBe('admin-product')
   })
 })
