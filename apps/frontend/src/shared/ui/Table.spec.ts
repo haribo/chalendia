@@ -53,7 +53,14 @@ const rows: Row[] = [
 function table(props: Partial<InstanceType<typeof Table>['$props']> = {}) {
   return mount(Table, {
     props: { columns, rows, empty: 'Aucun produit pour l’instant.', label: 'Produits', ...props },
-    global: { stubs: { Stack: { template: '<ul><slot /></ul>' } } },
+    global: {
+      stubs: {
+        Stack: { template: '<ul><slot /></ul>' },
+        // Rendered as the anchor it is, so a test can read where a row leads
+        // without standing a router up.
+        RouterLink: { props: ['to'], template: '<a :href="String(to.name ?? to)"><slot /></a>' },
+      },
+    },
   })
 }
 
@@ -232,6 +239,38 @@ describe('Table', () => {
     const rendered = table({ columns: [...columns, { key: 'ghost', header: 'Absent' }] })
 
     expect(rendered.findAll('tbody tr')).toHaveLength(2)
+    expect(rendered.text()).toContain('—')
+  })
+
+  it('opens the thing a row names, as a link', () => {
+    stubMatchMedia(false)
+    // A navigation, not an action: a row whose name cannot be opened in a new
+    // tab owns its address and refuses to share it.
+    const rendered = table({
+      rows: [
+        {
+          key: 1,
+          cells: {
+            title: { kind: 'link', value: 'Savon au miel', to: { name: 'admin-product' } },
+          },
+        },
+      ],
+    })
+
+    const link = rendered.get('tbody a')
+    expect(link.text()).toBe('Savon au miel')
+    expect(link.attributes('href')).toBe('admin-product')
+  })
+
+  it('leaves a link with nothing to name as plain text', () => {
+    stubMatchMedia(false)
+    // A link around a dash leads nowhere by definition, and would offer a way
+    // in to a row that has no name yet.
+    const rendered = table({
+      rows: [{ key: 1, cells: { title: { kind: 'link', to: { name: 'admin-product' } } } }],
+    })
+
+    expect(rendered.find('tbody a').exists()).toBe(false)
     expect(rendered.text()).toContain('—')
   })
 })

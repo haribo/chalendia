@@ -43,6 +43,18 @@ function text(cell: Cell): string {
     </Button>
   </span>
 
+  <!-- A link, not a button: opening a product is a navigation. A row whose
+       name cannot be opened in a new tab is a row that owns its own address
+       and refuses to share it. An absent value falls through, since a link
+       around a dash leads nowhere by definition. -->
+  <RouterLink
+    v-else-if="cell.kind === 'link' && !isAbsent(cell)"
+    class="strong opens"
+    :to="cell.to"
+  >
+    {{ text(cell) }}
+  </RouterLink>
+
   <Pill
     v-else-if="cell.kind === 'pill' && !isAbsent(cell)"
     :tone="cell.tone"
@@ -55,7 +67,10 @@ function text(cell: Cell): string {
        outlined pill around a dash announces a state called "—". -->
   <span
     v-else
-    :class="[props.cell.kind === 'pill' ? 'text' : props.cell.kind, { absent: isAbsent(cell) }]"
+    :class="[
+      props.cell.kind === 'pill' || props.cell.kind === 'link' ? 'text' : props.cell.kind,
+      { absent: isAbsent(cell) },
+    ]"
   >{{ text(cell) }}</span>
 </template>
 
@@ -66,6 +81,19 @@ function text(cell: Cell): string {
 
 .strong {
   font: var(--style-body-strong);
+}
+
+/* The row's name, and the way in. Underlined only when aimed at: a column of
+   permanently underlined titles reads as a list of links rather than as the
+   things they name. */
+.opens {
+  color: var(--colour-accent);
+  text-decoration: none;
+}
+
+.opens:hover,
+.opens:focus-visible {
+  text-decoration: underline;
 }
 
 .number {
