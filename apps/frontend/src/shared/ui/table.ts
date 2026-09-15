@@ -1,4 +1,5 @@
 import type { Component } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
 
 /**
  * What a table cell may be — the whole vocabulary, and nothing else.
@@ -37,6 +38,14 @@ export type Cell =
   | { kind: 'text'; value?: string }
   /** The row's identity: its name, its title. One per row. */
   | { kind: 'strong'; value?: string }
+  /**
+   * The row's identity, and the way to the thing it names.
+   *
+   * A navigation rather than an action: one opens a product, one does not
+   * *perform* it. That is also why it is a link and not a button — it opens in
+   * a new tab, it copies, it bookmarks, and a button does none of the three.
+   */
+  | { kind: 'link'; value?: string; to: RouteLocationRaw }
   /** A figure. Right-aligned by its column, and always tabular. */
   | { kind: 'number'; value?: string }
   /** A reference someone reads character by character. */

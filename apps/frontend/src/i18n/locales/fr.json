@@ -140,6 +140,9 @@
       "confirmRemovalAction": "Retirer",
       "breadcrumb": "Fil d’Ariane",
       "backToCatalogue": "Catalogue"
+    },
+    "product": {
+      "missing": "Ce produit n’existe pas, ou il a été retiré du catalogue."
     }
   },
   "drawer": {

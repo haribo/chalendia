@@ -27,18 +27,18 @@ test.describe('A product’s photographs', () => {
   test('a merchant adds photographs, orders them, and is told what was refused', async ({ page }) => {
     await signIn(page)
 
-    await reportStep(page, 'A product with no photographs says where to start', async () => {
-      // Reached by its address: nothing in the back office leads here yet. The
-      // catalogue lists products, and a product's photographs belong to a
-      // product's own screen, which does not exist — see the issue this journey
-      // was written alongside.
-      await page.goto('/admin/catalogue/1/photographs')
+    await reportStep(page, 'The catalogue opens a product', async () => {
+      // A row leads to the product it names. The photographs are a section of
+      // that product's screen, never a screen of their own: a catalogue holds
+      // products (`docs/design/catalog.md` § 7).
+      await page.goto('/admin/catalogue')
+      await page.getByRole('link', { name: /Savon de Marseille/ }).click()
 
+      // The product is the title, so the screen says which product this is.
+      await expect(
+        page.getByRole('heading', { name: /Savon de Marseille/, level: 1 }),
+      ).toBeVisible()
       await expect(page.getByRole('heading', { name: /photographs|photographies/i })).toBeVisible()
-      // The trail names the product. Without it the merchant reads "Catalogue"
-      // lit in the menu and a page about photographs, and a catalogue holds
-      // products — which is what the breadcrumb is here to settle.
-      await expect(page.getByText(/Savon de Marseille/)).toBeVisible()
       // Nothing yet, and the limits are said once where they are useful.
       await expect(page.getByText(/800 px/)).toBeVisible()
     })
