@@ -114,7 +114,6 @@
       "choose": "Choisir des photographies",
       "dropHint": "Ou déposez-les ici. JPEG, {least} px minimum sur le grand côté, {most} par produit.",
       "alternativeText": "Texte alternatif",
-      "missingCount": "Une photographie attend encore son texte alternatif. | {count} photographies attendent encore leur texte alternatif.",
       "preparing": "En préparation",
       "failed": "Échec",
       "retry": "Réessayer",

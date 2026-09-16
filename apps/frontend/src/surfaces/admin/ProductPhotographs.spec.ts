@@ -92,15 +92,19 @@ describe('the photographs of a product', () => {
     expect(wrapper.text()).toContain('800 px minimum')
   })
 
-  it('counts the photographs still waiting for a description', async () => {
+  it('says nothing about a photograph nobody described yet', async () => {
+    // The alternative text is optional, and a banner that said one was waiting
+    // never said which: on four cards the empty field shows itself, and since
+    // the banner blocked nothing it stayed up until everything was described.
+    // The field is what flags the absence — see issue 100.
     const wrapper = await screen([
       photograph(),
       photograph({ id: 2, alternativeText: null }),
-      // Blank is missing too: a space is not a description of anything.
       photograph({ id: 3, alternativeText: '   ' }),
     ])
 
-    expect(wrapper.text()).toContain('2 photographies attendent')
+    expect(wrapper.findAllComponents({ name: 'Alert' })).toHaveLength(0)
+    expect(wrapper.text()).not.toMatch(/attend/i)
   })
 })
 

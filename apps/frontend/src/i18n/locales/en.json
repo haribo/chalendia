@@ -114,7 +114,6 @@
       "choose": "Choose photographs",
       "dropHint": "Or drop them here. JPEG, {least} px minimum on the long side, {most} per product.",
       "alternativeText": "Alternative text",
-      "missingCount": "One photograph is still waiting for its alternative text. | {count} photographs are still waiting for their alternative text.",
       "preparing": "Being prepared",
       "failed": "Failed",
       "retry": "Try again",

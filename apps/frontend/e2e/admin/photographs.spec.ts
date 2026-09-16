@@ -73,17 +73,16 @@ test.describe('A product’s photographs', () => {
       await expect(page.getByText(/n’est pas un JPEG|not a JPEG/i)).toHaveCount(0)
     })
 
-    await reportStep(page, 'A photograph without a description is counted, not refused', async () => {
-      await expect(
-        page.getByText(/attendent encore|waiting for their alternative text/i),
-      ).toBeVisible()
+    await reportStep(page, 'A photograph is described, and one is left without', async () => {
+      // The alternative text is optional: nothing warns, nothing refuses. The
+      // empty field is the flag, and it is the only one.
+      await expect(page.getByText(/attend|waiting/i)).toHaveCount(0)
 
       const field = page.getByLabel(/texte alternatif|alternative text/i).first()
       await field.fill('Savon au miel sur un linge écru')
       await field.blur()
 
-      // One left, so the sentence changes rather than disappearing.
-      await expect(page.getByText(/attend encore|waiting for its alternative text/i)).toBeVisible()
+      await expect(field).toHaveValue('Savon au miel sur un linge écru')
     })
 
     await reportStep(page, 'The second photograph becomes the first', async () => {

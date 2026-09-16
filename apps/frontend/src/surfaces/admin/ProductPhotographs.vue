@@ -46,9 +46,6 @@ const removing = ref<number | null>(null)
 
 const productId = computed(() => props.productId)
 const locked = computed(() => sending.value > 0)
-const missing = computed(
-  () => images.value.filter((image) => !image.alternativeText?.trim()).length,
-)
 
 onMounted(read)
 
@@ -223,12 +220,6 @@ async function confirmRemoval() {
       {{ t('catalogue.photographs.lockedWhileSending') }}
     </Alert>
 
-    <Alert
-      v-if="missing > 0"
-      tone="warning"
-    >
-      {{ t('catalogue.photographs.missingCount', { count: missing }, missing) }}
-    </Alert>
 
     <Alert
       v-for="refusal in refusals"
