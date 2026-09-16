@@ -65,9 +65,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/surfaces/admin/NewProductView.vue'),
       },
       {
-        path: 'catalogue/:id/photographs',
-        name: 'admin-product-photographs',
-        component: () => import('@/surfaces/admin/ProductPhotographsView.vue'),
+        // A product sits under the catalogue because that is where it belongs;
+        // its photographs are a section of this screen rather than an address
+        // of their own (`docs/design/catalog.md` § 7).
+        path: 'catalogue/:id',
+        name: 'admin-product',
+        component: () => import('@/surfaces/admin/ProductView.vue'),
         // The screen takes the product as a prop rather than reading the route
         // itself: it is then mountable in a test without a router.
         props: true,

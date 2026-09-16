@@ -172,10 +172,15 @@ the right way up, which is also why the shop never needs to read that metadata i
 
 ### In the back office
 
-A product's photographs are a grid of cards — the same grid on a wide screen and
-on a phone. A card is its photograph and its alternative text, and everything
-that acts on a photograph is laid on the photograph itself, so two cards never
-differ in height because one carries an action the other does not.
+A product's photographs are **a section of that product's own screen** (§ 7,
+*Opening a product*), never a screen of their own. A catalogue holds products; a
+merchant who is looking at photographs is looking at a product, and the interface
+says so by putting them where the product is.
+
+They are a grid of cards — the same grid on a wide screen and on a phone. A card
+is its photograph and its alternative text, and everything that acts on a
+photograph is laid on the photograph itself, so two cards never differ in height
+because one carries an action the other does not.
 
 - **Every photograph states its rank**, as a digit between the two controls that
   change it. The rank is what reordering acts on, so nothing is allowed to take
@@ -187,8 +192,8 @@ differ in height because one carries an action the other does not.
   nothing.
 - The control at either end of the list is **disabled rather than absent**, so the
   group keeps its width and the digit stays where the eye left it.
-- **The first photograph is the product's default**, said once under the screen's
-  title. The ranks say the rest.
+- **The first photograph is the product's default**, said once under the
+  section's heading. The ranks say the rest.
 - A **missing alternative text is a warning, not a refusal**: it is counted at the
   top of the screen and blocks neither saving nor publishing.
 
@@ -255,6 +260,24 @@ What staff see when they manage the catalogue, as opposed to what a customer see
   does not change under an edit made while paging through it.
 - The empty state is not an empty table. A shop that was just installed has no products,
   and that screen says what to do next rather than showing column headers over nothing.
+
+### Opening a product
+
+A row of the list opens the product it names. What the merchant then reads is the
+product itself: its title, its reference when it has one, its price, the rate
+that applies, and whether it is a draft, published or retired — the same facts the
+list carries, without the columns.
+
+- **A product's photographs are a section of this screen** (§ 5, *In the back
+  office*). There is no screen of photographs: a catalogue holds products, and an
+  interface that leads from a catalogue straight to one aspect of a product has
+  skipped the product.
+- The trail back is named: the catalogue, then this product. A merchant who
+  arrives here from a search or a link knows where they are without guessing.
+- What the screen does **not** do is edit those fields. Reading a product and
+  changing it are two jobs; the second brings a form, a refusal for every field,
+  and a question about what an unsaved change means when the merchant leaves. It
+  is its own change rather than a corner of this one.
 
 ### Creating a product
 

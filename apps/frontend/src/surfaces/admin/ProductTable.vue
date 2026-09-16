@@ -44,7 +44,13 @@ function rowOf(product: ProductSummary): Row {
   return {
     key: product.id,
     cells: {
-      title: { kind: 'strong', value: product.title },
+      // The name is the way in: a row of a catalogue leads to the product it
+      // names, and to the product rather than to one of its aspects.
+      title: {
+        kind: 'link',
+        value: product.title,
+        to: { name: 'admin-product', params: { id: product.id } },
+      },
       // The shop sends `null` for a reference nobody typed; the cell's
       // language for absence is `undefined`, and translating between the two
       // is this component's job rather than the table's.
