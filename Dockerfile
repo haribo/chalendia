@@ -11,7 +11,7 @@ COPY apps/frontend/ ./
 RUN npm run build
 
 # --- backend ----------------------------------------------------------------
-FROM rust:1.98-slim-trixie AS backend
+FROM rust:1.99-slim-trixie AS backend
 
 WORKDIR /build
 # The AVIF encoder's `asm` feature builds its assembly paths with nasm, and
