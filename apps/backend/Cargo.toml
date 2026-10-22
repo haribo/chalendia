@@ -23,8 +23,8 @@ tokio = { version = "1.53.1", features = ["fs", "macros", "rt-multi-thread", "ne
 tower-http = { version = "0.7.0", features = ["cors", "fs", "trace"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-utoipa = { version = "5.5.0", features = ["axum_extras"] }
-utoipa-axum = "0.2.0"
+utoipa = { version = "6.0.0", features = ["axum_extras"] }
+utoipa-axum = "0.3.0"
 zxcvbn = "3"
 
 # Dependencies built optimised even in a debug build. Without it, the AVIF
